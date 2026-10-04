@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Abba's Orchard — 24/7 AI Admissions Agent Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --brand-green-dark: #1b3d22;
+      --brand-green-primary: #2d6a38;
+      --brand-green-light: #3e884e;
+      --brand-green-subtle: #eef6f0;
+      --brand-accent-gold: #c69224;
+      --brand-accent-gold-light: #fef8eb;
+      --brand-terracotta: #c2593f;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+      --shadow-green: 0 10px 25px -5px rgba(45, 106, 56, 0.35);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --fb-blue: #0084ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f172a;
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      color: white;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand-green-primary), #14401f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .brand-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .badge-poc {
+      background: rgba(198, 146, 36, 0.2);
+      border: 1px solid var(--brand-accent-gold);
+      color: #fbd38d;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      gap: 4px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .tab-btn.active {
+      background: var(--brand-green-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(45, 106, 56, 0.5);
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quick-pill {
+      background: rgba(45, 106, 56, 0.2);
+      border: 1px solid rgba(78, 135, 70, 0.4);
+      color: #86efac;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* Main Container */
+    .main-viewport {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      height: calc(100vh - 67px);
+      background: #0f172a;
+      overflow: hidden;
+    }
+
+    @media (max-width: 1024px) {
+      .main-viewport {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow-y: auto;
+      }
+    }
+
+    /* Left Side: Interactive Preview Canvas */
+    .preview-canvas {
+      background: #1e293b;
+      position: relative;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .browser-frame-bar {
+      background: #0b1120;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+
+    .browser-url-bar {
+      flex: 1;
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .browser-url-bar span.lock {
+      color: #22c55e;
+      font-size: 11px;
+    }
+
+    /* Mockup Views */
+    .mockup-content {
+      flex: 1;
+      position: relative;
+      overflow-y: auto;
+      background: #f8fafc;
+    }
+
+    /* Website Mode Mockup */
+    .orchard-website-mock {
+      background: #ffffff;
+      min-height: 100%;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .web-header {
+      padding: 16px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      background: #ffffff;
+    }
+
+    .web-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .web-logo-icon {
+      font-size: 28px;
+    }
+
+    .web-logo-text h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--brand-green-dark);
+      line-height: 1.1;
+    }
+
+    .web-logo-text span {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .web-nav-links {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .web-nav-links span {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .web-nav-links span:hover, .web-nav-links span.active {
+      color: var(--brand-green-primary);
+    }
+
+    .web-hero-banner {
+      background: linear-gradient(135deg, #1b3d22 0%, #2d6a38 60%, #17421f 100%);
+      color: white;
+      padding: 50px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .web-hero-banner::after {
+      content: '';
+      position: absolute;
+      right: -40px;
+      bottom: -40px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(198, 146, 36, 0.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+      color: #fef08a;
+    }
+
+    .web-hero-banner h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      max-width: 580px;
+    }
+
+    .web-hero-banner p {
+      font-size: 14px;
+      color: #d1fae5;
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .hero-cta-btns {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-web-primary {
+      background: #c69224;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-web-outline {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Campus Explorer Tabs Mockup */
+    .campus-explorer-section {
+      padding: 30px 36px;
+      background: #f8fafc;
+    }
+
+    .explorer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .explorer-header h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--brand-green-dark);
+    }
+
+    .region-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .region-pill {
+      background: #e2e8f0;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.2s ease;
+    }
+
+    .region-pill.active {
+      background: var(--brand-green-primary);
+      color: white;
+    }
+
+    .campus-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .campus-card {
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .campus-card:hover, .campus-card.highlighted {
+      border-color: var(--brand-green-primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .campus-card.highlighted {
+      background: #f0fdf4;
+      border-width: 2px;
+    }
+
+    .campus-badge-region {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    .badge-mindanao { background: #dcfce7; color: #166534; }
+    .badge-visayas { background: #e0e7ff; color: #3730a3; }
+    .badge-luzon { background: #fef3c7; color: #92400e; }
+
+    .campus-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--brand-green-dark);
+      margin-bottom: 4px;
+    }
+
+    .campus-address {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 10px;
+      line-height: 1.4;
+      min-height: 32px;
+    }
+
+    .campus-contact-line {
+      font-size: 11px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .campus-programs-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    .prog-chip {
+      font-size: 9px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ==========================================================================
+       Facebook Page Mockup Styles (https://www.facebook.com/abbasorchardschool/)
+       ========================================================================== */
+    .fb-page-mock {
+      background: #f0f2f5;
+      color: #050505;
+      min-height: 100%;
+      display: none;
+      flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* FB Top Navigation Bar */
+    .fb-top-nav {
+      background: #ffffff;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ced0d4;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .fb-nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .fb-logo-svg {
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+
+    .fb-search-bar {
+      background: #f0f2f5;
+      border-radius: 50px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #65676b;
+      font-size: 14px;
+      width: 220px;
+    }
+
+    .fb-search-bar input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: #050505;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .fb-nav-center {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fb-tab-icon {
+      padding: 8px 24px;
+      border-radius: 8px;
+      color: #65676b;
+      font-size: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fb-tab-icon:hover {
+      background: #f2f2f2;
+    }
+
+    .fb-tab-icon.active {
+      color: #1877f2;
+      border-bottom: 3px solid #1877f2;
+      border-radius: 0;
+    }
+
+    .fb-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .fb-circle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #e4e6eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #050505;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s;
+    }
+
+    .fb-circle-btn:hover {
+      background: #d8dadf;
+    }
+
+    .fb-circle-btn.active-messenger {
+      background: #e7f3ff;
+      color: #1877f2;
+    }
+
+    .fb-badge-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 9px;
+      height: 9px;
+      background: #1877f2;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    /* FB Page Header / Hero Section */
+    .fb-page-header-container {
+      background: #ffffff;
+      border-bottom: 1px solid #ced0d4;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .fb-cover-wrap {
+      position: relative;
+      height: 200px;
+      background: linear-gradient(135deg, #183a1d 0%, #2d6a38 45%, #1b4d24 80%, #c69224 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+
+    .fb-cover-banner-text {
+      position: absolute;
+      top: 24px;
+      left: 32px;
+      color: white;
+    }
+
+    .fb-cover-banner-text h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      letter-spacing: -0.01em;
+    }
+
+    .fb-cover-banner-text p {
+      font-size: 13px;
+      color: #d1fae5;
+      font-weight: 600;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      margin-top: 2px;
+    }
+
+    .fb-cover-watermark {
+      position: absolute;
+      right: 20px;
+      bottom: 16px;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 4px 10px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .fb-profile-row {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      position: relative;
+      margin-top: -45px;
+      padding-bottom: 14px;
+    }
+
+    .fb-profile-avatar-box {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .fb-profile-logo-art {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fb-profile-info {
+      margin-left: 18px;
+      flex: 1;
+      padding-top: 48px;
+    }
+
+    .fb-profile-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #050505;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fb-verified-icon {
+      color: #1877f2;
+      font-size: 18px;
+    }
+
+    .fb-profile-followers {
+      font-size: 13px;
+      color: #65676b;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .fb-profile-bio {
+      font-size: 13px;
+      color: #050505;
+      margin-top: 4px;
+      line-height: 1.4;
+      max-width: 580px;
+    }
+
+    .fb-profile-category {
+      font-size: 12px;
+      color: #65676b;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fb-facepile-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-top: 6px;
+    }
+
+    .fb-facepile-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid white;
+      margin-left: -5px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #94a3b8;
+      color: white;
+      font-weight: bold;
+    }
+    .fb-facepile-avatar:first-child { margin-left: 0; }
+
+    .fb-profile-actions {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+      margin-top: 48px;
+    }
+
+    .fb-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: filter 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+
+    .fb-btn:hover {
+      filter: brightness(0.95);
+    }
+    .fb-btn:active {
+      transform: scale(0.98);
+    }
+
+    .fb-btn-primary {
+      background: #1877f2;
+      color: #ffffff;
+    }
+
+    .fb-btn-secondary {
+      background: #e4e6eb;
+      color: #050505;
+    }
+
+    .fb-btn-highlight-msg {
+      background: #e7f3ff;
+      color: #1877f2;
+      border: 1px solid #1877f2;
+    }
+
+    /* FB Page Nav Tabs Bar */
+    .fb-profile-tabs-bar {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #e4e6eb;
+    }
+
+    .fb-profile-tabs {
+      display: flex;
+      gap: 2px;
+    }
+
+    .fb-profile-tab {
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #65676b;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: background 0.15s;
+    }
+
+    .fb-profile-tab:hover {
+      background: #f2f2f2;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .fb-profile-tab.active {
+      color: #1877f2;
+      border-bottom-color: #1877f2;
+    }
+
+    /* Facebook 2-Column Content Feed */
+    .fb-feed-layout {
+      max-width: 1080px;
+      margin: 14px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .fb-feed-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .fb-card {
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .fb-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #050505;
+      margin-bottom: 10px;
+    }
+
+    .fb-details-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12.5px;
+      color: #050505;
+    }
+
+    .fb-detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .fb-detail-icon {
+      font-size: 16px;
+      color: #65676b;
+      width: 20px;
+      flex-shrink: 0;
+      text-align: center;
+      margin-top: 1px;
+    }
+
+    .fb-detail-link {
+      color: #1877f2;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .fb-detail-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Featured Posts Section */
+    .fb-featured-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .fb-featured-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .fb-featured-card {
+      border: 1px solid #ced0d4;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .fb-featured-card-header {
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fb-card-logo-mini {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #2d6a38;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .fb-featured-author {
+      font-size: 11px;
+      font-weight: 700;
+      color: #050505;
+      line-height: 1.1;
+    }
+
+    .fb-featured-date {
+      font-size: 10px;
+      color: #65676b;
+    }
+
+    .fb-featured-text {
+      padding: 0 10px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #050505;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fb-featured-photo {
+      width: 100%;
+      height: 110px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .photo-camp-1 {
+      background: linear-gradient(135deg, #1b3d22, #3e884e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .photo-camp-2 {
+      background: linear-gradient(135deg, #2d6a38, #153c1d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    /* Live AI Facebook Post with Action Bar */
+    .fb-post-author-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .fb-post-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2d6a38;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .fb-post-names h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #050505;
+    }
+
+    .fb-post-names span {
+      font-size: 11px;
+      color: #65676b;
+    }
+
+    .fb-post-text-body {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #050505;
+      margin-bottom: 12px;
+    }
+
+    .fb-ai-messenger-cta {
+      border: 1px solid #1877f2;
+      background: #f0f7ff;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .fb-ai-messenger-cta:hover {
+      background: #e5f1ff;
+    }
+
+    .fb-cta-details {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fb-cta-icon {
+      font-size: 24px;
+      color: #1877f2;
+    }
+
+    .fb-cta-text h5 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #050505;
+    }
+
+    .fb-cta-text p {
+      font-size: 11px;
+      color: #65676b;
+    }
+
+    .fb-post-reactions-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #65676b;
+      padding: 6px 0;
+      border-bottom: 1px solid #e4e6eb;
+      margin-bottom: 4px;
+    }
+
+    .fb-post-actions-row {
+      display: flex;
+      justify-content: space-around;
+      padding-top: 4px;
+    }
+
+    .fb-action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 4px;
+      color: #65676b;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .fb-action-btn:hover {
+      background: #f2f2f2;
+    }
+
+    /* Floating Web Chat Widget Mockup */
+    .website-chat-trigger-bubble {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, var(--brand-green-primary), var(--brand-green-dark));
+      color: white;
+      padding: 12px 20px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-green);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      z-index: 100;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      animation: bounceSmall 3s infinite;
+    }
+
+    @keyframes bounceSmall {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .trigger-bubble-icon {
+      font-size: 20px;
+    }
+
+    .trigger-bubble-text {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .trigger-bubble-badge {
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+
+    /* Right Side: Active AI Testing Phone / Widget Panel */
+    .ai-simulator-panel {
+      background: #0f172a;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: -10px 0 25px rgba(0,0,0,0.3);
+      transition: border-color 0.3s;
+    }
+
+    /* Facebook Messenger Theme for Simulator Panel */
+    .ai-simulator-panel.fb-theme {
+      border-left-color: rgba(24, 119, 242, 0.3);
+    }
+
+    .ai-simulator-panel.fb-theme .sim-header {
+      background: #18191a;
+      border-bottom: 1px solid #3a3b3c;
+    }
+
+    .ai-simulator-panel.fb-theme .user .bubble-content {
+      background: #0084ff;
+      box-shadow: 0 2px 8px rgba(0, 132, 255, 0.35);
+    }
+
+    .ai-simulator-panel.fb-theme .agent .bubble-content {
+      background: #242526;
+      border-color: #3a3b3c;
+      color: #e4e6eb;
+    }
+
+    .ai-simulator-panel.fb-theme .btn-send-sim {
+      background: #0084ff;
+    }
+
+    .ai-simulator-panel.fb-theme .btn-send-sim:hover {
+      background: #0073e6;
+    }
+
+    .ai-simulator-panel.fb-theme .prompt-chip:hover {
+      background: #0084ff;
+      border-color: #0084ff;
+    }
+
+    .sim-header {
+      padding: 14px 18px;
+      background: #1e293b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sim-agent-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sim-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--brand-green-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 2px solid #86efac;
+      position: relative;
+    }
+
+    .sim-avatar .online-indicator {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border-radius: 50%;
+      border: 2px solid #1e293b;
+    }
+
+    .sim-name-box h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sim-name-box p {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .sim-channel-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(0, 132, 255, 0.15);
+      border: 1px solid rgba(0, 132, 255, 0.4);
+      color: #60a5fa;
+    }
+
+    .sim-channel-badge.web-mode {
+      background: rgba(45, 106, 56, 0.2);
+      border-color: rgba(78, 135, 70, 0.5);
+      color: #86efac;
+    }
+
+    /* Live Target Campus Context Bar */
+    .campus-routing-banner {
+      background: #172554;
+      border-bottom: 1px solid #1e3a8a;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #93c5fd;
+    }
+
+    .routing-target-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .routing-pill {
+      background: #2563eb;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    /* Chat Body */
+    .sim-chat-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #090d16;
+    }
+
+    .chat-bubble-row {
+      display: flex;
+      gap: 8px;
+      max-width: 90%;
+    }
+
+    .chat-bubble-row.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-bubble-row.agent {
+      align-self: flex-start;
+    }
+
+    .bubble-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-green-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .bubble-avatar.user-av {
+      background: #475569;
+    }
+
+    .bubble-content {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .agent .bubble-content {
+      background: #1e293b;
+      color: #f1f5f9;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .user .bubble-content {
+      background: var(--brand-green-primary);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 8px rgba(45, 106, 56, 0.4);
+    }
+
+    .bubble-time {
+      font-size: 9px;
+      color: #94a3b8;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    /* Interactive Rich Cards inside Chat */
+    .chat-card {
+      margin-top: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .chat-card-title {
+      font-weight: 700;
+      color: #fbd38d;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chat-card-meta {
+      color: #94a3b8;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .chat-card-btn {
+      background: rgba(45, 106, 56, 0.4);
+      border: 1px solid var(--brand-green-light);
+      color: #86efac;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 4px;
+      text-decoration: none;
+    }
+
+    /* Live Email Auto-Dispatch Notification Box */
+    .dispatch-alert-card {
+      background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(202, 138, 4, 0.15));
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      animation: fadeInSlide 0.3s ease;
+    }
+
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dispatch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fef08a;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dispatch-details {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    .dispatch-to {
+      color: #93c5fd;
+      font-weight: 600;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      background: #1e293b;
+      border-radius: 14px;
+      width: fit-content;
+      margin-top: 4px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Quick Action Prompt Chips */
+    .quick-chips-bar {
+      padding: 8px 14px;
+      background: #1e293b;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .prompt-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .prompt-chip:hover {
+      background: var(--brand-green-primary);
+      border-color: var(--brand-green-light);
+      color: white;
+    }
+
+    /* Sim Chat Input Area */
+    .sim-input-box {
+      padding: 12px 14px;
+      background: #1e293b;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .sim-input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .sim-input:focus {
+      border-color: var(--brand-green-light);
+    }
+
+    .btn-send-sim {
+      background: var(--brand-green-primary);
+      color: white;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 16px;
+    }
+
+    .btn-send-sim:hover {
+      background: var(--brand-green-light);
+    }
+
+    /* Dispatch Log Drawer / Modal View */
+    .dispatch-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .dispatch-modal {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 680px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      color: white;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .email-envelope-preview {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .email-header-row {
+      display: flex;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .email-label {
+      width: 80px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .email-val {
+      color: #60a5fa;
+    }
+
+    .email-body-content {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+
+    /* Presets Drawer for Quick Testing */
+    .demo-scenarios-bar {
+      background: #141f33;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+    .demo-scenarios-bar span {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .scenario-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .scenario-btn:hover {
+      background: var(--brand-green-primary);
+      color: white;
+      border-color: var(--brand-green-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="brand-logo-badge">🌱</div>
+      <div class="brand-title">
+        <h1>The Abba's Orchard AI <span class="badge-poc">Live PoC Sandbox</span></h1>
+        <p>Association Montessori Internationale (AMI) Multi-Campus Digital Employee</p>
+      </div>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tab-web-view" onclick="switchViewMode('web')">
+        🌐 Website Widget View
+      </button>
+      <button class="tab-btn" id="tab-fb-view" onclick="switchViewMode('fb')">
+        💬 Facebook Messenger View
+      </button>
+      <button class="tab-btn" id="tab-inbox-view" onclick="openDispatchModal()">
+        📬 Live Email Dispatches (<span id="dispatch-count">2</span>)
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <button class="tab-btn" id="btn-ai-settings" onclick="openAISettingsModal()" style="background: rgba(198, 146, 36, 0.2); border: 1px solid var(--brand-accent-gold); color: #fef08a;">
+        🔑 Live AI Model: <span id="header-ai-status" style="font-weight:700; margin-left:4px;">Simulator Mode</span>
+      </button>
+      <div class="quick-pill" onclick="openAISettingsModal()" style="cursor: pointer;" title="Click to configure Real AI Model">
+        <div class="pulse-dot" id="header-pulse-dot"></div>
+        <span id="header-brain-text">Active Brain: 15+ Campuses</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Scenario Testing Presets Bar -->
+  <div class="demo-scenarios-bar">
+    <span>⚡ Test Scenarios for Sir Angelo:</span>
+    <button class="scenario-btn" onclick="triggerScenario('lagranja')">
+      🌾 1. Bukidnon La Granja (Farm & Erdkinder)
+    </button>
+    <button class="scenario-btn" onclick="triggerScenario('alwana_bisaya')">
+      🗣️ 2. CDO Alwana (Bisaya Tuition Inquiry)
+    </button>
+    <button class="scenario-btn" onclick="triggerScenario('bgc_casa')">
+      🏙️ 3. Luzon BGC McKinley (Casa 3-6yo)
+    </button>
+    <button class="scenario-btn" onclick="triggerScenario('cebu_tour')">
+      🌴 4. Cebu Campus Tour Booking
+    </button>
+    <button class="scenario-btn" onclick="resetChat()">
+      🔄 Reset Conversation
+    </button>
+  </div>
+
+  <!-- Main Viewport Grid -->
+  <main class="main-viewport">
+    
+    <!-- Left: Website / FB Live Simulation Canvas -->
+    <section class="preview-canvas">
+      
+      <!-- Mockup Browser Bar -->
+      <div class="browser-frame-bar">
+        <div class="browser-dots">
+          <div class="browser-dot dot-red"></div>
+          <div class="browser-dot dot-yellow"></div>
+          <div class="browser-dot dot-green"></div>
+        </div>
+        <div class="browser-url-bar" id="browser-url-display">
+          <span class="lock">🔒</span> https://www.theabbasorchard.edu.ph/about/campus/mindanao
+        </div>
+      </div>
+
+      <!-- Browser Body Area -->
+      <div class="mockup-content" id="mockup-container">
+        
+        <!-- Standard Website Layout -->
+        <div class="orchard-website-mock" id="web-site-body">
+          <header class="web-header">
+            <div class="web-logo-area">
+              <div class="web-logo-icon">🌳</div>
+              <div class="web-logo-text">
+                <h3>The Abba's Orchard</h3>
+                <span>Discover True Montessori ®</span>
+              </div>
+            </div>
+            <nav class="web-nav-links">
+              <span>Who We Are</span>
+              <span>Programs</span>
+              <span class="active">Campuses</span>
+              <span>Admissions</span>
+              <span>Townships</span>
+            </nav>
+          </header>
+
+          <!-- Hero Banner -->
+          <div class="web-hero-banner">
+            <div class="hero-badge-tag">✨ Nationwide Montessori Communities</div>
+            <h2>Preparing the Child for Life Across 15+ Campuses in the Philippines</h2>
+            <p>From Infant Community (14 mos) through Casa, Elementary, and Erdkinder farm boarding in Bukidnon, discovering authentic Montessori education.</p>
+            <div class="hero-cta-btns">
+              <button class="btn-web-primary" onclick="openSimulatorWidget()">Inquire for 2026-2027</button>
+              <button class="btn-web-outline" onclick="scrollToCampuses()">Explore All Campuses</button>
+            </div>
+          </div>
+
+          <!-- Campus Explorer Section -->
+          <div class="campus-explorer-section" id="campuses-section">
+            <div class="explorer-header">
+              <div>
+                <h4>Explore Our Campuses</h4>
+                <p style="font-size: 12px; color: #64748b;">Click any campus card below to simulate an inquiry routed to their direct email.</p>
+              </div>
+              <div class="region-pills">
+                <button class="region-pill" onclick="filterCampuses('all', this)">All</button>
+                <button class="region-pill" onclick="filterCampuses('luzon', this)">Luzon</button>
+                <button class="region-pill" onclick="filterCampuses('visayas', this)">Visayas</button>
+                <button class="region-pill active" onclick="filterCampuses('mindanao', this)">Mindanao</button>
+              </div>
+            </div>
+
+            <div class="campus-grid" id="campus-grid-container">
+              <!-- Rendered via JS below -->
+            </div>
+          </div>
+
+          <!-- Floating Chat Widget Badge on Website -->
+          <div class="website-chat-trigger-bubble" onclick="openSimulatorWidget()">
+            <div class="trigger-bubble-icon">💬</div>
+            <div>
+              <div class="trigger-bubble-text">Admissions Assistant</div>
+              <div style="font-size: 10px; opacity: 0.85;">Ask questions in English or Bisaya</div>
+            </div>
+            <span class="trigger-bubble-badge">24/7</span>
+          </div>
+
+        </div>
+
+        <!-- Facebook Page Layout (https://www.facebook.com/abbasorchardschool/) -->
+        <div class="fb-page-mock" id="fb-page-body">
+          
+          <!-- Facebook Top Navigation Bar -->
+          <nav class="fb-top-nav">
+            <div class="fb-nav-left">
+              <svg class="fb-logo-svg" viewBox="0 0 36 36" fill="#1877F2">
+                <path d="M36 18C36 8.059 27.941 0 18 0S0 8.059 0 18c0 8.989 6.593 16.438 15.188 17.789v-12.58h-4.57V18h4.57v-3.5c0-4.515 2.69-7.009 6.804-7.009 1.97 0 4.032.352 4.032.352v4.433h-2.271c-2.238 0-2.936 1.389-2.936 2.817V18h4.996l-.799 5.209h-4.197v12.58C29.407 34.438 36 26.989 36 18z"/>
+              </svg>
+              <div class="fb-search-bar">
+                <span>🔍</span>
+                <input type="text" placeholder="Search Facebook" readonly />
+              </div>
+            </div>
+
+            <div class="fb-nav-center">
+              <div class="fb-tab-icon active" title="Home">
+                <svg viewBox="0 0 28 28" fill="#1877F2" width="24" height="24"><path d="M14 2.042l11.6 9.86a1 1 0 01.35.76v12.338a1 1 0 01-1 1h-6.6a1 1 0 01-1-1v-6h-4.7v6a1 1 0 01-1 1H3.05a1 1 0 01-1-1V12.662a1 1 0 01.35-.76L14 2.042z"/></svg>
+              </div>
+              <div class="fb-tab-icon" title="Video">
+                <svg viewBox="0 0 28 28" fill="#65676b" width="24" height="24"><path d="M4 5a2 2 0 00-2 2v14a2 2 0 002 2h20a2 2 0 002-2V7a2 2 0 00-2-2H4zm8 5l7 4-7 4V10z"/></svg>
+              </div>
+              <div class="fb-tab-icon" title="Marketplace">
+                <svg viewBox="0 0 28 28" fill="#65676b" width="24" height="24"><path d="M14 3L3 7v3h22V7L14 3zm-9 9v11h18V12H5zm4 3h10v2H9v-2z"/></svg>
+              </div>
+              <div class="fb-tab-icon" title="Groups">
+                <svg viewBox="0 0 28 28" fill="#65676b" width="24" height="24"><path d="M19 13a4 4 0 100-8 4 4 0 000 8zm-10 0a4 4 0 100-8 4 4 0 000 8zm10 2c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-10 0c-.3 0-.64.02-1 .06V19H1v-3c0-2.66 5.33-4 8-4z"/></svg>
+              </div>
+            </div>
+
+            <div class="fb-nav-right">
+              <div class="fb-circle-btn" title="Menu">⋮⋮⋮</div>
+              <div class="fb-circle-btn active-messenger" title="Messenger" onclick="openSimulatorWidget()">
+                <svg viewBox="0 0 24 24" fill="#1877F2" width="20" height="20"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.909 1.45 5.518 3.73 7.172V22l3.418-1.875c.91.252 1.874.39 2.852.39 5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.06 12.443l-2.677-2.856-5.227 2.856 5.75-6.103 2.747 2.856 5.156-2.856-5.749 6.103z"/></svg>
+                <div class="fb-badge-dot"></div>
+              </div>
+              <div class="fb-circle-btn" title="Notifications">🔔</div>
+              <div class="fb-circle-btn" style="background:#2d6a38; color:white; font-weight:bold; font-size:14px;" title="Account">J</div>
+            </div>
+          </nav>
+
+          <!-- Facebook Page Header Hero -->
+          <div class="fb-page-header-container">
+            <!-- Cover Photo -->
+            <div class="fb-cover-wrap">
+              <div class="fb-cover-banner-text">
+                <h2>The Abba's Orchard School</h2>
+                <p>Discover True Montessori ® • Luzon · Visayas · Mindanao</p>
+              </div>
+              <div class="fb-cover-watermark">
+                🌲 Official Facebook Page • facebook.com/abbasorchardschool
+              </div>
+            </div>
+
+            <!-- Profile Info Row -->
+            <div class="fb-profile-row">
+              <!-- Profile Avatar -->
+              <div class="fb-profile-avatar-box">
+                <div class="fb-profile-logo-art">
+                  <svg viewBox="0 0 140 140" width="130" height="130">
+                    <defs>
+                      <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#fbbf24"/>
+                        <stop offset="100%" stop-color="#f59e0b"/>
+                      </radialGradient>
+                    </defs>
+                    <!-- Background Sun -->
+                    <circle cx="70" cy="65" r="38" fill="url(#sunGrad)" opacity="0.95"/>
+                    <!-- Tree Canopy -->
+                    <path d="M70 28 C56 28 46 38 46 50 C40 52 36 58 38 65 C40 72 46 76 52 76 C54 80 58 84 64 84 C70 84 74 81 77 78 C80 82 86 84 91 82 C98 80 102 73 100 66 C104 60 102 52 96 48 C94 36 82 28 70 28 Z" fill="#2d6a38"/>
+                    <path d="M68 34 C58 34 50 42 50 52 C45 54 42 59 44 64 C46 69 50 72 55 72 C58 76 63 78 68 78 C73 78 77 75 79 72 C83 75 88 76 92 74 C97 72 100 67 98 62 C101 57 99 50 94 47 C92 38 80 34 68 34 Z" fill="#3e884e" opacity="0.8"/>
+                    <!-- Tree Trunk -->
+                    <path d="M67 76 L66 98 L73 98 L72 76 Z" fill="#78350f"/>
+                    <path d="M64 96 C58 98 50 99 42 99 L98 99 C90 99 82 98 76 96 Z" fill="#1b3d22"/>
+                    <!-- Child silhouette -->
+                    <circle cx="60" cy="88" r="3.5" fill="#78350f"/>
+                    <path d="M57 92 C57 90 63 90 63 92 L64 97 L56 97 Z" fill="#78350f"/>
+                    <!-- Text arcs -->
+                    <text x="70" y="114" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" font-weight="800" fill="#1b3d22" text-anchor="middle" letter-spacing="0.04em">The Abba's Orchard</text>
+                    <text x="70" y="124" font-family="'Plus Jakarta Sans', sans-serif" font-size="6" font-weight="700" fill="#64748b" text-anchor="middle" letter-spacing="0.06em">A MARIA MONTESSORI SCHOOL</text>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Profile Details -->
+              <div class="fb-profile-info">
+                <div class="fb-profile-title">
+                  The Abba's Orchard School
+                  <span class="fb-verified-icon" title="Official School Page">☑</span>
+                </div>
+                <div class="fb-profile-followers">
+                  <strong>17K</strong> followers • <strong>14</strong> following
+                </div>
+                <div class="fb-profile-bio">
+                  Discover True Montessori ® Philippines. Offering high-fidelity Montessori from Infancy to Adolescence in major cities of the Philippines.
+                </div>
+                <div class="fb-profile-category">
+                  <span>💼 School</span>
+                </div>
+                <div class="fb-facepile-row">
+                  <div class="fb-facepile-avatar" style="background:#2563eb;">A</div>
+                  <div class="fb-facepile-avatar" style="background:#db2777;">M</div>
+                  <div class="fb-facepile-avatar" style="background:#059669;">R</div>
+                  <div class="fb-facepile-avatar" style="background:#d97706;">J</div>
+                  <div class="fb-facepile-avatar" style="background:#7c3aed;">C</div>
+                  <div class="fb-facepile-avatar" style="background:#64748b; font-size:9px;">+17k</div>
+                </div>
+              </div>
+
+              <!-- Profile Actions -->
+              <div class="fb-profile-actions">
+                <button class="fb-btn fb-btn-primary" onclick="switchViewMode('web')">
+                  ℹ Learn more
+                </button>
+                <button class="fb-btn fb-btn-highlight-msg" onclick="openSimulatorWidget()">
+                  <svg viewBox="0 0 24 24" fill="#1877F2" width="16" height="16"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.909 1.45 5.518 3.73 7.172V22l3.418-1.875c.91.252 1.874.39 2.852.39 5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.06 12.443l-2.677-2.856-5.227 2.856 5.75-6.103 2.747 2.856 5.156-2.856-5.749 6.103z"/></svg>
+                  Message
+                </button>
+                <button class="fb-btn fb-btn-secondary">
+                  ➕ Follow
+                </button>
+              </div>
+            </div>
+
+            <!-- Profile Nav Tabs -->
+            <div class="fb-profile-tabs-bar">
+              <div class="fb-profile-tabs">
+                <div class="fb-profile-tab active">All</div>
+                <div class="fb-profile-tab">About</div>
+                <div class="fb-profile-tab">Reels</div>
+                <div class="fb-profile-tab">Photos</div>
+                <div class="fb-profile-tab">Followers</div>
+                <div class="fb-profile-tab">More ▾</div>
+              </div>
+              <div class="fb-circle-btn" style="width:34px; height:34px;">•••</div>
+            </div>
+          </div>
+
+          <!-- Facebook Feed Content 2-Column Grid -->
+          <div class="fb-feed-layout">
+            
+            <!-- Left Column: Details & Contact -->
+            <div class="fb-left-col">
+              
+              <!-- Details Card -->
+              <div class="fb-card">
+                <div class="fb-card-title">Details</div>
+                <div class="fb-details-list">
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">⭐</div>
+                    <div><strong>4 reviews</strong></div>
+                  </div>
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">📖</div>
+                    <div>Sta. Rosa, Philippines · Quezon City, Philippines · Antipolo, Philippines · Cagayan de Oro, Philippines · Cebu City, Philippines · Davao City, Philippines · San Juan, Philippines · Alabang, Philippines · Baungon, Philippines · Taguig, Philippines</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Links Card -->
+              <div class="fb-card">
+                <div class="fb-card-title">Links</div>
+                <div class="fb-details-list">
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">🔗</div>
+                    <div><a href="https://www.theabbasorchard.edu.ph" target="_blank" class="fb-detail-link">theabbasorchard.edu.ph</a></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Info Card -->
+              <div class="fb-card">
+                <div class="fb-card-title">Contact info</div>
+                <div class="fb-details-list">
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">📷</div>
+                    <div><a href="#" class="fb-detail-link">@theabbasorchardschool</a></div>
+                  </div>
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">✉</div>
+                    <div style="font-size:11.5px; word-break:break-all;">admission_application@theabbasorchard.edu.ph</div>
+                  </div>
+                  <div class="fb-detail-item">
+                    <div class="fb-detail-icon">🤖</div>
+                    <div><strong>24/7 AI Admissions Active on Messenger</strong></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Featured & Live Posts -->
+            <div class="fb-right-col">
+              
+              <!-- Featured Card -->
+              <div class="fb-card">
+                <div class="fb-featured-header">
+                  <div class="fb-card-title" style="margin-bottom:0;">Featured</div>
+                  <span style="font-size:12px; color:#1877f2; cursor:pointer;">See All</span>
+                </div>
+                <div class="fb-featured-grid">
+                  <!-- Featured Card 1 -->
+                  <div class="fb-featured-card">
+                    <div class="fb-featured-card-header">
+                      <div class="fb-card-logo-mini">🌱</div>
+                      <div>
+                        <div class="fb-featured-author">The Abba's Orchard School</div>
+                        <div class="fb-featured-date">March 23, 2024 · 🌐</div>
+                      </div>
+                    </div>
+                    <div class="fb-featured-text">
+                      MORE FATHER AND CHILD CAMP MOMENTS COMING YOUR WAY 🏕️📸 ...
+                    </div>
+                    <div class="fb-featured-photo photo-camp-1">
+                      🏕️ 🌲 🏫
+                    </div>
+                  </div>
+
+                  <!-- Featured Card 2 -->
+                  <div class="fb-featured-card">
+                    <div class="fb-featured-card-header">
+                      <div class="fb-card-logo-mini">🌱</div>
+                      <div>
+                        <div class="fb-featured-author">The Abba's Orchard School</div>
+                        <div class="fb-featured-date">March 21, 2024 · 🌐</div>
+                      </div>
+                    </div>
+                    <div class="fb-featured-text">
+                      NATIONAL FATHER AND CHILD CAMP 2024 🏕️
+                    </div>
+                    <div class="fb-featured-photo photo-camp-2">
+                      ⛰️ ⛺ 🌿
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pinned Official 24/7 AI Admissions Post -->
+              <div class="fb-card">
+                <div class="fb-post-author-row">
+                  <div class="fb-post-avatar">🌱</div>
+                  <div class="fb-post-names">
+                    <h4>The Abba's Orchard School <span>✓</span></h4>
+                    <span>Pinned Announcement · Just now · 🌐</span>
+                  </div>
+                </div>
+
+                <div class="fb-post-text-body">
+                  ✨ <strong>Discover True Montessori® with our 24/7 AI Admissions Assistant!</strong><br><br>
+                  We have activated our multi-campus digital employee on Facebook Messenger! Inquire anytime about:
+                  <br>• Infant Community (14m-3y), Casa (3-6y), Elementary (6-12y)
+                  <br>• Bukidnon La Granja Erdkinder Farm Boarding
+                  <br>• Campuses across Luzon, Visayas, and Mindanao
+                  <br>• Inquire in English, Bisaya, or Tagalog!
+                </div>
+
+                <!-- Interactive Messenger Call to Action Banner -->
+                <div class="fb-ai-messenger-cta" onclick="openSimulatorWidget()">
+                  <div class="fb-cta-details">
+                    <div class="fb-cta-icon">💬</div>
+                    <div class="fb-cta-text">
+                      <h5>Send Message to The Abba's Orchard School</h5>
+                      <p>Instant 24/7 Admissions & Campus Guidance</p>
+                    </div>
+                  </div>
+                  <button class="fb-cta-btn">
+                    <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.909 1.45 5.518 3.73 7.172V22l3.418-1.875c.91.252 1.874.39 2.852.39 5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.06 12.443l-2.677-2.856-5.227 2.856 5.75-6.103 2.747 2.856 5.156-2.856-5.749 6.103z"/></svg>
+                    Send Message
+                  </button>
+                </div>
+
+                <!-- Reactions Summary -->
+                <div class="fb-post-reactions-bar">
+                  <span>❤️ 👍 342 parents & alumni</span>
+                  <span>48 comments • 19 shares</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="fb-post-actions-row">
+                  <div class="fb-action-btn">👍 Like</div>
+                  <div class="fb-action-btn" onclick="openSimulatorWidget()">💬 Message / Comment</div>
+                  <div class="fb-action-btn">↗ Share</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Right: Active AI Agent Simulator Panel -->
+    <aside class="ai-simulator-panel">
+      
+      <!-- Sim Top Info -->
+      <div class="sim-header">
+        <div class="sim-agent-info">
+          <div class="sim-avatar">
+            🌳
+            <div class="online-indicator"></div>
+          </div>
+          <div class="sim-name-box">
+            <h3 id="sim-title-header">Abba's Orchard AI <span>✓</span></h3>
+            <p id="sim-sub-header">Official 24/7 Admissions Digital Employee</p>
+          </div>
+        </div>
+        <div class="sim-channel-badge web-mode" id="channel-mode-pill">
+          🌐 Website Widget
+        </div>
+      </div>
+
+      <!-- Campus Routing Notice Bar -->
+      <div class="campus-routing-banner">
+        <div class="routing-target-info">
+          <span>🎯 Active Target:</span>
+          <span class="routing-pill" id="active-routing-tag">Bukidnon - La Granja Estates</span>
+        </div>
+        <span style="font-size: 10px; color: #60a5fa; cursor: pointer;" onclick="openDispatchModal()">
+          📧 Routing: <b id="active-routing-email">lagranja@theabbasorchard.edu.ph</b>
+        </span>
+      </div>
+
+      <!-- Chat Messages Scroll Container -->
+      <div class="sim-chat-body" id="chat-messages-container">
+        <!-- Initial Welcome Message -->
+        <div class="chat-bubble-row agent">
+          <div class="bubble-avatar">🌱</div>
+          <div class="bubble-content">
+            <strong>Welcome to The Abba's Orchard School!</strong><br>
+            Discover True Montessori®. I am your 24/7 Admissions Digital Employee.
+            <br><br>
+            I can assist you with:
+            <br>• Programs across our 15+ Campuses (Luzon, Visayas, Mindanao)
+            <br>• Bukidnon La Granja Erdkinder Farm Boarding
+            <br>• Tuition, Admissions Process, & Campus Tours
+            <br><br>
+            <em>Unsay akong matabang ninyo karon? / How may I help you today?</em>
+            <div class="bubble-time">Just now</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Prompt Pills Bar -->
+      <div class="quick-chips-bar" id="quick-prompt-chips">
+        <button class="prompt-chip" onclick="sendQuickMessage('Tell me about the Bukidnon La Granja campus and Erdkinder farm program')">
+          🌾 Bukidnon La Granja Details
+        </button>
+        <button class="prompt-chip" onclick="sendQuickMessage('Pila ang tuition sa Casa sa Alwana CDO?')">
+          🗣️ Tagpila sa Alwana CDO? (Bisaya)
+        </button>
+        <button class="prompt-chip" onclick="sendQuickMessage('What programs are offered in BGC McKinley Hill?')">
+          🏙️ BGC McKinley Hill Programs
+        </button>
+        <button class="prompt-chip" onclick="sendQuickMessage('How do I apply for Casa admission for my 3-year-old?')">
+          📋 Casa Admission Requirements
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="sim-input-box">
+        <input 
+          type="text" 
+          class="sim-input" 
+          id="user-input-field" 
+          placeholder="Ask in English, Bisaya, or Tagalog..." 
+          onkeydown="if(event.key === 'Enter') handleUserSend()"
+        />
+        <button class="btn-send-sim" onclick="handleUserSend()">➤</button>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Live Email Dispatches Modal -->
+  <div class="dispatch-modal-overlay" id="dispatch-modal-overlay" onclick="closeDispatchModal(event)">
+    <div class="dispatch-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📬 Real-Time Campus Email Dispatches & Staff Handoffs</h3>
+        <button class="modal-close-btn" onclick="closeDispatchModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 14px; color: #94a3b8; font-size: 12px;">
+          Whenever a parent asks a campus-specific question, requests a tour, or submits contact details, the AI answers instantly and concurrently dispatches this structured email notification to the corresponding campus coordinator and accounting desk.
+        </p>
+
+        <div id="dispatches-list-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  <!-- Live AI Model Settings Modal -->
+  <div class="dispatch-modal-overlay" id="ai-settings-modal-overlay" onclick="closeAISettingsModal(event)">
+    <div class="dispatch-modal" style="max-width: 580px;" onclick="event.stopPropagation()">
+      <div class="modal-header" style="background: #141f33;">
+        <h3>⚡ Connect Live AI Model (Gemini / OpenAI / Backend)</h3>
+        <button class="modal-close-btn" onclick="closeAISettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="margin-bottom: 18px; color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          Switch from the built-in rule simulator to a <strong>Real Live LLM Agent</strong>. The AI will be powered directly by Google Gemini or OpenAI with the official <strong>Abba's Orchard AMI Montessori Knowledge Base</strong> and multi-lingual capabilities (Bisaya, Tagalog, English).
+        </p>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display:block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            AI Engine Provider
+          </label>
+          <select id="ai-provider-select" onchange="handleProviderChange()" style="width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 12px; border-radius: 8px; font-size: 13px; outline: none;">
+            <option value="gemini-2.0-flash">Google Gemini 2.0 Flash (Fastest & Recommended - Free tier available)</option>
+            <option value="gemini-1.5-flash">Google Gemini 1.5 Flash</option>
+            <option value="gpt-4o-mini">OpenAI GPT-4o-mini</option>
+            <option value="gpt-4o">OpenAI GPT-4o</option>
+            <option value="custom-server">Local / Cloud Backend Server (http://localhost:3000/api/chat)</option>
+          </select>
+        </div>
+
+        <div id="api-key-input-group" style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label id="api-key-label" style="font-size: 12px; font-weight: 700; color: #cbd5e1;">
+              Google AI Studio API Key:
+            </label>
+            <a id="get-key-link" href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size: 11px; color: #60a5fa; text-decoration: none;">
+              Get Free Google Gemini Key ↗
+            </a>
+          </div>
+          <input 
+            type="password" 
+            id="ai-api-key-field" 
+            placeholder="AIzaSy... or sk-proj-..." 
+            style="width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none;"
+          />
+          <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 4px;">
+            🔒 Key is stored strictly inside your browser's <code>localStorage</code> and called client-side.
+          </span>
+        </div>
+
+        <div id="backend-url-group" style="margin-bottom: 16px; display: none;">
+          <label style="display:block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">
+            Backend API Endpoint:
+          </label>
+          <input 
+            type="text" 
+            id="ai-backend-url-field" 
+            value="http://localhost:3000/api/chat" 
+            style="width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none;"
+          />
+        </div>
+
+        <div id="ai-conn-status-msg" style="margin-bottom: 16px; padding: 10px; border-radius: 8px; font-size: 12px; display: none;"></div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" onclick="disconnectLiveAI()" style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">
+            Use Simulated Mode
+          </button>
+          <button type="button" onclick="saveAndTestAIConnection()" style="background: var(--brand-green-primary); color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            ⚡ Save & Activate Real AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Comprehensive Official Campus Data Ingested
+    const CAMPUSES = [
+      {
+        id: "lagranja",
+        region: "mindanao",
+        name: "Bukidnon - La Granja Estates",
+        address: "La Granja Estates Pualas, Baungon, Bukidnon, 8707 Misamis Oriental",
+        phone: "(0917) 508 2668",
+        email: "lagranja@theabbasorchard.edu.ph",
+        programs: ["Infant Community (14m-3y)", "Casa (3-6y)", "Elementary (6-12y)", "Erdkinder Farm Boarding (12-18y)"],
+        highlight: "Main Farm Campus & Adolescent Community"
+      },
+      {
+        id: "alwana",
+        region: "mindanao",
+        name: "Cagayan de Oro - Alwana",
+        address: "Alwana Business Park, Cugman, Cagayan de Oro City",
+        phone: "(0917) 707 2668",
+        email: "alwana@theabbasorchard.edu.ph",
+        programs: ["Infant Community (14m-3y)", "Casa (3-6y)", "Elementary (6-12y)"],
+        highlight: "Flagship CDO Campus"
+      },
+      {
+        id: "davao",
+        region: "mindanao",
+        name: "Davao City - Obrero & Mandug",
+        address: "88 Rustico Cabaguio St, Obrero / Sitio Sto. Nino, Mandug, Buhangin",
+        phone: "(0917) 707 2669",
+        email: "davao@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary", "Erdkinder"],
+        highlight: "Davao Regional Hub"
+      },
+      {
+        id: "cebu",
+        region: "visayas",
+        name: "Cebu City - Magsaysay & Tandang Sora",
+        address: "Magsaysay Road / Tandang Sora, Cebu City",
+        phone: "(0917) 321 2668",
+        email: "cebu@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary"],
+        highlight: "Visayas Flagship Campus"
+      },
+      {
+        id: "iloilo",
+        region: "visayas",
+        name: "Iloilo - Sta. Barbara Heights",
+        address: "Sta. Barbara Heights, Iloilo City",
+        phone: "(0917) 322 2668",
+        email: "iloilo@theabbasorchard.edu.ph",
+        programs: ["Casa (3-6y)", "Elementary (6-12y)"],
+        highlight: "Western Visayas Community"
+      },
+      {
+        id: "mckinley",
+        region: "luzon",
+        name: "Taguig - BGC McKinley Hill",
+        address: "GF Morgan Executive Suites, Florence Way, McKinley Hill, Taguig City",
+        phone: "(0917) 854 2668",
+        email: "mckinleyhill@theabbasorchard.edu.ph",
+        programs: ["Infant Community (14m-3y)", "Casa (3-6y)", "Elementary (6-12y)"],
+        highlight: "Metro Manila BGC Campus"
+      },
+      {
+        id: "bayani",
+        region: "luzon",
+        name: "Taguig - Bayani Road",
+        address: "Bayani Road, AFPOVAI, Taguig City",
+        phone: "(0917) 854 2669",
+        email: "bayani@theabbasorchard.edu.ph",
+        programs: ["Casa (3-6y)", "Elementary (6-12y)"],
+        highlight: "Taguig South Community"
+      },
+      {
+        id: "alabang",
+        region: "luzon",
+        name: "Muntinlupa - Alabang",
+        address: "Bloc 10 Corporate Woods Ave, Filinvest City, Muntinlupa",
+        phone: "(0917) 855 2668",
+        email: "alabang@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary"],
+        highlight: "Filinvest City Alabang"
+      },
+      {
+        id: "greenhills",
+        region: "luzon",
+        name: "Mandaluyong - Greenhills",
+        address: "Mandaluyong City (near Greenhills Shopping Center)",
+        phone: "(0917) 856 2668",
+        email: "greenhills@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary"],
+        highlight: "Central Metro Manila"
+      },
+      {
+        id: "antipolo",
+        region: "luzon",
+        name: "Antipolo City - Taktak Road",
+        address: "Taktak Road, Antipolo City, Rizal",
+        phone: "(0917) 857 2668",
+        email: "antipolo@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary"],
+        highlight: "Rizal Campus"
+      },
+      {
+        id: "calleindustria",
+        region: "luzon",
+        name: "Quezon City - Calle Industria",
+        address: "Calle Industria, Bagumbayan, Quezon City",
+        phone: "(0917) 858 2668",
+        email: "calleindustria@theabbasorchard.edu.ph",
+        programs: ["Infant Community", "Casa", "Elementary"],
+        highlight: "Quezon City / Bridgetowne"
+      },
+      {
+        id: "carmelray",
+        region: "luzon",
+        name: "Canlubang - Carmelray",
+        address: "Carmelray Industrial Park 1, Canlubang, Calamba, Laguna",
+        phone: "(0917) 859 2668",
+        email: "carmelray@theabbasorchard.edu.ph",
+        programs: ["Casa", "Elementary"],
+        highlight: "Laguna Community"
+      }
+    ];
+
+    // Dispatches storage for demonstration
+    let emailDispatches = [
+      {
+        id: 1,
+        time: "10 mins ago",
+        campus: "Bukidnon - La Granja Estates",
+        to: "lagranja@theabbasorchard.edu.ph",
+        cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+        subject: "[Admissions Lead] Inquiring on Erdkinder Farm Boarding for Grade 7",
+        parentName: "Dra. Maria Elena Santos",
+        parentContact: "0917-882-9912 | elena.santos@gmail.com",
+        details: "Parent inquiring on dormitory boarding facilities, Montessori farm curriculum, and tour booking for upcoming academic year at Baungon, Bukidnon."
+      },
+      {
+        id: 2,
+        time: "25 mins ago",
+        campus: "Cagayan de Oro - Alwana",
+        to: "alwana@theabbasorchard.edu.ph",
+        cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+        subject: "[Admissions Lead] Casa 3-6 Program Schedule & Assessment Inquiry",
+        parentName: "Engr. Mark Tan",
+        parentContact: "0918-554-1234 | mark.tan@cdo-tech.com",
+        details: "Parent asked in Bisaya regarding tuition schedule for Casa 3-year-old at Alwana Business Park, CDO. AI sent preliminary schedule and logged request for Roxane's accounting desk."
+      }
+    ];
+
+    let currentActiveCampus = CAMPUSES[0]; // Default La Granja
+
+    // Initialize Campus Grid
+    function renderCampuses(filter = 'mindanao') {
+      const container = document.getElementById('campus-grid-container');
+      container.innerHTML = '';
+
+      const filtered = filter === 'all' ? CAMPUSES : CAMPUSES.filter(c => c.region === filter);
+
+      filtered.forEach(campus => {
+        const card = document.createElement('div');
+        card.className = `campus-card ${campus.id === currentActiveCampus.id ? 'highlighted' : ''}`;
+        card.onclick = () => selectCampus(campus);
+
+        let regionBadgeClass = 'badge-mindanao';
+        if (campus.region === 'visayas') regionBadgeClass = 'badge-visayas';
+        if (campus.region === 'luzon') regionBadgeClass = 'badge-luzon';
+
+        card.innerHTML = `
+          <div class="campus-badge-region ${regionBadgeClass}">${campus.region.toUpperCase()} • ${campus.highlight}</div>
+          <div class="campus-title">${campus.name}</div>
+          <div class="campus-address">${campus.address}</div>
+          <div class="campus-contact-line">📞 ${campus.phone}</div>
+          <div class="campus-contact-line" style="color: #2563eb;">📧 ${campus.email}</div>
+          <div class="campus-programs-list">
+            ${campus.programs.map(p => `<span class="prog-chip">${p}</span>`).join('')}
+          </div>
+          <div style="margin-top: 10px; font-size: 11px; color: var(--brand-green-primary); font-weight: 700;">
+            👉 Click to test AI routing to this campus
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterCampuses(region, btnElement) {
+      document.querySelectorAll('.region-pill').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderCampuses(region);
+      
+      if (currentViewMode === 'web') {
+        const urlBar = document.getElementById('browser-url-display');
+        urlBar.innerHTML = `<span class="lock">🔒</span> https://www.theabbasorchard.edu.ph/about/campus/${region === 'all' ? '' : region}`;
+      }
+    }
+
+    function selectCampus(campus) {
+      currentActiveCampus = campus;
+      document.getElementById('active-routing-tag').innerText = campus.name;
+      document.getElementById('active-routing-email').innerText = campus.email;
+      
+      // Update highlighted cards
+      document.querySelectorAll('.campus-card').forEach(card => card.classList.remove('highlighted'));
+      event.currentTarget?.classList.add('highlighted');
+
+      // Add system announcement in chat
+      appendMessage('agent', `🎯 <strong>Campus Selected: ${campus.name}</strong><br>Direct Inquiries & Lead notifications will automatically route to <code>${campus.email}</code>.<br><br>Programs at this campus: ${campus.programs.join(', ')}.<br><br>What would you like to inquire about for ${campus.name}?`);
+    }
+
+    let currentViewMode = 'web';
+
+    function switchViewMode(mode) {
+      currentViewMode = mode;
+      const tabWeb = document.getElementById('tab-web-view');
+      const tabFb = document.getElementById('tab-fb-view');
+      const channelPill = document.getElementById('channel-mode-pill');
+      const simTitle = document.getElementById('sim-title-header');
+      const simSub = document.getElementById('sim-sub-header');
+      const urlBar = document.getElementById('browser-url-display');
+      const webMock = document.getElementById('web-site-body');
+      const fbMock = document.getElementById('fb-page-body');
+      const simPanel = document.querySelector('.ai-simulator-panel');
+
+      if (mode === 'web') {
+        tabWeb.classList.add('active');
+        tabFb.classList.remove('active');
+        webMock.style.display = 'flex';
+        fbMock.style.display = 'none';
+        channelPill.className = 'sim-channel-badge web-mode';
+        channelPill.innerText = '🌐 Website Widget';
+        simTitle.innerHTML = "Abba's Orchard AI <span>✓</span>";
+        simSub.innerText = "Official 24/7 Admissions Digital Employee";
+        urlBar.innerHTML = `<span class="lock">🔒</span> https://www.theabbasorchard.edu.ph/about/campus/${currentActiveCampus.region || 'mindanao'}`;
+        simPanel.classList.remove('fb-theme');
+      } else {
+        tabFb.classList.add('active');
+        tabWeb.classList.remove('active');
+        webMock.style.display = 'none';
+        fbMock.style.display = 'flex';
+        channelPill.className = 'sim-channel-badge';
+        channelPill.innerText = '💬 Meta Messenger';
+        simTitle.innerHTML = "The Abba's Orchard School <span style='color:#0084ff;'>✓</span>";
+        simSub.innerText = "Typically replies instantly • Facebook Page AI";
+        urlBar.innerHTML = `<span class="lock">🔒</span> https://www.facebook.com/abbasorchardschool/`;
+        simPanel.classList.add('fb-theme');
+      }
+    }
+
+    function appendMessage(sender, text, hasDispatch = null) {
+      const container = document.getElementById('chat-messages-container');
+      const row = document.createElement('div');
+      row.className = `chat-bubble-row ${sender}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = `bubble-avatar ${sender === 'user' ? 'user-av' : ''}`;
+      avatar.innerHTML = sender === 'user' ? '👤' : '🌱';
+
+      const content = document.createElement('div');
+      content.className = 'bubble-content';
+      
+      let dispatchHTML = '';
+      if (hasDispatch) {
+        dispatchHTML = `
+          <div class="dispatch-alert-card">
+            <div class="dispatch-header">
+              <span>⚡ Campus Email Dispatched</span>
+              <span>LIVE</span>
+            </div>
+            <div class="dispatch-details">
+              <div>To: <span class="dispatch-to">${hasDispatch.to}</span></div>
+              <div>CC: admission_application@theabbasorchard.edu.ph, accounting@...</div>
+              <div>Subject: ${hasDispatch.subject}</div>
+            </div>
+            <a href="#" class="chat-card-btn" onclick="openDispatchModal(); return false;">View Full Email Payload ➔</a>
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        ${text}
+        ${dispatchHTML}
+        <div class="bubble-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      `;
+
+      row.appendChild(avatar);
+      row.appendChild(content);
+      container.appendChild(row);
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const container = document.getElementById('chat-messages-container');
+      const typing = document.createElement('div');
+      typing.id = 'active-typing-indicator';
+      typing.className = 'chat-bubble-row agent';
+      typing.innerHTML = `
+        <div class="bubble-avatar">🌱</div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      container.appendChild(typing);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const ind = document.getElementById('active-typing-indicator');
+      if (ind) ind.remove();
+    }
+
+    function handleUserSend() {
+      const input = document.getElementById('user-input-field');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      processUserQuery(text);
+    }
+
+    function sendQuickMessage(text) {
+      processUserQuery(text);
+    }
+
+    // =========================================================================
+    // REAL LIVE AI AGENT ENGINE (Google Gemini / OpenAI / Backend Server)
+    // =========================================================================
+    const ABBAS_SYSTEM_PROMPT = `
+You are the official 24/7 AI Admissions Digital Employee for "The Abba's Orchard School", the premier and first Association Montessori Internationale (AMI) school network in the Philippines.
+
+Key Organizational Context:
+- Founded by Dr. Maria Angelica "Teacher Ann" Paez-Barrameda and Mr. Christopher "Mr. Chris" Barrameda.
+- 15+ Campuses nationwide across Luzon, Visayas, and Mindanao.
+- Curriculum: Authentic AMI Montessori across Infant Community (14 mos - 3 yrs), Casa (3 - 6 yrs), Elementary (6 - 12 yrs), and Erdkinder Adolescent Farm Boarding (12 - 18 yrs / Junior & Senior High).
+- Bukidnon La Granja Estates (Baungon, Bukidnon): Premier farm boarding campus combining Montessori land-based micro-economy, agriculture, animal stewardship, and academic rigor.
+
+Campus Directory & Direct Routing:
+1. Bukidnon - La Granja Estates: lagranja@theabbasorchard.edu.ph | (0917) 508 2668 (IC, Casa, Elementary, Erdkinder Farm Boarding)
+2. Cagayan de Oro - Alwana: alwana@theabbasorchard.edu.ph | (0917) 707 2668 (IC, Casa, Elementary)
+3. Davao City - Obrero & Mandug: davao@theabbasorchard.edu.ph | (0917) 707 2669 (IC, Casa, Elementary, Erdkinder)
+4. Cebu City - Magsaysay & Tandang Sora: cebu@theabbasorchard.edu.ph | (0917) 321 2668 (IC, Casa, Elementary)
+5. Iloilo - Sta. Barbara Heights: iloilo@theabbasorchard.edu.ph | (0917) 322 2668 (Casa, Elementary)
+6. Taguig - BGC McKinley Hill: mckinleyhill@theabbasorchard.edu.ph | (0917) 854 2668 (IC, Casa, Elementary)
+7. Taguig - Bayani Road: bayani@theabbasorchard.edu.ph | (0917) 854 2669 (Casa, Elementary)
+8. Muntinlupa - Alabang (Filinvest City): alabang@theabbasorchard.edu.ph | (0917) 855 2668 (IC, Casa, Elementary)
+9. Mandaluyong - Greenhills: greenhills@theabbasorchard.edu.ph | (0917) 856 2668 (IC, Casa, Elementary)
+10. Antipolo City - Taktak Road: antipolo@theabbasorchard.edu.ph | (0917) 857 2668 (IC, Casa, Elementary)
+11. Quezon City - Calle Industria (Bridgetowne): calleindustria@theabbasorchard.edu.ph | (0917) 858 2668 (IC, Casa, Elementary)
+12. Canlubang - Carmelray Laguna: carmelray@theabbasorchard.edu.ph | (0917) 859 2668 (Casa, Elementary)
+Central Admissions: admission_application@theabbasorchard.edu.ph | Accounting Desk: Ms. Roxane
+
+Language & Communication Style:
+- Polyglot: Seamlessly converse in English, Bisaya / Cebuano, and Tagalog depending on what the user speaks. If they speak Bisaya (e.g. "pila tuition", "tagpila", "unsaon"), reply warmly in natural Bisaya.
+- Warm, articulate, Montessori-educated, reassuring, and helpful.
+- For tuition inquiries: Explain that flexible payment terms (Annual, Semi-Annual, Quarterly) are offered. Reassure the parent that their request has been routed to the campus coordinator and Roxane's accounting desk, and invite them to share their child's current age.
+- Encourage campus tour / prepared environment observation walkthroughs (weekday mornings).
+
+Lead Auto-Dispatch Instruction:
+If the inquiry is specific to a campus, asks for tuition, or provides parent/child details, append an invisible structured tag at the VERY END of your response in this exact JSON format:
+<!-- DISPATCH: {"campus": "Campus Name", "to": "campus_email@theabbasorchard.edu.ph", "subject": "Subject Summary", "parentName": "Name if provided or Prospective Parent", "parentContact": "Contact if provided or Captured via AI Session", "details": "Brief 1-2 sentence lead summary"} -->
+`;
+
+    let activeLiveAIConfig = {
+      provider: localStorage.getItem('abbas_ai_provider') || 'simulator',
+      apiKey: localStorage.getItem('abbas_ai_key') || '',
+      backendUrl: localStorage.getItem('abbas_ai_backend_url') || 'http://localhost:3000/api/chat'
+    };
+
+    let liveChatHistory = []; // { role: 'user' | 'model' | 'assistant', content: string }
+
+    function initAIStatusUI() {
+      const statusPill = document.getElementById('header-ai-status');
+      const pulseDot = document.getElementById('header-pulse-dot');
+      const brainText = document.getElementById('header-brain-text');
+
+      if (activeLiveAIConfig.apiKey || activeLiveAIConfig.provider === 'custom-server') {
+        const provName = activeLiveAIConfig.provider.includes('gemini') ? 'Gemini 2.0 Flash' : 
+                         activeLiveAIConfig.provider.includes('gpt') ? 'GPT-4o' : 'Live Backend';
+        statusPill.innerText = `🟢 ${provName}`;
+        statusPill.style.color = '#86efac';
+        pulseDot.style.background = '#22c55e';
+        brainText.innerText = `Live Brain: ${provName}`;
+      } else {
+        statusPill.innerText = '🧪 Simulator Mode';
+        statusPill.style.color = '#fef08a';
+        brainText.innerText = 'Active Brain: 15+ Campuses';
+      }
+    }
+
+    function openAISettingsModal() {
+      const modal = document.getElementById('ai-settings-modal-overlay');
+      const providerSel = document.getElementById('ai-provider-select');
+      const keyField = document.getElementById('ai-api-key-field');
+      const urlField = document.getElementById('ai-backend-url-field');
+
+      if (activeLiveAIConfig.provider !== 'simulator') {
+        providerSel.value = activeLiveAIConfig.provider;
+      }
+      keyField.value = activeLiveAIConfig.apiKey;
+      urlField.value = activeLiveAIConfig.backendUrl;
+
+      handleProviderChange();
+      modal.style.display = 'flex';
+    }
+
+    function closeAISettingsModal(event) {
+      if (event && event.target !== document.getElementById('ai-settings-modal-overlay') && !event.target.classList.contains('modal-close-btn')) {
+        return;
+      }
+      document.getElementById('ai-settings-modal-overlay').style.display = 'none';
+    }
+
+    function handleProviderChange() {
+      const prov = document.getElementById('ai-provider-select').value;
+      const keyGroup = document.getElementById('api-key-input-group');
+      const urlGroup = document.getElementById('backend-url-group');
+      const keyLabel = document.getElementById('api-key-label');
+      const getKeyLink = document.getElementById('get-key-link');
+
+      if (prov === 'custom-server') {
+        keyGroup.style.display = 'none';
+        urlGroup.style.display = 'block';
+      } else {
+        keyGroup.style.display = 'block';
+        urlGroup.style.display = 'none';
+        if (prov.includes('gemini')) {
+          keyLabel.innerText = 'Google AI Studio API Key:';
+          getKeyLink.href = 'https://aistudio.google.com/app/apikey';
+          getKeyLink.innerText = 'Get Free Google Gemini Key ↗';
+          getKeyLink.style.display = 'inline';
+        } else {
+          keyLabel.innerText = 'OpenAI API Key:';
+          getKeyLink.href = 'https://platform.openai.com/api-keys';
+          getKeyLink.innerText = 'Get OpenAI Key ↗';
+          getKeyLink.style.display = 'inline';
+        }
+      }
+    }
+
+    async function saveAndTestAIConnection() {
+      const prov = document.getElementById('ai-provider-select').value;
+      const key = document.getElementById('ai-api-key-field').value.trim();
+      const url = document.getElementById('ai-backend-url-field').value.trim();
+      const statusBox = document.getElementById('ai-conn-status-msg');
+
+      if (prov !== 'custom-server' && !key) {
+        statusBox.style.display = 'block';
+        statusBox.style.background = 'rgba(239, 68, 68, 0.2)';
+        statusBox.style.border = '1px solid #ef4444';
+        statusBox.style.color = '#fca5a5';
+        statusBox.innerHTML = '⚠️ Please enter an API key or switch back to Simulated Mode.';
+        return;
+      }
+
+      statusBox.style.display = 'block';
+      statusBox.style.background = 'rgba(59, 130, 246, 0.2)';
+      statusBox.style.border = '1px solid #3b82f6';
+      statusBox.style.color = '#93c5fd';
+      statusBox.innerHTML = '⏳ Testing connection to Live AI Model...';
+
+      try {
+        if (prov.includes('gemini')) {
+          const testRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${prov}:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: 'Respond with "OK" if connected.' }] }]
+            })
+          });
+          const data = await testRes.json();
+          if (data.error) throw new Error(data.error.message || 'Gemini API Error');
+        } else if (prov.includes('gpt')) {
+          const testRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${key}`
+            },
+            body: JSON.stringify({
+              model: prov,
+              messages: [{ role: 'user', content: 'Respond with "OK"' }],
+              max_tokens: 5
+            })
+          });
+          const data = await testRes.json();
+          if (data.error) throw new Error(data.error.message || 'OpenAI API Error');
+        }
+
+        // Success!
+        activeLiveAIConfig = { provider: prov, apiKey: key, backendUrl: url };
+        localStorage.setItem('abbas_ai_provider', prov);
+        localStorage.setItem('abbas_ai_key', key);
+        localStorage.setItem('abbas_ai_backend_url', url);
+
+        statusBox.style.background = 'rgba(34, 197, 94, 0.2)';
+        statusBox.style.border = '1px solid #22c55e';
+        statusBox.style.color = '#86efac';
+        statusBox.innerHTML = '✅ Live AI Connection Verified! Real Model Activated.';
+        initAIStatusUI();
+
+        setTimeout(() => {
+          document.getElementById('ai-settings-modal-overlay').style.display = 'none';
+          appendMessage('agent', `⚡ <strong>Live AI Connected (${prov})</strong>: I am now running on a live neural model trained with the official Abba's Orchard AMI curriculum, 15+ campus directory, and multi-lingual reasoning (Bisaya / Tagalog / English). How may I assist you?`);
+        }, 800);
+
+      } catch (err) {
+        statusBox.style.background = 'rgba(239, 68, 68, 0.2)';
+        statusBox.style.border = '1px solid #ef4444';
+        statusBox.style.color = '#fca5a5';
+        statusBox.innerHTML = `❌ Connection Failed: ${err.message}`;
+      }
+    }
+
+    function disconnectLiveAI() {
+      activeLiveAIConfig = { provider: 'simulator', apiKey: '', backendUrl: 'http://localhost:3000/api/chat' };
+      localStorage.removeItem('abbas_ai_provider');
+      localStorage.removeItem('abbas_ai_key');
+      initAIStatusUI();
+      document.getElementById('ai-settings-modal-overlay').style.display = 'none';
+      appendMessage('agent', '🔄 Switched back to <strong>PoC Rule Simulator Mode</strong>.');
+    }
+
+    async function callLiveLLM(userText) {
+      const { provider, apiKey, backendUrl } = activeLiveAIConfig;
+
+      if (provider.includes('gemini')) {
+        // Format conversation for Gemini API
+        const contents = liveChatHistory.map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }]
+        }));
+        contents.push({ role: 'user', parts: [{ text: userText }] });
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${provider}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: ABBAS_SYSTEM_PROMPT }] },
+            contents: contents,
+            generationConfig: {
+              temperature: 0.4,
+              maxOutputTokens: 800
+            }
+          })
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.candidates[0].content.parts[0].text;
+
+      } else if (provider.includes('gpt')) {
+        const messages = [
+          { role: 'system', content: ABBAS_SYSTEM_PROMPT },
+          ...liveChatHistory.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          })),
+          { role: 'user', content: userText }
+        ];
+
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: provider,
+            messages: messages,
+            temperature: 0.4
+          })
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.choices[0].message.content;
+
+      } else if (provider === 'custom-server') {
+        const res = await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userText,
+            history: liveChatHistory,
+            campus: currentActiveCampus.name
+          })
+        });
+        const data = await res.json();
+        return data.reply || data.response;
+      }
+    }
+
+    async function processUserQuery(userText) {
+      appendMessage('user', userText);
+      liveChatHistory.push({ role: 'user', content: userText });
+      showTypingIndicator();
+
+      // Check if real live AI model is configured
+      if (activeLiveAIConfig.apiKey || activeLiveAIConfig.provider === 'custom-server') {
+        try {
+          const rawResponse = await callLiveLLM(userText);
+          removeTypingIndicator();
+
+          // Check for structured dispatch tag
+          let cleanResponse = rawResponse;
+          let newDispatch = null;
+          const dispatchMatch = rawResponse.match(/<!--\s*DISPATCH:\s*(\{.*?\})\s*-->/s);
+
+          if (dispatchMatch) {
+            cleanResponse = rawResponse.replace(dispatchMatch[0], '').trim();
+            try {
+              const dispatchData = JSON.parse(dispatchMatch[1]);
+              newDispatch = {
+                id: emailDispatches.length + 1,
+                time: "Just now",
+                campus: dispatchData.campus || currentActiveCampus.name,
+                to: dispatchData.to || currentActiveCampus.email,
+                cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+                subject: dispatchData.subject || `[Live AI Lead] Inquiry - ${currentActiveCampus.name}`,
+                parentName: dispatchData.parentName || "Prospective Parent (Live AI Session)",
+                parentContact: dispatchData.parentContact || "Captured via Real LLM Agent",
+                details: dispatchData.details || `Parent asked: "${userText}"`
+              };
+
+              // Update active campus tags if campus is recognized
+              const matchedCampus = CAMPUSES.find(c => c.name.toLowerCase().includes(dispatchData.campus?.toLowerCase() || ''));
+              if (matchedCampus) {
+                currentActiveCampus = matchedCampus;
+                document.getElementById('active-routing-tag').innerText = matchedCampus.name;
+                document.getElementById('active-routing-email').innerText = matchedCampus.email;
+              }
+            } catch (e) {
+              console.warn("Could not parse dispatch JSON:", e);
+            }
+          }
+
+          if (newDispatch) {
+            emailDispatches.unshift(newDispatch);
+            document.getElementById('dispatch-count').innerText = emailDispatches.length;
+          }
+
+          liveChatHistory.push({ role: 'model', content: cleanResponse });
+          appendMessage('agent', cleanResponse.replace(/\n/g, '<br>'), newDispatch);
+          return;
+
+        } catch (err) {
+          console.error("Live AI Error, falling back to simulator:", err);
+          appendMessage('agent', `⚠️ <em>Notice: Live AI call encountered an issue (${err.message}). Using built-in Montessori knowledge engine.</em>`);
+        }
+      }
+
+      // Simulated Rule Engine fallback
+      setTimeout(() => {
+        removeTypingIndicator();
+        
+        const lower = userText.toLowerCase();
+        let targetCampus = currentActiveCampus;
+        let responseText = "";
+        let newDispatch = null;
+
+        // Campus Auto-Detection
+        if (lower.includes('bukidnon') || lower.includes('granja') || lower.includes('farm') || lower.includes('erdkinder')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'lagranja');
+        } else if (lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'alwana');
+        } else if (lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'davao');
+        } else if (lower.includes('cebu') || lower.includes('magsaysay') || lower.includes('tandang sora')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'cebu');
+        } else if (lower.includes('bgc') || lower.includes('mckinley')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'mckinley');
+        } else if (lower.includes('alabang')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'alabang');
+        } else if (lower.includes('greenhills') || lower.includes('mandaluyong')) {
+          targetCampus = CAMPUSES.find(c => c.id === 'greenhills');
+        }
+
+        // Update active campus tags
+        currentActiveCampus = targetCampus;
+        document.getElementById('active-routing-tag').innerText = targetCampus.name;
+        document.getElementById('active-routing-email').innerText = targetCampus.email;
+
+        // Multi-Lingual & Context-Aware Logic
+        const isBisaya = lower.includes('pila') || lower.includes('tagpila') || lower.includes('unsa') || lower.includes('naa') || lower.includes('pwede') || lower.includes('karon') || lower.includes('taga');
+        
+        if (lower.includes('farm') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('bukidnon')) {
+          responseText = `
+            🌾 <strong>The Abba's Orchard Bukidnon — La Granja Estates:</strong><br><br>
+            La Granja is our premier <strong>Erdkinder Farm Campus</strong> located in Pualas, Baungon, Bukidnon. Rooted in Dr. Maria Montessori's vision for adolescents, our Erdkinder program combines academic rigor with practical land stewardship, animal husbandry, economics, and community boarding.<br><br>
+            <strong>Programs Offered at La Granja:</strong><br>
+            • Infant Community (14 mos – 3 yrs)<br>
+            • Casa (3 – 6 yrs)<br>
+            • Elementary (6 – 12 yrs)<br>
+            • Erdkinder Adolescent Boarding (12 – 18 yrs / Junior & Senior High)<br><br>
+            📍 <em>Address:</em> La Granja Estates, Pualas, Baungon, Bukidnon<br>
+            📞 <em>Direct Line:</em> (0917) 508 2668<br>
+            📧 <em>Campus Coordinator:</em> <strong>lagranja@theabbasorchard.edu.ph</strong><br><br>
+            Would you like to schedule a weekend farm tour or receive the adolescent boarding admissions checklist?
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: "Bukidnon - La Granja Estates",
+            to: "lagranja@theabbasorchard.edu.ph",
+            cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+            subject: "[Automated Inquiry Dispatch] Bukidnon La Granja Erdkinder Farm & Admissions",
+            parentName: "Prospective Parent (Live Session)",
+            parentContact: "Captured via Digital Assistant",
+            details: `Parent inquired: "${userText}". Automated briefing on Erdkinder boarding provided. Routed to Baungon campus desk.`
+          };
+
+        } else if (isBisaya || lower.includes('alwana') || lower.includes('tuition')) {
+          responseText = `
+            Maayong adlaw! Daghang salamat sa pag-inquire sa <strong>The Abba's Orchard (${targetCampus.name})</strong>. 🌱<br><br>
+            Alang sa <strong>Casa (3–6 years old)</strong> ug Elementary levels, ang among admissions nag-offer ug flexible payment terms (Annual, Semi-Annual, o Quarterly).<br><br>
+            📋 <strong>Admissions Checklist:</strong><br>
+            1. PSA Birth Certificate sa bata<br>
+            2. Accomplished Application Form<br>
+            3. Developmental Questionnaire & Child Observation Session<br><br>
+            Gipasa na nako ang inyong inquiry direkta ngadto sa coordinator sa <strong>${targetCampus.name}</strong> sa <code>${targetCampus.email}</code> ug sa accounting desk ni Ms. Roxane para mahatagan mo sa official detailed fee breakdown for SY 2026-2027.<br><br>
+            Pila man ang edad sa inyong anak karon?
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: targetCampus.name,
+            to: targetCampus.email,
+            cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+            subject: `[Admissions Lead - ${targetCampus.name}] Tuition & Enrollment Inquiry (Bisaya/English)`,
+            parentName: "Inquiring Parent (Live Demo)",
+            parentContact: "Captured via AI Assistant",
+            details: `Parent asked: "${userText}". Routed directly to ${targetCampus.name} coordinator (${targetCampus.email}) and Roxane's accounting desk.`
+          };
+
+        } else if (lower.includes('bgc') || lower.includes('mckinley') || lower.includes('taguig')) {
+          responseText = `
+            🏙️ <strong>The Abba's Orchard — BGC McKinley Hill Campus:</strong><br><br>
+            Located at the Ground Floor of Morgan Executive Suites, Florence Way, McKinley Hill, Taguig City.<br><br>
+            <strong>Programs Offered:</strong><br>
+            • Infant Community (14 mos – 3 yrs)<br>
+            • Casa (3 – 6 yrs / Pre-School & Kindergarten)<br>
+            • Lower & Upper Elementary (6 – 12 yrs)<br><br>
+            📞 <em>Phone:</em> (0917) 854 2668<br>
+            📧 <em>Email:</em> <strong>mckinleyhill@theabbasorchard.edu.ph</strong><br><br>
+            We conduct 1-on-1 parent orientation walkthroughs on weekday mornings. Would you like me to book your observation slot?
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: "Taguig - BGC McKinley Hill",
+            to: "mckinleyhill@theabbasorchard.edu.ph",
+            cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+            subject: "[Admissions Lead] BGC McKinley Hill Tour & Casa Availability",
+            parentName: "Prospective Parent (Live Demo)",
+            parentContact: "Captured via AI Assistant",
+            details: `Parent inquiry regarding BGC McKinley Hill campus programs. Routed to mckinleyhill@theabbasorchard.edu.ph.`
+          };
+
+        } else if (lower.includes('tour') || lower.includes('schedule') || lower.includes('visit') || lower.includes('cebu')) {
+          responseText = `
+            🌿 <strong>Campus Observation & Tour Request Logged:</strong><br><br>
+            At The Abba's Orchard, observing an active Montessori prepared environment is the best way to experience True Montessori® in action.<br><br>
+            <strong>Target Campus:</strong> ${targetCampus.name}<br>
+            📍 <em>Location:</em> ${targetCampus.address}<br>
+            📞 <em>Direct Line:</em> ${targetCampus.phone}<br>
+            📧 <em>Coordinator Email:</em> <strong>${targetCampus.email}</strong><br><br>
+            I have notified the campus admissions head to block out a priority morning observation slot for you. Please reply with your preferred day (Monday–Friday) and the best contact number to confirm.
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: targetCampus.name,
+            to: targetCampus.email,
+            cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+            subject: `[Campus Tour Booking Request] ${targetCampus.name}`,
+            parentName: "Prospective Parent",
+            parentContact: "Captured via AI Widget",
+            details: `Parent requested campus observation walkthrough at ${targetCampus.name}. Forwarded to coordinator at ${targetCampus.email}.`
+          };
+
+        } else {
+          // General intelligent response
+          responseText = `
+            Thank you for reaching out to <strong>The Abba's Orchard School</strong>! 🌱<br><br>
+            Regarding your inquiry: "${userText}" — as the first and premier Maria Montessori school network in the Philippines, we provide authentic AMI-standard prepared environments across Luzon, Visayas, and Mindanao.<br><br>
+            I have logged your concern and linked it directly with the admissions team at <strong>${targetCampus.name}</strong> (<code>${targetCampus.email}</code>).<br><br>
+            Would you like me to send you our <strong>Admissions Application Packet</strong> or connect you with our campus coordinator?
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: targetCampus.name,
+            to: targetCampus.email,
+            cc: "admission_application@theabbasorchard.edu.ph",
+            subject: `[Parent Inquiry - ${targetCampus.name}] Admissions & General Information`,
+            parentName: "Prospective Parent",
+            parentContact: "Live Session Lead",
+            details: `Parent asked: "${userText}". Auto-assigned to ${targetCampus.name} directory.`
+          };
+        }
+
+        if (newDispatch) {
+          emailDispatches.unshift(newDispatch);
+          document.getElementById('dispatch-count').innerText = emailDispatches.length;
+        }
+
+        liveChatHistory.push({ role: 'model', content: responseText });
+        appendMessage('agent', responseText, newDispatch);
+
+      }, 600);
+    }
+
+    // Scenarios Trigger
+    function triggerScenario(type) {
+      if (type === 'lagranja') {
+        const campus = CAMPUSES.find(c => c.id === 'lagranja');
+        selectCampus(campus);
+        sendQuickMessage("Tell me about the Bukidnon La Granja campus, the Erdkinder farm environment, and dormitory boarding for adolescents.");
+      } else if (type === 'alwana_bisaya') {
+        const campus = CAMPUSES.find(c => c.id === 'alwana');
+        selectCampus(campus);
+        sendQuickMessage("Maayong hapon, tagpila ang tuition sa Casa 3 years old sa Alwana CDO campus ug unsaon pag-apply?");
+      } else if (type === 'bgc_casa') {
+        const campus = CAMPUSES.find(c => c.id === 'mckinley');
+        selectCampus(campus);
+        sendQuickMessage("What programs and age groups are offered in the BGC McKinley Hill Taguig campus?");
+      } else if (type === 'cebu_tour') {
+        const campus = CAMPUSES.find(c => c.id === 'cebu');
+        selectCampus(campus);
+        sendQuickMessage("We would like to schedule a campus tour and observation session at the Cebu Magsaysay campus for our 4-year-old child.");
+      }
+    }
+
+    function resetChat() {
+      liveChatHistory = [];
+      const container = document.getElementById('chat-messages-container');
+      container.innerHTML = `
+        <div class="chat-bubble-row agent">
+          <div class="bubble-avatar">🌱</div>
+          <div class="bubble-content">
+            <strong>Welcome to The Abba's Orchard School!</strong><br>
+            Discover True Montessori®. I am your 24/7 Admissions Digital Employee.
+            <br><br>
+            I can assist you with:
+            <br>• Programs across our 15+ Campuses (Luzon, Visayas, Mindanao)
+            <br>• Bukidnon La Granja Erdkinder Farm Boarding
+            <br>• Tuition, Admissions Process, & Campus Tours
+            <br><br>
+            <em>Unsay akong matabang ninyo karon? / How may I help you today?</em>
+            <div class="bubble-time">Just now</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openSimulatorWidget() {
+      document.getElementById('user-input-field').focus();
+    }
+
+    function scrollToCampuses() {
+      document.getElementById('campuses-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Email Dispatch Modal Management
+    function openDispatchModal() {
+      const modal = document.getElementById('dispatch-modal-overlay');
+      const listContainer = document.getElementById('dispatches-list-container');
+      
+      listContainer.innerHTML = '';
+
+      emailDispatches.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'email-envelope-preview';
+        div.innerHTML = `
+          <div class="email-header-row">
+            <span class="email-label">TIMESTAMP:</span>
+            <span style="color: #94a3b8;">${item.time}</span>
+          </div>
+          <div class="email-header-row">
+            <span class="email-label">CAMPUS:</span>
+            <span style="color: #fef08a; font-weight: 700;">${item.campus}</span>
+          </div>
+          <div class="email-header-row">
+            <span class="email-label">TO:</span>
+            <span class="email-val">${item.to}</span>
+          </div>
+          <div class="email-header-row">
+            <span class="email-label">CC:</span>
+            <span style="color: #cbd5e1;">${item.cc}</span>
+          </div>
+          <div class="email-header-row">
+            <span class="email-label">SUBJECT:</span>
+            <span style="color: #f1f5f9; font-weight: 600;">${item.subject}</span>
+          </div>
+          <div class="email-body-content">
+<strong>Parent / Lead Information:</strong>
+• Name: ${item.parentName}
+• Contact: ${item.parentContact}
+
+<strong>Inquiry & Auto-Dispatch Summary:</strong>
+${item.details}
+
+--
+⚡ <em>Dispatched automatically by The Abba's Orchard 24/7 AI Digital Employee</em>
+          </div>
+        `;
+        listContainer.appendChild(div);
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function closeDispatchModal(event) {
+      if (event && event.target !== document.getElementById('dispatch-modal-overlay') && !event.target.classList.contains('modal-close-btn')) {
+        return;
+      }
+      document.getElementById('dispatch-modal-overlay').style.display = 'none';
+    }
+
+    // Initialize default view
+    renderCampuses('mindanao');
+    initAIStatusUI();
+  </script>
+</body>
+</html>

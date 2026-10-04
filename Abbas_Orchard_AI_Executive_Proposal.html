@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal: 24/7 AI Admissions Digital Employee — The Abba's Orchard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #11382b;
+            --primary-light: #1b4d3e;
+            --accent-gold: #c99738;
+            --accent-gold-dark: #a67823;
+            --bg-canvas: #f8f7f3;
+            --bg-card: #ffffff;
+            --text-main: #1c2826;
+            --text-muted: #53645e;
+            --border: #e2ded4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 30px 20px;
+        }
+
+        .document-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(17, 56, 43, 0.06);
+            overflow: hidden;
+        }
+
+        .doc-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #0d281f 100%);
+            color: #ffffff;
+            padding: 40px 48px;
+            border-bottom: 4px solid var(--accent-gold);
+            position: relative;
+        }
+
+        .doc-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .doc-header h2 {
+            font-size: 15px;
+            color: #dfb259;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .meta-strip {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            font-size: 13px;
+            color: #d1ded8;
+        }
+
+        .doc-body {
+            padding: 40px 48px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 19px;
+            color: var(--primary);
+            border-bottom: 2px solid #eeebe3;
+            padding-bottom: 8px;
+            margin: 32px 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 18px 0;
+        }
+
+        .info-card {
+            background: #faf9f6;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+
+        .info-card h4 {
+            font-size: 15px;
+            color: var(--primary);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .info-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        .pricing-box {
+            background: #fbf9f4;
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .price-item h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .price-figure {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 4px 0;
+        }
+
+        .price-figure span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .price-item ul {
+            list-style: none;
+            margin-top: 10px;
+            font-size: 12.5px;
+            color: var(--text-main);
+        }
+
+        .price-item ul li {
+            margin-bottom: 6px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .price-item ul li::before {
+            content: "✓";
+            color: var(--accent-gold-dark);
+            font-weight: bold;
+        }
+
+        .footer-action {
+            background: #faf8f2;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .print-btn {
+            background: var(--primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .document-wrapper {
+                border: none;
+                box-shadow: none;
+            }
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="document-wrapper">
+        <header class="doc-header">
+            <h2>Executive Solution &amp; Engagement Proposal</h2>
+            <h1>The Abba's Orchard 24/7 AI Admissions Agent</h1>
+            <div class="meta-strip">
+                <div><strong>Client:</strong> The Abba's Orchard Administration (Sir Angelo)</div>
+                <div><strong>Provider:</strong> SETHCON (Jason Velasquez)</div>
+                <div><strong>Date:</strong> September 2026</div>
+            </div>
+        </header>
+
+        <main class="doc-body">
+            <h3 class="section-title">1. Executive Summary &amp; Objective</h3>
+            <p>
+                To provide The Abba's Orchard School with an intelligent, 24/7 multi-campus <strong>AI Admissions Digital Employee</strong> deployed across both the official <strong>Website</strong> (<code>theabbasorchard.edu.ph</code>) and the <strong>Official Facebook Page</strong>. The objective is to capture and guide prospective parents during peak after-hours (7 PM – 11 PM and weekends), answer multi-campus questions instantly in English, Tagalog, or Bisaya, and eliminate admission form drop-offs while preserving the True Montessori® tone of voice.
+            </p>
+
+            <h3 class="section-title">2. Core System Deliverables</h3>
+            <div class="grid-2">
+                <div class="info-card">
+                    <h4>🏛️ 15+ Campus Intelligence</h4>
+                    <p>Instant answers for all locations (Alwana CDO, Bukidnon, Davao Obrero &amp; Mandug, Cebu, Metro Manila &amp; Luzon branches).</p>
+                </div>
+                <div class="info-card">
+                    <h4>🗣️ Polyglot &amp; Dialect Fluent</h4>
+                    <p>Understands and responds natively in English, Bisaya, and Tagalog to ensure every local family feels understood.</p>
+                </div>
+                <div class="info-card">
+                    <h4>🕊️ True Montessori® Knowledge</h4>
+                    <p>Trained in AMI philosophy across Infant Community, Casa, Elementary, and Erdkinder farm environments.</p>
+                </div>
+                <div class="info-card">
+                    <h4>📱 Unified Web + Facebook Sync</h4>
+                    <p>Operates simultaneously on your website chat widget and Facebook Messenger with smart escalation to human staff.</p>
+                </div>
+            </div>
+
+            <h3 class="section-title">3. Investment &amp; Commercial Terms</h3>
+            <div class="pricing-box">
+                <div class="price-item">
+                    <h3>One-Time Setup &amp; Deployment</h3>
+                    <div class="price-figure">₱28,000 <span>/ one-time</span></div>
+                    <ul>
+                        <li>Custom training on 15+ campus offerings</li>
+                        <li>Website live widget embed &amp; custom styling</li>
+                        <li>Meta / Facebook Messenger API connection</li>
+                        <li>Admissions checklist &amp; routing configuration</li>
+                        <li>Admissions &amp; Accounting notification handoff</li>
+                    </ul>
+                </div>
+
+                <div class="price-item">
+                    <h3>Monthly Maintenance &amp; Retainer</h3>
+                    <div class="price-figure">₱2,500 <span>/ month</span></div>
+                    <ul>
+                        <li>24/7 Server uptime &amp; token quota coverage</li>
+                        <li>Continuous knowledge updates (events, calendar)</li>
+                        <li>Meta API maintenance &amp; webhook monitoring</li>
+                        <li>Monthly conversation accuracy auditing</li>
+                        <li>Priority developer technical support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="section-title">4. Recommended Next Step: Zero-Risk Proof of Concept</h3>
+            <p>
+                SETHCON will prepare a private, working Proof of Concept (PoC) demo trained on The Abba's Orchard knowledge base for Sir Angelo and the administration to test firsthand prior to official activation.
+            </p>
+
+            <div class="footer-action">
+                <p><strong>Ready to present or save this document?</strong></p>
+                <button class="print-btn" onclick="window.print()">🖨️ Print / Save to PDF</button>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

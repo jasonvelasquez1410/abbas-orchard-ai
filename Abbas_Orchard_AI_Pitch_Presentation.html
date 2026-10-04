@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Abba's Orchard — 24/7 AI Admissions Digital Agent Proposal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #11382b;
+            --primary-light: #1b4d3e;
+            --primary-dark: #0a241b;
+            --accent-gold: #c99738;
+            --accent-gold-light: #dfb259;
+            --accent-gold-soft: rgba(201, 151, 56, 0.15);
+            --bg-canvas: #f6f5f0;
+            --bg-card: #ffffff;
+            --text-main: #1c2826;
+            --text-muted: #5e6d67;
+            --border-soft: #e2ded4;
+            --success: #15803d;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 12px 30px rgba(17, 56, 43, 0.08);
+            --shadow-lg: 0 20px 45px rgba(17, 56, 43, 0.14);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Bar */
+        header.top-nav {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-soft);
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo-badge {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: 2px solid var(--accent-gold);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-gold);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .brand-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .brand-text p {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-soft);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #e9e6dd;
+            border-color: #cfc9be;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(17, 56, 43, 0.2);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(201, 151, 56, 0.3);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(201, 151, 56, 0.4);
+        }
+
+        /* Presentation Stage */
+        .presentation-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Slide Frame */
+        .slide-deck {
+            position: relative;
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Slide Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 5px;
+            background: #eeebe3;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent-gold));
+            width: 12.5%;
+            transition: width 0.4s ease;
+        }
+
+        /* Slide Content Area */
+        .slide {
+            display: none;
+            padding: 44px 50px;
+            animation: fadeIn 0.4s ease forwards;
+            flex: 1;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slide Typography */
+        .slide-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-gold-soft);
+            color: #8c6310;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            width: fit-content;
+        }
+
+        .slide-title {
+            font-family: 'Cinzel', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+
+        .slide-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            max-width: 850px;
+            line-height: 1.5;
+        }
+
+        /* Slide 1 - Cover */
+        .cover-layout {
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+        }
+
+        .cover-layout .slide-title {
+            font-size: 42px;
+            max-width: 900px;
+            margin: 16px auto;
+        }
+
+        .cover-pills {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 24px 0 32px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            background: #f1ede4;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            border: 1px solid #dfd9cb;
+        }
+
+        .presenter-tag {
+            border-top: 1px solid var(--border-soft);
+            padding-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        /* Grid Layouts for Content */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            flex: 1;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            flex: 1;
+        }
+
+        .card-box {
+            background: #faf9f6;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .card-box:hover {
+            border-color: var(--accent-gold);
+            background: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .card-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .card-box p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .card-highlight {
+            background: #ffffff;
+            border: 2px solid var(--accent-gold);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Interactive Simulator */
+        .sim-container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+            background: #f4f2ea;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .sim-prompts {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sim-btn {
+            background: #ffffff;
+            border: 1px solid var(--border-soft);
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sim-btn:hover, .sim-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .sim-chat {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2ddd3;
+        }
+
+        .chat-bubble {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.45;
+            max-width: 85%;
+        }
+
+        .bubble-user {
+            background: #f1ede4;
+            color: var(--text-main);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bubble-ai {
+            background: var(--primary);
+            color: #ffffff;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Pricing Breakdown Presentation */
+        .pricing-deck {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: stretch;
+            margin-top: 10px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-soft);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--accent-gold);
+            box-shadow: var(--shadow-md);
+            background: linear-gradient(180deg, #ffffff 0%, #faf8f2 100%);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            right: 28px;
+            background: var(--accent-gold);
+            color: #1a1a1a;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .price-tag {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+            margin: 12px 0 6px;
+        }
+
+        .price-tag span {
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .feature-list li {
+            font-size: 13.5px;
+            color: var(--text-main);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.4;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        /* Speaker Notes Drawer (Jason's secret cheat sheet) */
+        .notes-drawer {
+            background: #202b27;
+            color: #d1ded8;
+            padding: 16px 24px;
+            border-top: 1px solid #33443e;
+            font-size: 13px;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .notes-drawer.open {
+            display: block;
+        }
+
+        .notes-drawer strong {
+            color: var(--accent-gold-light);
+        }
+
+        /* Bottom Controls Bar */
+        .slide-footer {
+            background: #ffffff;
+            border-top: 1px solid var(--border-soft);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slide-counter {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .nav-arrows {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Comparison Table */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            margin-top: 10px;
+        }
+
+        .compare-table th, .compare-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-soft);
+            text-align: left;
+        }
+
+        .compare-table th {
+            background: #f5f2ea;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .compare-table tr:hover td {
+            background: #faf8f2;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grid-2, .grid-3, .grid-4, .pricing-deck, .sim-container {
+                grid-template-columns: 1fr;
+            }
+            .slide {
+                padding: 24px;
+            }
+            .slide-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-nav">
+        <div class="brand-box">
+            <div class="brand-logo-badge">AO</div>
+            <div class="brand-text">
+                <h1>The Abba's Orchard School</h1>
+                <p>AI Admissions &amp; Campus Concierge Proposal</p>
+            </div>
+        </div>
+
+        <div class="nav-controls">
+            <button class="btn btn-outline" id="toggleNotesBtn" onclick="toggleSpeakerNotes()">
+                🎙️ Speaker Notes (N)
+            </button>
+            <button class="btn btn-primary" onclick="launchFullscreen()">
+                ⛶ Fullscreen
+            </button>
+            <button class="btn btn-gold" onclick="jumpToSlide(7)">
+                💳 View Pricing &amp; Terms
+            </button>
+        </div>
+    </header>
+
+    <!-- Presentation Content Deck -->
+    <main class="presentation-container">
+        <div class="slide-deck" id="deck">
+            <!-- Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <!-- SLIDE 1: Title & Executive Overview -->
+            <section class="slide active" data-slide="1">
+                <div class="cover-layout">
+                    <span class="slide-tag">SETHCON &bull; Executive Proposal</span>
+                    <h2 class="slide-title">A 24/7 "Digital Employee" for The Abba's Orchard Admissions</h2>
+                    <p class="slide-subtitle">
+                        Empowering Prospective Parents across 15+ Campuses with Instant, Multi-Dialect Admissions Guidance on your <strong>Website</strong> and <strong>Facebook Messenger</strong>.
+                    </p>
+
+                    <div class="cover-pills">
+                        <div class="pill">🏛️ 15+ Campuses (Luzon, Visayas, Mindanao)</div>
+                        <div class="pill">🌱 True Montessori® AMI Aligned</div>
+                        <div class="pill">💬 English, Bisaya &amp; Tagalog Fluency</div>
+                        <div class="pill">⚡ 24/7 Zero Wait Time</div>
+                    </div>
+
+                    <div class="presenter-tag">
+                        <div>
+                            <strong>Prepared for:</strong> Sir Angelo &bull; The Abba's Orchard Administration<br>
+                            <span style="font-size: 12px; color: var(--text-muted);">
+                                <strong>Presented by:</strong> Jason Velasquez &bull; Principal Developer, SETHCON
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: The Core Challenge -->
+            <section class="slide" data-slide="2">
+                <span class="slide-tag">The Parent Journey Problem</span>
+                <h2 class="slide-title">The After-Hours Admissions Friction</h2>
+                <p class="slide-subtitle">
+                    Montessori education is a deeply intentional decision for parents. However, modern parents research and inquire during hours when campus offices are closed.
+                </p>
+
+                <div class="grid-3">
+                    <div class="card-box">
+                        <span class="card-icon">🌙</span>
+                        <h3>7 PM to 11 PM Inquiry Gap</h3>
+                        <p>Working parents inquire after dinner or on weekends. Without immediate response, inquiry heat drops by over <strong>70%</strong> before next-day office hours.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span class="card-icon">📍</span>
+                        <h3>Multi-Campus Complexity</h3>
+                        <p>With 15+ locations (Alwana CDO, Bukidnon, Davao, Cebu, BGC, Greenhills), manual message routing causes delays and confusion for admissions desks.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span class="card-icon">📝</span>
+                        <h3>Admission Form Drop-Offs</h3>
+                        <p>Parents encountering questions regarding Good Moral certificates, age cutoffs (Casa vs Infant Community), or tuition schedules often stall on the online form.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: The Solution - A 24/7 Digital Concierge -->
+            <section class="slide" data-slide="3">
+                <span class="slide-tag">Our Solution</span>
+                <h2 class="slide-title">The Montessori AI Admissions Agent</h2>
+                <p class="slide-subtitle">
+                    An intelligent, highly trained digital representative embedded into both your official <strong>Website</strong> and <strong>Facebook Page</strong>.
+                </p>
+
+                <div class="grid-4">
+                    <div class="card-box card-highlight">
+                        <span class="card-icon">🌐</span>
+                        <h3>Multi-Campus Brain</h3>
+                        <p>Recognizes inquiries for Alwana, Bukidnon, Davao Obrero/Mandug, Cebu, Luzon campuses instantly with exact location details.</p>
+                    </div>
+
+                    <div class="card-box card-highlight">
+                        <span class="card-icon">🗣️</span>
+                        <h3>Polyglot &amp; Dialect Fluent</h3>
+                        <p>Naturally converses in <strong>Bisaya</strong>, <strong>Tagalog</strong>, <strong>English</strong>, or Taglish with zero translation awkwardness.</p>
+                    </div>
+
+                    <div class="card-box card-highlight">
+                        <span class="card-icon">🕊️</span>
+                        <h3>True Montessori Voice</h3>
+                        <p>Trained in AMI philosophy. Articulates the value of Infant Community, Casa, Elementary, and Erdkinder farm environments warmly.</p>
+                    </div>
+
+                    <div class="card-box card-highlight">
+                        <span class="card-icon">📋</span>
+                        <h3>Admissions Navigator</h3>
+                        <p>Guides parents step-by-step through `/admissionform`, requirement checklists, and tour/orientation scheduling.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Interactive Demonstration -->
+            <section class="slide" data-slide="4">
+                <span class="slide-tag">Live Experience</span>
+                <h2 class="slide-title">Interactive Parent Inquiry Simulation</h2>
+                <p class="slide-subtitle">
+                    Click any scenario below to see how the AI agent communicates naturally with prospective parents in real-time.
+                </p>
+
+                <div class="sim-container">
+                    <div class="sim-prompts">
+                        <button class="sim-btn active" onclick="runSim(1)">
+                            <span>1. Bisaya Inquiry (Alwana Campus)</span>
+                            <span>&rarr;</span>
+                        </button>
+                        <button class="sim-btn" onclick="runSim(2)">
+                            <span>2. Erdkinder Farm Question</span>
+                            <span>&rarr;</span>
+                        </button>
+                        <button class="sim-btn" onclick="runSim(3)">
+                            <span>3. Admissions Checklist &amp; Tour</span>
+                            <span>&rarr;</span>
+                        </button>
+                    </div>
+
+                    <div class="sim-chat" id="simChat">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Unified Architecture -->
+            <section class="slide" data-slide="5">
+                <span class="slide-tag">System Architecture</span>
+                <h2 class="slide-title">Two Front-Doors, One Single Brain</h2>
+                <p class="slide-subtitle">
+                    Whether a parent reaches out via your Website or Facebook Messenger, they experience consistent, accurate guidance with built-in human escalation.
+                </p>
+
+                <div class="grid-3">
+                    <div class="card-box">
+                        <span class="card-icon">💻</span>
+                        <h3>Website Live Widget</h3>
+                        <p>Lightweight 1-line script compatible with your Laravel/Inertia stack. Styled in Abba's Orchard signature forest-green &amp; gold aesthetic.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span class="card-icon">📱</span>
+                        <h3>Facebook Messenger Sync</h3>
+                        <p>Direct API integration on The Abba's Orchard official Facebook page. Captures mobile-first parents chatting on their phones.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span class="card-icon">🔔</span>
+                        <h3>Smart Staff Handoff</h3>
+                        <p>Whenever a parent requests custom payment terms or high-priority assistance, the AI notifies the accounting/admissions team with full chat logs.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Human Receptionist vs AI Digital Employee -->
+            <section class="slide" data-slide="6">
+                <span class="slide-tag">Value &amp; ROI</span>
+                <h2 class="slide-title">Operational Comparison &amp; Impact</h2>
+                <p class="slide-subtitle">
+                    Complementing your existing admissions and accounting staff with 24/7/365 coverage across all branches.
+                </p>
+
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Feature / Metric</th>
+                            <th>Traditional Manual Inquiries</th>
+                            <th>With Abba's Orchard AI Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Availability</strong></td>
+                            <td>8:00 AM - 5:00 PM (Weekdays only)</td>
+                            <td><strong>24 Hours / 7 Days / 365 Days</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Response Speed</strong></td>
+                            <td>Minutes to Several Hours</td>
+                            <td><strong>Instant (< 2 seconds)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-Campus Knowledge</strong></td>
+                            <td>Requires transfer/lookup</td>
+                            <td><strong>Instant recall for all 15+ campuses</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dialect Flexibility</strong></td>
+                            <td>Dependent on staff on duty</td>
+                            <td><strong>Fluent Bisaya, English &amp; Tagalog</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Monthly Cost Equivalent</strong></td>
+                            <td>₱15,000 - ₱20,000 per staff desk</td>
+                            <td><strong>₱2,500/month flat retainer</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- SLIDE 7: Pricing & Engagement Proposal -->
+            <section class="slide" data-slide="7">
+                <span class="slide-tag">Clear Investment</span>
+                <h2 class="slide-title">Transparent, High-ROI Pricing</h2>
+                <p class="slide-subtitle">
+                    A straightforward setup package paired with a lightweight monthly maintenance plan designed for long-term peace of mind.
+                </p>
+
+                <div class="pricing-deck">
+                    <!-- Setup Card -->
+                    <div class="pricing-card">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">One-Time Phase</span>
+                        <h3 style="font-size: 22px; color: var(--primary); margin-top: 4px;">Setup &amp; Custom Training</h3>
+                        <div class="price-tag">₱28,000 <span>/ one-time</span></div>
+                        <p style="font-size: 13px; color: var(--text-muted);">Complete knowledge architecture, integration, and training.</p>
+
+                        <ul class="feature-list">
+                            <li>Custom training on all 15+ Abba's Orchard campuses</li>
+                            <li>Full AMI Montessori philosophy &amp; program voice training</li>
+                            <li>Website Widget deployment (tailored UI styling)</li>
+                            <li>Meta / Facebook Messenger API integration</li>
+                            <li>Multi-lingual &amp; Bisaya dialect prompt tuning</li>
+                            <li>Staff handoff &amp; notification workflow setup</li>
+                        </ul>
+                    </div>
+
+                    <!-- Retainer Card -->
+                    <div class="pricing-card featured">
+                        <div class="pricing-badge">Recommended</div>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase;">Ongoing Support</span>
+                        <h3 style="font-size: 22px; color: var(--primary); margin-top: 4px;">Monthly Maintenance &amp; Retainer</h3>
+                        <div class="price-tag">₱2,500 <span>/ month</span></div>
+                        <p style="font-size: 13px; color: var(--text-muted);">Covers AI infrastructure, API quotas, and continuous knowledge updates.</p>
+
+                        <ul class="feature-list">
+                            <li>24/7 Server uptime &amp; Meta API message routing</li>
+                            <li>AI LLM usage &amp; conversation token costs covered</li>
+                            <li>Monthly updates (school calendar, tuition changes, events)</li>
+                            <li>Performance monitoring &amp; accuracy audits</li>
+                            <li>Priority technical support for website &amp; FB connectivity</li>
+                            <li>Zero unexpected surge costs</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: Implementation Timeline & Next Steps -->
+            <section class="slide" data-slide="8">
+                <span class="slide-tag">Action Plan</span>
+                <h2 class="slide-title">Next Steps &amp; Free Proof of Concept</h2>
+                <p class="slide-subtitle">
+                    Experience the agent in action with zero initial risk before making any deployment decision.
+                </p>
+
+                <div class="grid-3" style="margin-bottom: 24px;">
+                    <div class="card-box">
+                        <span style="font-size: 18px; font-weight: 800; color: var(--accent-gold);">STEP 1</span>
+                        <h3 style="margin-top: 8px;">Proof of Concept (PoC)</h3>
+                        <p>We build a working prototype trained on Abba's Orchard public resources for Sir Angelo &amp; the team to test privately.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span style="font-size: 18px; font-weight: 800; color: var(--accent-gold);">STEP 2</span>
+                        <h3 style="margin-top: 8px;">Review &amp; Refine</h3>
+                        <p>We incorporate direct feedback from your admissions and accounting desks regarding specific campus guidelines.</p>
+                    </div>
+
+                    <div class="card-box">
+                        <span style="font-size: 18px; font-weight: 800; color: var(--accent-gold);">STEP 3</span>
+                        <h3 style="margin-top: 8px;">Go-Live Activation</h3>
+                        <p>Deploy to official Website &amp; Facebook Page with seamless ongoing ₱2,500/mo maintenance.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; background: #ffffff; padding: 24px; border-radius: var(--radius-md); border: 2px solid var(--primary);">
+                    <h3 style="font-size: 20px; color: var(--primary); margin-bottom: 8px;">Ready to activate the PoC demo for The Abba's Orchard?</h3>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">We can have a personalized interactive test link ready by next week.</p>
+                    <button class="btn btn-gold" onclick="alert('Thank you Sir Angelo! We look forward to launching the Proof of Concept for The Abba\'s Orchard.')">
+                        ✓ Confirm Proof of Concept Phase
+                    </button>
+                </div>
+            </section>
+
+            <!-- Speaker Notes Drawer -->
+            <div class="notes-drawer" id="speakerNotes">
+                <!-- Dynamically populated based on current slide -->
+            </div>
+
+            <!-- Footer Navigation Controls -->
+            <footer class="slide-footer">
+                <div class="slide-counter" id="slideCounter">Slide 1 of 8</div>
+                <div class="nav-arrows">
+                    <button class="btn btn-outline" id="prevBtn" onclick="prevSlide()">&#8592; Previous</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextSlide()">Next Slide &#8594;</button>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        // State
+        let currentSlide = 1;
+        const totalSlides = 8;
+        let notesVisible = false;
+
+        // Speaker Notes per slide
+        const notes = {
+            1: "<strong>Opening Talking Points:</strong> Greet Sir Angelo warmly. Mention your past CCTV work at Alwana campus and Roxane's accounting role to establish trusted insider rapport.",
+            2: "<strong>The Problem:</strong> Highlight the 7 PM - 11 PM parent research habit. Mention how parents drop off during online registration because nobody is available to answer quick checklist questions.",
+            3: "<strong>Core Capabilities:</strong> Emphasize the 4 pillars: Multi-campus knowledge (Alwana, Davao, Cebu, Luzon), Bisaya/Tagalog polyglot fluency, True Montessori voice (AMI certified tone), and admissions guidance.",
+            4: "<strong>Live Demo:</strong> Let Sir Angelo see how it handles Bisaya and Montessori concepts like Erdkinder farm environment smoothly.",
+            5: "<strong>Channels:</strong> Explain that it connects both the Website and Facebook Messenger into one synchronized brain with smart human handoff to Roxane or campus admissions.",
+            6: "<strong>ROI Comparison:</strong> Contrast the cost: 1 staff desk costs ₱15,000+/mo for 8 hours/day, while the AI covers 15+ campuses 24/7 for only ₱2,500/mo.",
+            7: "<strong>Pricing Presentation:</strong> Frame ₱28,000 as a one-time setup and ₱2,500/mo as a flat retainer covering hosting, AI tokens, and continuous updates. Emphasize that it is already aligned with Sir Ram.",
+            8: "<strong>Closing CTA:</strong> Offer to build the free Proof of Concept (PoC) by early next week so the leadership can experience it firsthand before full activation."
+        };
+
+        // Sim Conversations
+        const simData = {
+            1: [
+                { sender: 'user', text: 'Maayong adlaw! Naa moy Casa program sa inyong Alwana campus sa CDO? Pila pod ang age cutoff?' },
+                { sender: 'ai', text: 'Maayong adlaw! Welcome sa The Abba\'s Orchard. Oo, ang atong Alwana Campus sa Cagayan de Oro nagtanyag sa Casa Program alang sa mga bata nga nag-edad 3 hangtod 6 ka tuig. Ginatugotan niini ang bata nga makatuon pinaagi sa prepared Montessori environment. Gusto ba ninyo nga mag-book og campus tour sa Alwana or tabangan ta kamo sa online admission?' }
+            ],
+            2: [
+                { sender: 'user', text: 'What makes your Erdkinder program different from a regular junior high school?' },
+                { sender: 'ai', text: 'In True Montessori® education, our Erdkinder Adolescent Program (ages 12-18) combines rigorous academics with experiential, land-based farm learning. Adolescents learn real-world collaboration, practical science, and self-reliance in a prepared farm environment—fostering confident, purposeful young adults.' }
+            ],
+            3: [
+                { sender: 'user', text: 'What are the requirements for Grade 1 Elementary enrollment?' },
+                { sender: 'ai', text: 'For our Elementary Program, here is the initial checklist: 1) PSA Birth Certificate, 2) Form 138/Report Card, 3) Certificate of Good Moral Character, and 4) 2x2 ID Photos. You can start your application anytime at our online portal: theabbasorchard.edu.ph/admissionform. Would you like me to connect you with our admissions team for an assessment schedule?' }
+            ]
+        };
+
+        function showSlide(n) {
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+            currentSlide = n;
+
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            const target = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+            if (target) target.classList.add('active');
+
+            // Progress bar
+            const percent = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('slideCounter').textContent = `Slide ${currentSlide} of ${totalSlides}`;
+
+            // Update notes
+            document.getElementById('speakerNotes').innerHTML = notes[currentSlide] || '';
+
+            // Update button states
+            document.getElementById('prevBtn').disabled = (currentSlide === 1);
+            document.getElementById('nextBtn').textContent = (currentSlide === totalSlides) ? 'Finish Pitch ✓' : 'Next Slide →';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function jumpToSlide(n) {
+            showSlide(n);
+        }
+
+        function toggleSpeakerNotes() {
+            notesVisible = !notesVisible;
+            const drawer = document.getElementById('speakerNotes');
+            const btn = document.getElementById('toggleNotesBtn');
+            if (notesVisible) {
+                drawer.classList.add('open');
+                btn.style.background = '#202b27';
+                btn.style.color = '#dfb259';
+            } else {
+                drawer.classList.remove('open');
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text-main)';
+            }
+        }
+
+        function launchFullscreen() {
+            const el = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (el.requestFullscreen) el.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function runSim(scenarioId) {
+            document.querySelectorAll('.sim-btn').forEach((b, idx) => {
+                if (idx + 1 === scenarioId) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            const chat = document.getElementById('simChat');
+            chat.innerHTML = '<div style="text-align:center; font-size:12px; color:#888;">Simulating message...</div>';
+
+            const msgs = simData[scenarioId];
+            setTimeout(() => {
+                chat.innerHTML = '';
+                msgs.forEach(m => {
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${m.sender === 'user' ? 'bubble-user' : 'bubble-ai'}`;
+                    bubble.textContent = m.text;
+                    chat.appendChild(bubble);
+                });
+                chat.scrollTop = chat.scrollHeight;
+            }, 300);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'n' || e.key === 'N') {
+                toggleSpeakerNotes();
+            }
+        });
+
+        // Initialize
+        showSlide(1);
+        runSim(1);
+    </script>
+</body>
+</html>
