@@ -41,16 +41,25 @@
       padding: 0;
     }
 
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: #0f172a;
       color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* Top Navigation Bar */
     .top-header {
+      flex-shrink: 0;
       background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -180,18 +189,36 @@
 
     /* Main Container */
     .main-viewport {
+      flex: 1 1 0%;
+      min-height: 0;
+      height: 100%;
       display: grid;
       grid-template-columns: 1fr 440px;
-      height: calc(100vh - 67px);
       background: #0f172a;
       overflow: hidden;
     }
 
     @media (max-width: 1024px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
       .main-viewport {
         grid-template-columns: 1fr;
         height: auto;
-        overflow-y: auto;
+        min-height: auto;
+        overflow: visible;
+      }
+      .preview-canvas {
+        height: 600px;
+        min-height: 500px;
+      }
+      .ai-simulator-panel {
+        height: 650px;
+        min-height: 550px;
+        border-left: none;
+        border-top: 2px solid rgba(255, 255, 255, 0.1);
       }
     }
 
@@ -202,6 +229,8 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      height: 100%;
     }
 
     .browser-frame-bar {
@@ -1204,8 +1233,12 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
       box-shadow: -10px 0 25px rgba(0,0,0,0.3);
       transition: border-color 0.3s;
+      position: relative;
     }
 
     /* Facebook Messenger Theme for Simulator Panel */
@@ -1243,6 +1276,7 @@
     }
 
     .sim-header {
+      flex-shrink: 0;
       padding: 14px 18px;
       background: #1e293b;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -1313,6 +1347,7 @@
 
     /* Live Target Campus Context Bar */
     .campus-routing-banner {
+      flex-shrink: 0;
       background: #172554;
       border-bottom: 1px solid #1e3a8a;
       padding: 8px 16px;
@@ -1339,13 +1374,15 @@
 
     /* Chat Body */
     .sim-chat-body {
-      flex: 1;
+      flex: 1 1 0%;
+      min-height: 0;
       padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 12px;
       background: #090d16;
+      scroll-behavior: smooth;
     }
 
     .chat-bubble-row {
@@ -1515,6 +1552,7 @@
 
     /* Quick Action Prompt Chips */
     .quick-chips-bar {
+      flex-shrink: 0;
       padding: 8px 14px;
       background: #1e293b;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -1544,12 +1582,16 @@
 
     /* Sim Chat Input Area */
     .sim-input-box {
+      flex-shrink: 0;
       padding: 12px 14px;
       background: #1e293b;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       gap: 8px;
       align-items: center;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
     }
 
     .sim-input {
@@ -2415,6 +2457,8 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- Live AI Model Settings Modal -->
   <div class="dispatch-modal-overlay" id="ai-settings-modal-overlay" onclick="closeAISettingsModal(event)">
     <div class="dispatch-modal" style="max-width: 580px;" onclick="event.stopPropagation()">
@@ -2775,7 +2819,9 @@
       row.appendChild(content);
       container.appendChild(row);
 
-      container.scrollTop = container.scrollHeight;
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
 
     function showTypingIndicator() {
@@ -2792,7 +2838,9 @@
         </div>
       `;
       container.appendChild(typing);
-      container.scrollTop = container.scrollHeight;
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
 
     function removeTypingIndicator() {
@@ -2894,6 +2942,8 @@ If the inquiry is specific to a campus, asks for tuition, or provides parent/chi
         return;
       }
       document.getElementById('stakeholder-modal-overlay').style.display = 'none';
+      const inputField = document.getElementById('user-input-field');
+      if (inputField) inputField.focus();
     }
 
     function testCustomQuestion(questionText, campusId = null) {
@@ -2905,6 +2955,18 @@ If the inquiry is specific to a campus, asks for tuition, or provides parent/chi
         }
       }
       sendQuickMessage(questionText);
+      setTimeout(() => {
+        const container = document.getElementById('chat-messages-container');
+        if (container) container.scrollTop = container.scrollHeight;
+        const inputField = document.getElementById('user-input-field');
+        if (inputField) {
+          inputField.focus();
+          inputField.scrollIntoView({ block: 'nearest' });
+        }
+        if (window.innerWidth <= 1024) {
+          document.querySelector('.ai-simulator-panel')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
     }
 
     function openAISettingsModal() {
