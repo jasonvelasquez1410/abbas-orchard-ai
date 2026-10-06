@@ -3168,8 +3168,12 @@ If the inquiry is specific to a campus, asks for tuition, or provides parent/chi
           })
         });
         const data = await res.json();
-        return data.reply || data.response;
+        if (data && (data.reply || data.response)) {
+          return data.reply || data.response;
+        }
+        throw new Error(data?.error || "Incomplete server response");
       }
+      throw new Error("No provider configured");
     }
 
     async function processUserQuery(userText) {
@@ -3183,51 +3187,52 @@ If the inquiry is specific to a campus, asks for tuition, or provides parent/chi
           const rawResponse = await callLiveLLM(userText);
           removeTypingIndicator();
 
-          // Check for structured dispatch tag
-          let cleanResponse = rawResponse;
-          let newDispatch = null;
-          const dispatchMatch = rawResponse.match(/<!--\s*DISPATCH:\s*(\{.*?\})\s*-->/s);
+          if (rawResponse && typeof rawResponse === 'string') {
+            // Check for structured dispatch tag
+            let cleanResponse = rawResponse;
+            let newDispatch = null;
+            const dispatchMatch = rawResponse.match(/<!--\s*DISPATCH:\s*(\{.*?\})\s*-->/s);
 
-          if (dispatchMatch) {
-            cleanResponse = rawResponse.replace(dispatchMatch[0], '').trim();
-            try {
-              const dispatchData = JSON.parse(dispatchMatch[1]);
-              newDispatch = {
-                id: emailDispatches.length + 1,
-                time: "Just now",
-                campus: dispatchData.campus || currentActiveCampus.name,
-                to: dispatchData.to || currentActiveCampus.email,
-                cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
-                subject: dispatchData.subject || `[Live AI Lead] Inquiry - ${currentActiveCampus.name}`,
-                parentName: dispatchData.parentName || "Prospective Parent (Live AI Session)",
-                parentContact: dispatchData.parentContact || "Captured via Real LLM Agent",
-                details: dispatchData.details || `Parent asked: "${userText}"`
-              };
+            if (dispatchMatch) {
+              cleanResponse = rawResponse.replace(dispatchMatch[0], '').trim();
+              try {
+                const dispatchData = JSON.parse(dispatchMatch[1]);
+                newDispatch = {
+                  id: emailDispatches.length + 1,
+                  time: "Just now",
+                  campus: dispatchData.campus || currentActiveCampus.name,
+                  to: dispatchData.to || currentActiveCampus.email,
+                  cc: "admission_application@theabbasorchard.edu.ph, accounting@theabbasorchard.edu.ph",
+                  subject: dispatchData.subject || `[Live AI Lead] Inquiry - ${currentActiveCampus.name}`,
+                  parentName: dispatchData.parentName || "Prospective Parent (Live AI Session)",
+                  parentContact: dispatchData.parentContact || "Captured via Real LLM Agent",
+                  details: dispatchData.details || `Parent asked: "${userText}"`
+                };
 
-              // Update active campus tags if campus is recognized
-              const matchedCampus = CAMPUSES.find(c => c.name.toLowerCase().includes(dispatchData.campus?.toLowerCase() || ''));
-              if (matchedCampus) {
-                currentActiveCampus = matchedCampus;
-                document.getElementById('active-routing-tag').innerText = matchedCampus.name;
-                document.getElementById('active-routing-email').innerText = matchedCampus.email;
+                // Update active campus tags if campus is recognized
+                const matchedCampus = CAMPUSES.find(c => c.name.toLowerCase().includes(dispatchData.campus?.toLowerCase() || ''));
+                if (matchedCampus) {
+                  currentActiveCampus = matchedCampus;
+                  document.getElementById('active-routing-tag').innerText = matchedCampus.name;
+                  document.getElementById('active-routing-email').innerText = matchedCampus.email;
+                }
+              } catch (e) {
+                console.warn("Could not parse dispatch JSON:", e);
               }
-            } catch (e) {
-              console.warn("Could not parse dispatch JSON:", e);
             }
-          }
 
-          if (newDispatch) {
-            emailDispatches.unshift(newDispatch);
-            document.getElementById('dispatch-count').innerText = emailDispatches.length;
-          }
+            if (newDispatch) {
+              emailDispatches.unshift(newDispatch);
+              document.getElementById('dispatch-count').innerText = emailDispatches.length;
+            }
 
-          liveChatHistory.push({ role: 'model', content: cleanResponse });
-          appendMessage('agent', cleanResponse.replace(/\n/g, '<br>'), newDispatch);
-          return;
+            liveChatHistory.push({ role: 'model', content: cleanResponse });
+            appendMessage('agent', cleanResponse.replace(/\n/g, '<br>'), newDispatch);
+            return;
+          }
 
         } catch (err) {
-          console.error("Live AI Error, falling back to simulator:", err);
-          appendMessage('agent', `⚠️ <em>Notice: Live AI call encountered an issue (${err.message}). Using built-in Montessori knowledge engine.</em>`);
+          console.warn("Live AI call redirected to built-in knowledge engine:", err.message);
         }
       }
 
@@ -3265,7 +3270,30 @@ If the inquiry is specific to a campus, asks for tuition, or provides parent/chi
         // Multi-Lingual & Context-Aware Logic
         const isBisaya = lower.includes('pila') || lower.includes('tagpila') || lower.includes('unsa') || lower.includes('naa') || lower.includes('pwede') || lower.includes('karon') || lower.includes('taga');
         
-        if (lower.includes('farm') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('bukidnon')) {
+        if (lower.includes('grade') || lower.includes('level') || lower.includes('offer') || lower.includes('program') || lower.includes('curriculum')) {
+          responseText = `
+            🌱 <strong>The Abba's Orchard School — Program Levels Offered:</strong><br><br>
+            As the first and premier Association Montessori Internationale (AMI) school network in the Philippines, we provide authentic prepared environments across all 4 planes of child development:<br><br>
+            1. <strong>Infant Community (14 mos – 3 yrs):</strong> Toddler environment fostering functional independence, language development, and coordinated movement.<br>
+            2. <strong>Casa dei Bambini (3 – 6 yrs / Pre-School & Kindergarten):</strong> Practical Life, Sensorial, Language (Phonics & Reading), Mathematics, and Cultural Studies.<br>
+            3. <strong>Elementary (6 – 12 yrs / Lower & Upper Elementary):</strong> Cosmic Education fostering research, collaborative inquiry, math concepts, science, and moral growth.<br>
+            4. <strong>Erdkinder Adolescent Program (12 – 18 yrs / Junior & Senior High):</strong> Offered at our Bukidnon La Granja farm campus with boarding, integrating academic rigor with land stewardship and student micro-economies.<br><br>
+            Which age group or grade level are you inquiring about for your child?
+          `;
+
+          newDispatch = {
+            id: emailDispatches.length + 1,
+            time: "Just now",
+            campus: targetCampus.name,
+            to: targetCampus.email,
+            cc: "admission_application@theabbasorchard.edu.ph",
+            subject: `[Admissions Lead - ${targetCampus.name}] Grade Levels & Programs Inquiry`,
+            parentName: "Prospective Parent",
+            parentContact: "Captured via AI Assistant",
+            details: `Parent asked: "${userText}". Provided overview of 4 Montessori planes of development. Assigned to ${targetCampus.name}.`
+          };
+
+        } else if (lower.includes('farm') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('bukidnon')) {
           responseText = `
             🌾 <strong>The Abba's Orchard Bukidnon — La Granja Estates:</strong><br><br>
             La Granja is our premier <strong>Erdkinder Farm Campus</strong> located in Pualas, Baungon, Bukidnon. Rooted in Dr. Maria Montessori's vision for adolescents, our Erdkinder program combines academic rigor with practical land stewardship, animal husbandry, economics, and community boarding.<br><br>

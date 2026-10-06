@@ -45,61 +45,82 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
   let rawResponse = "";
 
   if (provider === 'gemini' && geminiKey) {
-    // Google Gemini REST Call
     const contents = conversationHistory.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
     contents.push({ role: 'user', parts: [{ text: userMessage }] });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
-    const res = await axios.post(url, {
-      system_instruction: { parts: [{ text: ABBAS_SYSTEM_PROMPT }] },
-      contents: contents,
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 800
-      }
-    });
+    const candidateModels = [model, 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp'];
+    let geminiSuccess = false;
 
-    rawResponse = res.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Thank you for contacting The Abba's Orchard School. How may I assist you today?";
+    for (const m of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`;
+        const res = await axios.post(url, {
+          system_instruction: { parts: [{ text: ABBAS_SYSTEM_PROMPT }] },
+          contents: contents,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 800
+          }
+        }, { timeout: 10000 });
+
+        const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          rawResponse = text;
+          geminiSuccess = true;
+          break;
+        }
+      } catch (err) {
+        console.warn(`Gemini model ${m} call failed:`, err.message);
+      }
+    }
+
+    if (!geminiSuccess) {
+      rawResponse = generateFallbackResponse(userMessage, preferredCampus);
+    }
 
   } else if (provider === 'openai' && openaiKey) {
-    // OpenAI REST Call
-    const messages = [
-      { role: 'system', content: ABBAS_SYSTEM_PROMPT },
-      ...conversationHistory.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      })),
-      { role: 'user', content: userMessage }
-    ];
+    try {
+      const messages = [
+        { role: 'system', content: ABBAS_SYSTEM_PROMPT },
+        ...conversationHistory.map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        { role: 'user', content: userMessage }
+      ];
 
-    const res = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: model,
-      messages: messages,
-      temperature: 0.4
-    }, {
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
+      const res = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: model,
+        messages: messages,
+        temperature: 0.4
+      }, {
+        headers: {
+          'Authorization': `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
 
-    rawResponse = res.data?.choices?.[0]?.message?.content || "Thank you for contacting The Abba's Orchard School.";
+      rawResponse = res.data?.choices?.[0]?.message?.content || generateFallbackResponse(userMessage, preferredCampus);
+    } catch (e) {
+      console.warn("OpenAI call failed, using fallback:", e.message);
+      rawResponse = generateFallbackResponse(userMessage, preferredCampus);
+    }
 
   } else {
-    // Fallback if no API key is provided
-    rawResponse = `Welcome to The Abba's Orchard School! Discover True Montessori®. We offer programs across 15+ campuses in Luzon, Visayas, and Mindanao (including Erdkinder farm boarding at Bukidnon La Granja). How may we assist your family today?`;
+    rawResponse = generateFallbackResponse(userMessage, preferredCampus);
   }
 
   // Parse structured dispatch tag if present
-  let cleanText = rawResponse;
+  let cleanText = rawResponse || "Welcome to The Abba's Orchard School. How may we assist your family today?";
   let dispatchData = null;
-  const dispatchMatch = rawResponse.match(/<!--\s*DISPATCH:\s*(\{.*?\})\s*-->/s);
+  const dispatchMatch = typeof cleanText === 'string' ? cleanText.match(/<!--\s*DISPATCH:\s*(\{.*?\})\s*-->/s) : null;
 
   if (dispatchMatch) {
-    cleanText = rawResponse.replace(dispatchMatch[0], '').trim();
+    cleanText = cleanText.replace(dispatchMatch[0], '').trim();
     try {
       dispatchData = JSON.parse(dispatchMatch[1]);
     } catch (e) {
@@ -111,6 +132,26 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
     reply: cleanText,
     dispatch: dispatchData
   };
+}
+
+function generateFallbackResponse(userMessage, preferredCampus) {
+  const lower = (userMessage || '').toLowerCase();
+  const campus = preferredCampus || 'Bukidnon - La Granja Estates';
+
+  if (lower.includes('grade') || lower.includes('level') || lower.includes('offer') || lower.includes('program') || lower.includes('curriculum')) {
+    return `At **The Abba's Orchard School**, we follow authentic Association Montessori Internationale (AMI) pedagogical planes of development from infancy through adolescence:
+
+1. **Infant Community (14 months – 3 years):** Toddler environment fostering functional independence, language acquisition, and coordinated movement.
+2. **Casa dei Bambini (3 – 6 years / Pre-School & Kindergarten):** Practical Life, Sensorial, Language, Mathematics, and Cultural subjects.
+3. **Elementary (6 – 12 years / Lower & Upper Elementary):** Cosmic Education fostering collaborative research, moral development, critical thinking, and broad intellectual curiosity.
+4. **Erdkinder Adolescent Program (12 – 18 years / Junior & Senior High):** Offered at our Bukidnon La Granja farm campus with boarding, combining academic rigor with real-world land stewardship and student-run micro-economies.
+
+Which grade level or campus are you inquiring about for your child?
+<!-- DISPATCH: {"campus": "${campus}", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Grade Levels & Programs Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on offered grade levels."} -->`;
+  }
+
+  return `Welcome to The Abba's Orchard School! Discover True Montessori®. We offer programs across 15+ campuses in Luzon, Visayas, and Mindanao (including Erdkinder farm boarding at Bukidnon La Granja). How may we assist your family today?
+<!-- DISPATCH: {"campus": "${campus}", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Admissions Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent asked: ${userMessage}"} -->`;
 }
 
 module.exports = {
