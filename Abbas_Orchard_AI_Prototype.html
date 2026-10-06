@@ -637,32 +637,86 @@
 
     /* Quick Suggestion Chips */
     .chat-chips-area {
-      padding: 8px 14px;
+      padding: 8px 12px;
       background: #ffffff;
       border-top: 1px solid #f1f5f9;
       display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      white-space: nowrap;
+      flex-wrap: wrap;
+      gap: 5px;
+      max-height: 85px;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
-    .chat-chips-area::-webkit-scrollbar { display: none; }
+    .chat-chips-area::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .chat-chips-area::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
 
     .chip-btn {
       background: #f1f5f9;
       border: 1px solid #e2e8f0;
       color: #334155;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
-      flex-shrink: 0;
+      white-space: nowrap;
+      font-family: inherit;
     }
     .chip-btn:hover {
       background: var(--brand-green-subtle);
       border-color: var(--brand-green-primary);
       color: var(--brand-green-dark);
+    }
+
+    /* In-Bubble Direct Campus Click Grid */
+    .bubble-campus-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 10px 0 4px;
+    }
+    .bubble-campus-btn {
+      background: #eef6f0;
+      color: #1b3d22;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .bubble-campus-btn:hover {
+      background: #2d6a38;
+      color: #ffffff;
+      border-color: #2d6a38;
+    }
+    .fb-bubble-campus-btn {
+      background: #ffffff;
+      color: #050505;
+      border: 1px solid #ced0d4;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .fb-bubble-campus-btn:hover {
+      background: #1877f2;
+      color: #ffffff;
+      border-color: #1877f2;
     }
 
     /* Chat Input Bar */
@@ -1128,19 +1182,30 @@
               <strong>Welcome to The Abba's Orchard School! 🌿</strong><br><br>
               I am your 24/7 AI Admissions Guide across our 15+ AMI Montessori campuses nationwide.
               <br><br>
-              <strong>🏫 Direct Campus Selection:</strong> Click any campus button below to view location, programs, and direct admissions contacts:
-              <br>• <strong>Bukidnon:</strong> La Granja Adolescent Farm Boarding
-              <br>• <strong>Mindanao:</strong> CDO Alwana, Davao (Obrero & Mandug)
-              <br>• <strong>Visayas:</strong> Cebu (Magsaysay & Tandang Sora), Iloilo (Sta. Barbara)
-              <br>• <strong>Luzon & Metro Manila:</strong> BGC McKinley, Bayani Rd, Alabang, Greenhills, Antipolo, QC Calle Industria, Laguna Carmelray
-              <br><br>
-              <em>How may I assist your family today? (You may ask in English, Bisaya, or Tagalog)</em>
+              <div style="font-weight:700; color:#1b3d22; margin-bottom:4px;">📍 Click a Campus to View Details & Admissions:</div>
+              <div class="bubble-campus-grid">
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Bukidnon La Granja farm boarding campus')">🌾 Bukidnon La Granja</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Cagayan de Oro Alwana campus')">📍 CDO Alwana</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Davao City Obrero and Mandug campuses')">📍 Davao (Obrero/Mandug)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Cebu City Magsaysay and Tandang Sora campuses')">📍 Cebu (Magsaysay/T.Sora)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Iloilo Sta. Barbara Heights campus')">📍 Iloilo (Sta. Barbara)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Taguig BGC McKinley Hill campus')">📍 Taguig (BGC McKinley)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Taguig Bayani Road campus')">📍 Taguig (Bayani Rd)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Muntinlupa Alabang Filinvest campus')">📍 Muntinlupa (Alabang)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Mandaluyong Greenhills campus')">📍 Mandaluyong (Greenhills)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Antipolo City Taktak Road campus')">📍 Antipolo (Taktak)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Quezon City Calle Industria Bridgetowne campus')">📍 QC (Calle Industria)</button>
+                <button class="bubble-campus-btn" onclick="sendChatPrompt('Tell me about the Canlubang Carmelray Laguna campus')">📍 Laguna (Carmelray)</button>
+              </div>
+              <div style="margin-top:6px; font-size:11.5px; color:#475569;">
+                <em>How may I assist your family today? (You may ask in English, Bisaya, or Tagalog)</em>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Quick Prompt Chips with All Campuses -->
-        <div class="chat-chips-area" style="gap: 6px;">
+        <div class="chat-chips-area">
           <button class="chip-btn" onclick="sendChatPrompt('What grade levels and programs do you offer?')">
             🌱 Programs & Levels
           </button>
@@ -1151,40 +1216,40 @@
             📅 Book Tour
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Bukidnon La Granja Erdkinder farm boarding program')">
-            🌾 Bukidnon La Granja
+            🌾 Bukidnon
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Cagayan de Oro Alwana campus admissions and programs')">
             📍 CDO Alwana
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Davao City Obrero and Mandug campuses')">
-            📍 Davao Campuses
+            📍 Davao
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Cebu City Magsaysay and Tandang Sora campuses')">
-            📍 Cebu Campuses
+            📍 Cebu
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Iloilo Sta. Barbara Heights campus')">
-            📍 Iloilo Campus
+            📍 Iloilo
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Taguig BGC McKinley Hill campus')">
             📍 BGC McKinley
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Taguig Bayani Road campus')">
-            📍 Taguig Bayani Rd
+            📍 Bayani Rd
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Muntinlupa Alabang Filinvest campus')">
-            📍 Alabang Filinvest
+            📍 Alabang
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Mandaluyong Greenhills campus')">
-            📍 Greenhills Campus
+            📍 Greenhills
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Antipolo City Taktak Road campus')">
-            📍 Antipolo Taktak
+            📍 Antipolo
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Quezon City Calle Industria Bridgetowne campus')">
-            📍 QC Calle Industria
+            📍 QC Bridgetowne
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Canlubang Carmelray Laguna campus')">
-            📍 Laguna Carmelray
+            📍 Laguna
           </button>
         </div>
 
@@ -1289,13 +1354,31 @@
               <div class="chat-messages-area" id="fb-chat-messages">
                 <div class="fb-msg-bubble-agent">
                   <strong>Welcome to The Abba's Orchard School on Facebook Messenger! 🌿</strong><br><br>
-                  I am your 24/7 AI Admissions Employee across our 15+ AMI Montessori campuses nationwide. Ask me anything about our programs, Bukidnon La Granja farm boarding, tuition schedules, or morning walkthroughs.<br><br>
-                  <em>Click any campus or topic chip below to start!</em>
+                  I am your 24/7 AI Admissions Employee across our 15+ AMI Montessori campuses nationwide.
+                  <br><br>
+                  <div style="font-weight:700; color:#050505; margin-bottom:4px;">📍 Select a Campus to Inquire Instantly:</div>
+                  <div class="bubble-campus-grid">
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Bukidnon La Granja farm boarding program')">🌾 Bukidnon La Granja</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Cagayan de Oro Alwana campus admissions')">📍 CDO Alwana</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Davao City Obrero and Mandug campuses')">📍 Davao (Obrero/Mandug)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Cebu City Magsaysay campus')">📍 Cebu (Magsaysay/T.Sora)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Iloilo Sta. Barbara Heights campus')">📍 Iloilo (Sta. Barbara)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Taguig BGC McKinley Hill campus')">📍 Taguig (BGC McKinley)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Taguig Bayani Road campus')">📍 Taguig (Bayani Rd)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Muntinlupa Alabang Filinvest campus')">📍 Muntinlupa (Alabang)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Mandaluyong Greenhills campus')">📍 Mandaluyong (Greenhills)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Antipolo City Taktak Road campus')">📍 Antipolo (Taktak)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Quezon City Calle Industria campus')">📍 QC (Calle Industria)</button>
+                    <button class="fb-bubble-campus-btn" onclick="sendFbChatPrompt('Tell me about the Canlubang Carmelray Laguna campus')">📍 Laguna (Carmelray)</button>
+                  </div>
+                  <div style="margin-top:6px; font-size:11.5px; color:#65676b;">
+                    <em>Ask me anything about tuition, enrollment, or classroom observation tours!</em>
+                  </div>
                 </div>
               </div>
 
               <!-- Quick Chips on FB with All Campuses -->
-              <div class="chat-chips-area" style="gap: 6px;">
+              <div class="chat-chips-area">
                 <button class="chip-btn" onclick="sendFbChatPrompt('What grade levels do you offer?')">
                   🌱 Programs & Levels
                 </button>
@@ -1306,40 +1389,40 @@
                   📅 Book Walkthrough
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Bukidnon La Granja farm boarding program')">
-                  🌾 Bukidnon La Granja
+                  🌾 Bukidnon
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Cagayan de Oro Alwana campus admissions')">
                   📍 CDO Alwana
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Davao City Obrero and Mandug campuses')">
-                  📍 Davao Campuses
+                  📍 Davao
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Cebu City Magsaysay campus')">
-                  📍 Cebu Campuses
+                  📍 Cebu
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Iloilo Sta. Barbara Heights campus')">
-                  📍 Iloilo Campus
+                  📍 Iloilo
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Taguig BGC McKinley Hill campus')">
                   📍 BGC McKinley
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Taguig Bayani Road campus')">
-                  📍 Taguig Bayani Rd
+                  📍 Bayani Rd
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Muntinlupa Alabang Filinvest campus')">
-                  📍 Alabang Filinvest
+                  📍 Alabang
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Mandaluyong Greenhills campus')">
-                  📍 Greenhills Campus
+                  📍 Greenhills
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Antipolo City Taktak Road campus')">
-                  📍 Antipolo Taktak
+                  📍 Antipolo
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Quezon City Calle Industria campus')">
-                  📍 QC Calle Industria
+                  📍 QC Bridgetowne
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Canlubang Carmelray Laguna campus')">
-                  📍 Laguna Carmelray
+                  📍 Laguna
                 </button>
               </div>
 
