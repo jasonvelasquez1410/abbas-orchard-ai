@@ -172,11 +172,21 @@
       </div>
     </div>
     <div id="abbas-ai-chips">
-      <button class="abbas-chip" data-q="Tell me about Casa (3-6 yrs)">👶 Casa (3-6 yrs)</button>
-      <button class="abbas-chip" data-q="What is Bukidnon Farm Boarding?">🌾 Bukidnon Farm</button>
-      <button class="abbas-chip" data-q="What are your tuition payment terms?">💳 Tuition Terms</button>
-      <button class="abbas-chip" data-q="How do I schedule a morning campus walkthrough?">📅 Book Walkthrough</button>
-      <button class="abbas-chip" data-q="Davao campuses details (Bisaya)">📍 Davao Campuses</button>
+      <button class="abbas-chip" data-q="What grade levels and Montessori programs do you offer?">🌱 Programs</button>
+      <button class="abbas-chip" data-q="What are your tuition payment plans and fees?">💰 Tuition</button>
+      <button class="abbas-chip" data-q="How do I schedule a morning campus walkthrough?">📅 Book Tour</button>
+      <button class="abbas-chip" data-q="Tell me about the Bukidnon La Granja Erdkinder farm boarding campus">🌾 Bukidnon La Granja</button>
+      <button class="abbas-chip" data-q="Tell me about the Cagayan de Oro Alwana campus admissions">📍 CDO Alwana</button>
+      <button class="abbas-chip" data-q="Tell me about the Davao City Obrero and Mandug campuses">📍 Davao Campuses</button>
+      <button class="abbas-chip" data-q="Tell me about the Cebu City Magsaysay and Tandang Sora campuses">📍 Cebu Campuses</button>
+      <button class="abbas-chip" data-q="Tell me about the Iloilo Sta. Barbara Heights campus">📍 Iloilo Campus</button>
+      <button class="abbas-chip" data-q="Tell me about the Taguig BGC McKinley Hill campus">📍 BGC McKinley</button>
+      <button class="abbas-chip" data-q="Tell me about the Taguig Bayani Road campus">📍 Taguig Bayani Rd</button>
+      <button class="abbas-chip" data-q="Tell me about the Muntinlupa Alabang Filinvest campus">📍 Alabang Filinvest</button>
+      <button class="abbas-chip" data-q="Tell me about the Mandaluyong Greenhills campus">📍 Greenhills Campus</button>
+      <button class="abbas-chip" data-q="Tell me about the Antipolo City Taktak Road campus">📍 Antipolo Taktak</button>
+      <button class="abbas-chip" data-q="Tell me about the Quezon City Calle Industria Bridgetowne campus">📍 QC Calle Industria</button>
+      <button class="abbas-chip" data-q="Tell me about the Canlubang Carmelray Laguna campus">📍 Laguna Carmelray</button>
     </div>
     <div id="abbas-ai-input-area">
       <input type="text" id="abbas-ai-input" placeholder="Ask in English, Bisaya, Tagalog..." />

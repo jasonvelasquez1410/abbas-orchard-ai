@@ -172,9 +172,14 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   const isBukidnon = lower.includes('bukidnon') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('farm') || lower.includes('baungon');
   const isCdo = lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan');
   const isCebu = lower.includes('cebu') || lower.includes('magsaysay') || lower.includes('tandang sora');
-  const isBgc = lower.includes('bgc') || lower.includes('mckinley') || lower.includes('taguig');
-  const isAlabang = lower.includes('alabang') || lower.includes('filinvest');
+  const isIloilo = lower.includes('iloilo') || lower.includes('barbara') || lower.includes('sta. barbara');
+  const isBgc = lower.includes('mckinley') || (lower.includes('bgc') && !lower.includes('bayani'));
+  const isBayani = lower.includes('bayani');
+  const isAlabang = lower.includes('alabang') || lower.includes('filinvest') || lower.includes('muntinlupa');
   const isGreenhills = lower.includes('greenhills') || lower.includes('mandaluyong');
+  const isAntipolo = lower.includes('antipolo') || lower.includes('taktak');
+  const isQc = lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city') || lower.includes(' qc ');
+  const isLaguna = lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna');
 
   // Level & Age Inquiries
   const isCasa = lower.includes('casa') || lower.includes('kinder') || lower.includes('preschool') || lower.includes('pre-school') || lower.includes('3 year') || lower.includes('4 year') || lower.includes('5 year') || lower.includes('6 year');
@@ -206,6 +211,38 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
 
   if (isCebu) {
     return `🌴 **The Abba's Orchard — Cebu Campuses (Magsaysay & Tandang Sora):**\nOur Cebu flagship campus provides authentic AMI Montessori environments:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Magsaysay St. / Tandang Sora, Cebu City\n📞 *Direct Line:* (0917) 321 2668\n📧 *Campus Coordinator:* **cebu@theabbasorchard.edu.ph**\n\nWould you like to schedule a morning Montessori observation walkthrough at our Cebu campus?\n<!-- DISPATCH: {"campus": "Cebu City - Magsaysay & Tandang Sora", "to": "cebu@theabbasorchard.edu.ph", "subject": "Cebu Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Cebu campuses."} -->`;
+  }
+
+  if (isIloilo) {
+    return `🌴 **The Abba's Orchard — Iloilo Campus (Sta. Barbara Heights):**\nOur Western Visayas campus offers complete AMI Montessori environments:\n• Casa dei Bambini (3 – 6 yrs)\n• Lower & Upper Elementary (6 – 12 yrs)\n\n📍 *Address:* Sta. Barbara Heights, Iloilo\n📞 *Direct Line:* (0917) 322 2668\n📧 *Campus Coordinator:* **iloilo@theabbasorchard.edu.ph**\n\nHow old is your child, and would you like to schedule an observation walkthrough in Iloilo?\n<!-- DISPATCH: {"campus": "Iloilo - Sta. Barbara Heights", "to": "iloilo@theabbasorchard.edu.ph", "subject": "Iloilo Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Iloilo campus."} -->`;
+  }
+
+  if (isBgc) {
+    return `🏙️ **The Abba's Orchard — Taguig BGC McKinley Hill Campus:**\nLocated in McKinley Hill, Fort Bonifacio, Taguig City:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* McKinley Hill, Fort Bonifacio, Taguig City\n📞 *Direct Line:* (0917) 854 2668\n📧 *Campus Coordinator:* **mckinleyhill@theabbasorchard.edu.ph**\n\nWould you like to book a weekday morning classroom observation walkthrough at BGC McKinley Hill?\n<!-- DISPATCH: {"campus": "Taguig - BGC McKinley Hill", "to": "mckinleyhill@theabbasorchard.edu.ph", "subject": "BGC McKinley Hill Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on BGC McKinley Hill campus."} -->`;
+  }
+
+  if (isBayani) {
+    return `🏙️ **The Abba's Orchard — Taguig Bayani Road Campus:**\nConveniently located along Bayani Road, AFPOVAI, Taguig City:\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Bayani Road, AFPOVAI Phase 4, Taguig City\n📞 *Direct Line:* (0917) 854 2669\n📧 *Campus Coordinator:* **bayani@theabbasorchard.edu.ph**\n\nHow old is your child, or would you like to visit our Bayani Road campus for an observation tour?\n<!-- DISPATCH: {"campus": "Taguig - Bayani Road", "to": "bayani@theabbasorchard.edu.ph", "subject": "Taguig Bayani Road Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Bayani Road campus."} -->`;
+  }
+
+  if (isAlabang) {
+    return `🏙️ **The Abba's Orchard — Muntinlupa Alabang Campus (Filinvest City):**\nServing southern Metro Manila in Filinvest City, Alabang:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Civic Prime Bldg, Filinvest City, Alabang, Muntinlupa\n📞 *Direct Line:* (0917) 855 2668\n📧 *Campus Coordinator:* **alabang@theabbasorchard.edu.ph**\n\nWould you like us to schedule a morning classroom observation walkthrough at Alabang?\n<!-- DISPATCH: {"campus": "Muntinlupa - Alabang", "to": "alabang@theabbasorchard.edu.ph", "subject": "Alabang Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Alabang campus."} -->`;
+  }
+
+  if (isGreenhills) {
+    return `🏙️ **The Abba's Orchard — Mandaluyong Greenhills Campus:**\nConveniently located near Greenhills / Wack-Wack, Mandaluyong:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Ortigas Ave / Greenhills area, Mandaluyong City\n📞 *Direct Line:* (0917) 856 2668\n📧 *Campus Coordinator:* **greenhills@theabbasorchard.edu.ph**\n\nHow old is your child, and would you like to receive the Greenhills admissions schedule?\n<!-- DISPATCH: {"campus": "Mandaluyong - Greenhills", "to": "greenhills@theabbasorchard.edu.ph", "subject": "Greenhills Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Greenhills campus."} -->`;
+  }
+
+  if (isAntipolo) {
+    return `🌿 **The Abba's Orchard — Antipolo City Campus (Taktak Road):**\nSurrounded by nature along Taktak Road, Antipolo City:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Daang Bakal / Taktak Road, Antipolo City\n📞 *Direct Line:* (0917) 857 2668\n📧 *Campus Coordinator:* **antipolo@theabbasorchard.edu.ph**\n\nWould you like to book a weekday morning observation walkthrough at our Antipolo campus?\n<!-- DISPATCH: {"campus": "Antipolo City - Taktak Road", "to": "antipolo@theabbasorchard.edu.ph", "subject": "Antipolo Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Antipolo campus."} -->`;
+  }
+
+  if (isQc) {
+    return `🏙️ **The Abba's Orchard — Quezon City Campus (Calle Industria / Bridgetowne):**\nLocated at Bridgetowne / Calle Industria, Quezon City:\n• Infant Community (14 mos – 3 yrs)\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Calle Industria, Bagumbayan (near Bridgetowne), Quezon City\n📞 *Direct Line:* (0917) 858 2668\n📧 *Campus Coordinator:* **calleindustria@theabbasorchard.edu.ph**\n\nHow old is your child, and would you like to schedule a morning walkthrough in Quezon City?\n<!-- DISPATCH: {"campus": "Quezon City - Calle Industria", "to": "calleindustria@theabbasorchard.edu.ph", "subject": "Quezon City Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on QC Calle Industria campus."} -->`;
+  }
+
+  if (isLaguna) {
+    return `🌿 **The Abba's Orchard — Laguna Campus (Carmelray Canlubang):**\nLocated in Carmelray Industrial Park, Canlubang, Laguna:\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Carmelray Industrial Park 1, Canlubang, Calamba, Laguna\n📞 *Direct Line:* (0917) 859 2668\n📧 *Campus Coordinator:* **carmelray@theabbasorchard.edu.ph**\n\nWould you like to schedule a morning Montessori walkthrough at Carmelray Laguna?\n<!-- DISPATCH: {"campus": "Canlubang - Carmelray Laguna", "to": "carmelray@theabbasorchard.edu.ph", "subject": "Laguna Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Laguna Carmelray campus."} -->`;
   }
 
   if (isTuition) {
