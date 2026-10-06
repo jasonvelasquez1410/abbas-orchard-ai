@@ -2,13 +2,16 @@ const axios = require('axios');
 
 // Official Multi-Campus Directory & System Prompt
 const ABBAS_SYSTEM_PROMPT = `
-You are the official 24/7 AI Admissions Digital Employee for "The Abba's Orchard School", the premier and first Association Montessori Internationale (AMI) school network in the Philippines.
+You are the official 24/7 AI Admissions Digital Employee and Montessori Guide for "The Abba's Orchard School", the premier and first Association Montessori Internationale (AMI) school network in the Philippines.
 
-Key Leadership & Heritage:
+Heritage & Key Context:
 - Founded by Dr. Maria Angelica "Teacher Ann" Paez-Barrameda and Mr. Christopher "Mr. Chris" Barrameda.
 - Over 15 campuses nationwide across Luzon, Visayas, and Mindanao.
-- Curriculum: Authentic AMI Montessori across Infant Community (14 mos - 3 yrs), Casa (3 - 6 yrs), Elementary (6 - 12 yrs), and Erdkinder Adolescent Farm Boarding (12 - 18 yrs / Junior & Senior High).
-- Bukidnon La Granja Estates (Baungon, Bukidnon): Premier farm boarding campus combining Montessori land-based micro-economy, agriculture, animal stewardship, and academic rigor.
+- Curriculum: Authentic AMI Montessori across 4 Planes of Development:
+  1. Infant Community (14 months – 3 years): Functional independence, coordinated movement, language.
+  2. Casa dei Bambini (3 – 6 years / Pre-School & Kindergarten): Practical Life, Sensorial, Language, Math, Cultural subjects.
+  3. Elementary (6 – 12 years / Lower & Upper Elementary): Cosmic Education, collaborative research, moral reasoning.
+  4. Erdkinder Adolescent Farm Boarding (12 – 18 years / Junior & Senior High): Located at Bukidnon La Granja Estates — land-based micro-economy, organic farming, animal stewardship, and academic rigor.
 
 Official Campus Directory & Direct Routing:
 1. Bukidnon - La Granja Estates: lagranja@theabbasorchard.edu.ph | (0917) 508 2668 (IC, Casa, Elementary, Erdkinder Farm Boarding)
@@ -23,17 +26,27 @@ Official Campus Directory & Direct Routing:
 10. Antipolo City - Taktak Road: antipolo@theabbasorchard.edu.ph | (0917) 857 2668 (IC, Casa, Elementary)
 11. Quezon City - Calle Industria (Bridgetowne): calleindustria@theabbasorchard.edu.ph | (0917) 858 2668 (IC, Casa, Elementary)
 12. Canlubang - Carmelray Laguna: carmelray@theabbasorchard.edu.ph | (0917) 859 2668 (Casa, Elementary)
-Central Admissions: admission_application@theabbasorchard.edu.ph | Accounting Desk: Ms. Roxane
+Central Admissions: admission_application@theabbasorchard.edu.ph | Accounting Desk: Ms. Roxane (accounting@theabbasorchard.edu.ph)
 
-Language & Tone Guidelines:
-- Polyglot: Seamlessly converse in English, Bisaya / Cebuano, and Tagalog depending on what the user speaks. If they speak Bisaya (e.g. "pila tuition", "tagpila", "unsaon"), reply warmly in natural Bisaya.
-- Warm, articulate, Montessori-educated, reassuring, and helpful.
-- Tuition Inquiries: Explain that flexible payment terms (Annual, Semi-Annual, Quarterly) are offered. Reassure the parent that their request has been routed to the campus coordinator and Roxane's accounting desk, and invite them to share their child's current age.
-- Encourage campus tour / prepared environment observation walkthroughs (weekday mornings).
-
-Lead Auto-Dispatch Tag Instruction:
-If the inquiry is specific to a campus, asks for tuition, or provides parent/child details, append an invisible structured tag at the VERY END of your response in this exact JSON format:
-<!-- DISPATCH: {"campus": "Campus Name", "to": "campus_email@theabbasorchard.edu.ph", "subject": "Subject Summary", "parentName": "Name if provided or Prospective Parent", "parentContact": "Contact if provided or Captured via AI Session", "details": "Brief 1-2 sentence lead summary"} -->
+Conversational Admissions Guidelines (Consultative Dialogue):
+1. Conversational Rhythm & Pacing:
+   - Keep answers warm, human, concise (2-3 short paragraphs max), and mobile/Messenger friendly.
+   - Avoid dumping giant walls of text or encyclopedic campus lists unless explicitly requested.
+   - Always end each response with exactly ONE friendly, targeted follow-up question to keep the conversation flowing smoothly.
+2. Empathy & Genuine Care:
+   - Parents are making profound choices for their children. Sound like a knowledgeable, caring Montessori guide who genuinely wants to support their child's unique development.
+3. Natural Polyglot Matching:
+   - English: Articulate, welcoming, inspiring, and clear.
+   - Bisaya / Cebuano: Warm, natural, and respectful (e.g., "Maayong adlaw! Nalipay mi sa inyong interes...", "Pila na ang edad sa inyong anak karon?", "Naa tay prepared environment sa...").
+   - Tagalog / Taglish: Courteous, respectful (po/opo), approachable, and reassuring.
+4. Progressive Profiling & Soft Lead Capture:
+   - Step 1: Discover child's current age/interests -> map to the correct Montessori environment.
+   - Step 2: Determine their preferred campus location.
+   - Step 3: Recommend a weekday morning observation walkthrough (or weekend farm visit for La Granja).
+   - Step 4: Reassure about flexible payment schedules (Annual, Semi-Annual, Quarterly) and connect them with Ms. Roxane and the campus coordinator.
+5. Lead Auto-Dispatch Tag Instruction:
+   - If the inquiry is specific to a campus, asks for tuition, or provides parent/child details, append an invisible structured tag at the VERY END of your response in this exact JSON format:
+   <!-- DISPATCH: {"campus": "Campus Name", "to": "campus_email@theabbasorchard.edu.ph", "subject": "Subject Summary", "parentName": "Name if provided or Prospective Parent", "parentContact": "Contact if provided or Captured via AI Session", "details": "Brief 1-2 sentence lead summary"} -->
 `;
 
 async function generateAIResponse(userMessage, conversationHistory = [], preferredCampus = null) {
@@ -78,14 +91,14 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
     }
 
     if (!geminiSuccess) {
-      rawResponse = generateFallbackResponse(userMessage, preferredCampus);
+      rawResponse = generateFallbackResponse(userMessage, conversationHistory, preferredCampus);
     }
 
   } else if (provider === 'openai' && openaiKey) {
     try {
       const messages = [
         { role: 'system', content: ABBAS_SYSTEM_PROMPT },
-        ...conversationHistory.map(msg => ({
+        ...(Array.isArray(conversationHistory) ? conversationHistory : []).map(msg => ({
           role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content
         })),
@@ -104,14 +117,14 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
         timeout: 10000
       });
 
-      rawResponse = res.data?.choices?.[0]?.message?.content || generateFallbackResponse(userMessage, preferredCampus);
+      rawResponse = res.data?.choices?.[0]?.message?.content || generateFallbackResponse(userMessage, conversationHistory, preferredCampus);
     } catch (e) {
       console.warn("OpenAI call failed, using fallback:", e.message);
-      rawResponse = generateFallbackResponse(userMessage, preferredCampus);
+      rawResponse = generateFallbackResponse(userMessage, conversationHistory, preferredCampus);
     }
 
   } else {
-    rawResponse = generateFallbackResponse(userMessage, preferredCampus);
+    rawResponse = generateFallbackResponse(userMessage, conversationHistory, preferredCampus);
   }
 
   // Parse structured dispatch tag if present
@@ -138,7 +151,8 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   const currentText = (userMessage || '').trim();
   const lower = currentText.toLowerCase();
 
-  const historyText = conversationHistory.map(h => (h.content || '')).join(' ').toLowerCase();
+  const historyArray = Array.isArray(conversationHistory) ? conversationHistory : [];
+  const historyText = historyArray.map(h => (h && h.content ? h.content : '')).join(' ').toLowerCase();
 
   // Language Detection
   const isBisaya = lower.includes('pila') || lower.includes('tagpila') || lower.includes('unsa') || 
@@ -197,6 +211,9 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   if (isTuition) {
     if (isBisaya) {
       return `Maayong adlaw! Mahitungod sa **Tuition & Payment Terms** sa The Abba's Orchard: 🌱\n\nAng among admissions office nag-offer ug flexible payment terms:\n• **Annual (Full Payment)**\n• **Semi-Annual (2 Installments)**\n• **Quarterly (4 Installments)**\n\nGipasa na nako ang inyong inquiry ngadto sa campus admissions coordinator ug sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nPila ang edad sa inyong anak ug asa nga campus ang inyong target para ma-send namo ang saktong schedule?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee schedule."} -->`;
+    }
+    if (isTagalog) {
+      return `Magandang araw po! Tungkol po sa **Tuition at Payment Options** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules:\n• **Annual (Isahang Bayad)**\n• **Semi-Annual (2 Hulog)**\n• **Quarterly (4 na Hulog)**\n\nNa-forward na po ang inyong inquiry sa campus coordinator at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak at aling campus po ang inyong target para ma-send po namin ang tamang breakdown?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee schedule in Tagalog."} -->`;
     }
     return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our campus coordinator and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your child's age and target campus so we can provide the exact schedule of fees?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee breakdown."} -->`;
   }

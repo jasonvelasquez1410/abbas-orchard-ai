@@ -92,6 +92,31 @@
       border-bottom-left-radius: 4px;
       border: 1px solid rgba(255,255,255,0.05);
     }
+    #abbas-ai-chips {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #0f172a;
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    #abbas-ai-chips::-webkit-scrollbar { display: none; }
+    .abbas-chip {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #94a3b8;
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .abbas-chip:hover {
+      background: #2d6a38;
+      color: white;
+      border-color: #2d6a38;
+    }
     #abbas-ai-input-area {
       padding: 12px;
       background: #1e293b;
@@ -134,18 +159,24 @@
         <span style="font-size:20px;">🌱</span>
         <div>
           <div style="font-weight:700; font-size:14px;">The Abba's Orchard AI</div>
-          <div style="font-size:10px; color:#94a3b8;">24/7 Multi-Campus Admissions</div>
+          <div style="font-size:10px; color:#86efac;">● Online · 24/7 Admissions Guide</div>
         </div>
       </div>
-      <button onclick="document.getElementById('abbas-ai-window').style.display='none'" style="background:transparent; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+      <button id="abbas-ai-close-btn" style="background:transparent; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
     </div>
     <div id="abbas-ai-messages">
       <div class="abbas-msg abbas-msg-agent">
-        <strong>Welcome to The Abba's Orchard School!</strong><br>
-        Discover True Montessori®. How may I assist you with programs, tuition, or campus tours across our 15+ campuses in Luzon, Visayas, and Mindanao?
-        <br><br>
-        <em>Unsay akong matabang ninyo karon?</em>
+        <strong>Welcome to The Abba's Orchard School! 🌿</strong><br><br>
+        I am your 24/7 AI Admissions Guide across our 15+ AMI Montessori campuses nationwide. How may I assist your family today?<br><br>
+        <em>Pila man ang edad sa inyong anak, o asa nga campus ang inyong gipangita?</em>
       </div>
+    </div>
+    <div id="abbas-ai-chips">
+      <button class="abbas-chip" data-q="Tell me about Casa (3-6 yrs)">👶 Casa (3-6 yrs)</button>
+      <button class="abbas-chip" data-q="What is Bukidnon Farm Boarding?">🌾 Bukidnon Farm</button>
+      <button class="abbas-chip" data-q="What are your tuition payment terms?">💳 Tuition Terms</button>
+      <button class="abbas-chip" data-q="How do I schedule a morning campus walkthrough?">📅 Book Walkthrough</button>
+      <button class="abbas-chip" data-q="Davao campuses details (Bisaya)">📍 Davao Campuses</button>
     </div>
     <div id="abbas-ai-input-area">
       <input type="text" id="abbas-ai-input" placeholder="Ask in English, Bisaya, Tagalog..." />
@@ -169,23 +200,47 @@
   const inputEl = chatWindow.querySelector('#abbas-ai-input');
   const sendBtn = chatWindow.querySelector('#abbas-ai-send');
   const messagesEl = chatWindow.querySelector('#abbas-ai-messages');
+  const closeBtn = chatWindow.querySelector('#abbas-ai-close-btn');
+
+  closeBtn.onclick = () => { chatWindow.style.display = 'none'; };
+
+  // Chip buttons click
+  chatWindow.querySelectorAll('.abbas-chip').forEach(btn => {
+    btn.onclick = () => {
+      const q = btn.getAttribute('data-q');
+      if (q) {
+        inputEl.value = q;
+        handleSend();
+      }
+    };
+  });
 
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleSend();
   });
   sendBtn.onclick = handleSend;
 
+  function formatText(txt) {
+    if (!txt) return '';
+    return txt
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
   async function handleSend() {
     const text = inputEl.value.trim();
     if (!text) return;
     inputEl.value = '';
 
-    appendMsg('user', text);
+    appendMsg('user', formatText(text));
     history.push({ role: 'user', content: text });
 
     const typingEl = document.createElement('div');
     typingEl.className = 'abbas-msg abbas-msg-agent';
-    typingEl.innerText = 'Thinking...';
+    typingEl.style.fontStyle = 'italic';
+    typingEl.style.color = '#94a3b8';
+    typingEl.innerText = 'Abba\'s Orchard AI is typing...';
     messagesEl.appendChild(typingEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -198,20 +253,20 @@
       const data = await res.json();
       typingEl.remove();
 
-      const reply = data.reply || "Thank you for reaching out to The Abba's Orchard School.";
-      appendMsg('agent', reply.replace(/\n/g, '<br>'));
+      const reply = data.reply || "Thank you for reaching out to The Abba's Orchard School. How old is your child so we can guide you further?";
+      appendMsg('agent', formatText(reply));
       history.push({ role: 'model', content: reply });
 
     } catch (err) {
       typingEl.remove();
-      appendMsg('agent', 'Sorry, I had trouble connecting. Please contact us directly at lagranja@theabbasorchard.edu.ph.');
+      appendMsg('agent', 'I am currently connecting you with admissions. You may also contact us directly at lagranja@theabbasorchard.edu.ph or call (0917) 508 2668.');
     }
   }
 
-  function appendMsg(sender, text) {
+  function appendMsg(sender, htmlContent) {
     const div = document.createElement('div');
     div.className = `abbas-msg abbas-msg-${sender}`;
-    div.innerHTML = text;
+    div.innerHTML = htmlContent;
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
