@@ -153,6 +153,7 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
 
   const historyArray = Array.isArray(conversationHistory) ? conversationHistory : [];
   const historyText = historyArray.map(h => (h && h.content ? h.content : '')).join(' ').toLowerCase();
+  const fullContext = (historyText + ' ' + lower).trim();
 
   // Language Detection
   const isBisaya = lower.includes('pila') || lower.includes('tagpila') || lower.includes('unsa') || 
@@ -167,42 +168,145 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
                     lower.includes('opo') || lower.includes('salamat po') || lower.includes('puwede') || 
                     lower.includes('pede') || lower.includes('kumusta') || lower.includes('ano po');
 
-  // Specific Campus Mentions
+  // Contact Number & Email Extraction
+  const phoneMatch = currentText.match(/(\+?63\s?9\d{2}[\s-]?\d{3}[\s-]?\d{4}|09\d{2}[\s-]?\d{3}[\s-]?\d{4}|09\d{9}|\b\d{7,11}\b)/);
+  const emailMatch = currentText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  const capturedContact = phoneMatch ? phoneMatch[0] : (emailMatch ? emailMatch[0] : null);
+
+  // Time / Schedule Preferences
+  const hasTimePref = lower.includes('morning') || lower.includes('afternoon') || lower.includes('weekday') || 
+                      lower.includes('monday') || lower.includes('tuesday') || lower.includes('wednesday') || 
+                      lower.includes('thursday') || lower.includes('friday') || lower.includes('buntag') || 
+                      lower.includes('hapon') || lower.includes('bukas') || lower.includes('tomorrow');
+
+  // Active Campus Resolution (from current message or context)
+  let campusInfo = {
+    name: "The Abba's Orchard Central Admissions",
+    email: "admission_application@theabbasorchard.edu.ph",
+    phone: "(0917) 508 2668"
+  };
+
+  if (fullContext.includes('alwana') || fullContext.includes('cdo') || fullContext.includes('cagayan')) {
+    campusInfo = { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" };
+  } else if (fullContext.includes('davao') || fullContext.includes('obrero') || fullContext.includes('mandug')) {
+    campusInfo = { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" };
+  } else if (fullContext.includes('granja') || fullContext.includes('bukidnon') || fullContext.includes('baungon') || fullContext.includes('erdkinder')) {
+    campusInfo = { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" };
+  } else if (fullContext.includes('cebu') || fullContext.includes('magsaysay') || fullContext.includes('tandang sora')) {
+    campusInfo = { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" };
+  } else if (fullContext.includes('iloilo') || fullContext.includes('barbara')) {
+    campusInfo = { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" };
+  } else if (fullContext.includes('mckinley') || (fullContext.includes('bgc') && !fullContext.includes('bayani'))) {
+    campusInfo = { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" };
+  } else if (fullContext.includes('bayani')) {
+    campusInfo = { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" };
+  } else if (fullContext.includes('alabang') || fullContext.includes('filinvest') || fullContext.includes('muntinlupa')) {
+    campusInfo = { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" };
+  } else if (fullContext.includes('greenhills') || fullContext.includes('mandaluyong')) {
+    campusInfo = { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" };
+  } else if (fullContext.includes('antipolo') || fullContext.includes('taktak')) {
+    campusInfo = { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" };
+  } else if (fullContext.includes('calle industria') || fullContext.includes('bridgetowne') || fullContext.includes('quezon city')) {
+    campusInfo = { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" };
+  } else if (fullContext.includes('carmelray') || fullContext.includes('canlubang') || fullContext.includes('laguna')) {
+    campusInfo = { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" };
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 1: Walkthrough Booking & Contact Information Acknowledgment
+  // --------------------------------------------------------------------------
+  if (capturedContact || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('contact') || historyText.includes('number')))) {
+    const contactStr = capturedContact ? `**${capturedContact}**` : "your provided contact details";
+    const timeStr = hasTimePref ? "weekday morning observation window (8:30 AM – 11:00 AM)" : "morning work cycle observation";
+
+    if (isBisaya) {
+      return `Daghang salamat! 🌿 Nalipay kaayo mi nga makadawat sa inyong detalye para sa observation walkthrough sa atong **${campusInfo.name}**.\n\nNalista na nako ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nTawagan o i-message kamo sa atong campus coordinator aron ma-confirm ang inyong visitor pass ug observation schedule.\n\nPila man ang **edad o ngalan sa inyong anak** aron maandam daan sa atong Montessori Guides ang classroom environment para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Bisaya)", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent requested walkthrough schedule: ${currentText}"} -->`;
+    }
+
+    if (isTagalog) {
+      return `Maraming salamat po! 🌿 Ikinagagalak po naming matanggap ang inyong detalye para sa classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nMakikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass at oras ng walkthrough.\n\nMay maitatanong po ba kami ukol sa **edad o pangalan ng inyong anak** para maihanda po ng aming Montessori directress ang classroom sa inyong pagdating?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent requested walkthrough schedule: ${currentText}"} -->`;
+    }
+
+    return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **child's current age or name** so our Montessori Directress can prepare the appropriate prepared environment (Infant Community, Casa, or Elementary) for your visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent booked walkthrough: ${currentText}"} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 2: Child Age / Developmental Plane Consultation
+  // --------------------------------------------------------------------------
+  const isInfantAge = lower.includes('1 year') || lower.includes('1 yo') || lower.includes('2 year') || lower.includes('2 yo') || lower.includes('14 month') || lower.includes('18 month') || lower.includes('toddler');
+  const isCasaAge = lower.includes('3 year') || lower.includes('3 yo') || lower.includes('4 year') || lower.includes('4 yo') || lower.includes('5 year') || lower.includes('5 yo') || lower.includes('6 year') || lower.includes('6 yo') || lower.includes('preschool') || lower.includes('kinder');
+  const isElemAge = lower.includes('7 year') || lower.includes('8 year') || lower.includes('9 year') || lower.includes('10 year') || lower.includes('11 year') || lower.includes('12 year') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6');
+  const isHighSchoolAge = lower.includes('13 year') || lower.includes('14 year') || lower.includes('15 year') || lower.includes('16 year') || lower.includes('high school') || lower.includes('adolescent') || lower.includes('boarding') || lower.includes('erdkinder');
+
+  if (isInfantAge) {
+    return `Wonderful! For children between 14 months to 3 years old, our **Infant Community (Toddler Environment)** nurtures:\n• Functional independence & self-care\n• Coordinated movement & fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community"} -->`;
+  }
+
+  if (isCasaAge) {
+    return `That is a golden stage of development! For ages 3 to 6 years old, our authentic **Casa dei Bambini (Pre-School & Kindergarten)** fosters:\n• **Practical Life:** Concentration, care of self and environment\n• **Sensorial:** Refining the senses as the foundation for intellectual exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to abstract arithmetic\n• **Language & Phonics:** Reading fluency and self-expression\n\nWould you like to book a morning observation walkthrough at **${campusInfo.name}** or request the Casa tuition breakdown?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (3-6 yrs)"} -->`;
+  }
+
+  if (isElemAge) {
+    return `Fantastic! For ages 6 to 12 years old, our **Lower & Upper Elementary** program provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative research projects & critical thinking\n• Interconnected curriculum: Science, History, Geography, Mathematics, and Literature\n• Developing moral responsibility, empathy, and leadership\n\nWould you like us to connect you with the Elementary Directress at **${campusInfo.name}** for an observation tour?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (6-12 yrs)"} -->`;
+  }
+
+  if (isHighSchoolAge) {
+    return `For adolescent students (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic farming, animal stewardship, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 3: Explicit Tour Booking Request (Without Phone Yet)
+  // --------------------------------------------------------------------------
+  const isTour = lower.includes('tour') || lower.includes('visit') || lower.includes('observation') || lower.includes('walkthrough') || lower.includes('schedule') || lower.includes('appointment');
+  if (isTour) {
+    if (isBisaya) {
+      return `🌿 **Pag-schedule og Observation Walkthrough sa The Abba's Orchard:**\nAng labing maayong paagi aron makita ang Authentic Montessori mao ang pag-obserba sa tinuod nga morning work cycle (kasagaran 8:30 AM hangtod 11:00 AM sa mga adlaw nga Lunes hangtod Biyernes).\n\nPalihug i-share kanamo ang inyong:\n1. 📍 **Target Campus** (sama sa CDO Alwana, Davao, Bukidnon, Cebu, Manila)\n2. ⏰ **Gusto nga weekday morning**\n3. 📞 **Contact Number**\n\narron ma-forward namo sa campus admissions coordinator para sa inyong observation pass!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Schedule Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked how to book a tour."} -->`;
+    }
+    return `🌿 **Scheduling a Montessori Campus Observation Walkthrough:**\nObserving an authentic AMI Montessori environment during our morning work cycle (8:30 AM – 11:00 AM, Monday to Friday) is the best way to experience True Montessori® in action.\n\nPlease share your:\n1. 📍 **Preferred Campus** (e.g. ${campusInfo.name})\n2. ⏰ **Preferred Weekday Morning**\n3. 📞 **Contact Number**\n\nand our admissions coordinator will immediately prepare your visitor pass and welcome packet!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked for observation walkthrough schedule."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 4: Tuition & Payment Inquiries
+  // --------------------------------------------------------------------------
+  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment');
+  if (isTuition) {
+    if (isBisaya) {
+      return `Maayong adlaw! Mahitungod sa **Tuition & Flexible Payment Terms** sa The Abba's Orchard: 🌱\n\nAng admissions office nag-offer ug flexible payment terms:\n• **Annual (Full Payment)**\n• **Semi-Annual (2 Installments)**\n• **Quarterly (4 Installments)**\n\nGipasa na nako ang inyong inquiry ngadto sa admissions desk sa **${campusInfo.name}** ug sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nPila ang **edad sa inyong anak** aron ma-send namo ang exact schedule of fees para sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee schedule."} -->`;
+    }
+    if (isTagalog) {
+      return `Magandang araw po! Tungkol po sa **Tuition at Payment Options** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules:\n• **Annual (Isahang Bayad)**\n• **Semi-Annual (2 Hulog)**\n• **Quarterly (4 na Hulog)**\n\nNa-forward na po ang inyong inquiry sa campus coordinator ng **${campusInfo.name}** at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak para ma-send po namin ang saktong breakdown ng fees?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee breakdown."} -->`;
+    }
+    return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our coordinator at **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **child's age** so we can provide the exact schedule of fees for their developmental level?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 5: Specific Campus Mentions & Quick-Select Clicks
+  // --------------------------------------------------------------------------
   const isDavao = lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug');
   const isBukidnon = lower.includes('bukidnon') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('farm') || lower.includes('baungon');
   const isCdo = lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan');
   const isCebu = lower.includes('cebu') || lower.includes('magsaysay') || lower.includes('tandang sora');
-  const isIloilo = lower.includes('iloilo') || lower.includes('barbara') || lower.includes('sta. barbara');
+  const isIloilo = lower.includes('iloilo') || lower.includes('barbara');
   const isBgc = lower.includes('mckinley') || (lower.includes('bgc') && !lower.includes('bayani'));
   const isBayani = lower.includes('bayani');
   const isAlabang = lower.includes('alabang') || lower.includes('filinvest') || lower.includes('muntinlupa');
   const isGreenhills = lower.includes('greenhills') || lower.includes('mandaluyong');
   const isAntipolo = lower.includes('antipolo') || lower.includes('taktak');
-  const isQc = lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city') || lower.includes(' qc ');
+  const isQc = lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city');
   const isLaguna = lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna');
-
-  // Level & Age Inquiries
-  const isCasa = lower.includes('casa') || lower.includes('kinder') || lower.includes('preschool') || lower.includes('pre-school') || lower.includes('3 year') || lower.includes('4 year') || lower.includes('5 year') || lower.includes('6 year');
-  const isToddler = lower.includes('infant') || lower.includes('toddler') || lower.includes('14 month') || lower.includes('1 year') || lower.includes('2 year');
-  const isElem = lower.includes('elementary') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6');
-  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment');
-  const isTour = lower.includes('tour') || lower.includes('visit') || lower.includes('observation') || lower.includes('walkthrough');
 
   if (isDavao) {
     if (isBisaya) {
       return `Nalipay mi sa inyong interes sa atong **Davao City Campuses**! 🌱\n\nSa Davao, naa tay duha ka prepared environments para sa inyong anak:\n1. **Obrero Campus:** Infant Community (14 mos–3 yrs), Casa (3–6 yrs), ug Lower & Upper Elementary (6–12 yrs).\n2. **Mandug Campus:** Elementary ug Erdkinder Adolescent farm programs.\n\n📍 *Address:* Loyola St., Bo. Obrero / Mandug, Davao City\n📞 *Direct Line:* (0917) 707 2669\n📧 *Campus Coordinator:* **davao@theabbasorchard.edu.ph**\n\nPila man ang edad sa inyong anak karon, o gusto ba mo mag-schedule og observation tour sa Davao campus?\n<!-- DISPATCH: {"campus": "Davao City - Obrero & Mandug", "to": "davao@theabbasorchard.edu.ph", "subject": "Davao Campus Admissions Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Davao campuses."} -->`;
-    }
-    if (isTagalog) {
-      return `Ikinagagalak po namin ang inyong interes sa aming **Davao City Campuses**! 🌱\n\nSa Davao, nag-aalok kami ng:\n1. **Obrero Campus:** Infant Community (14 mos–3 yrs), Casa (3–6 yrs), at Elementary (6–12 yrs).\n2. **Mandug Campus:** Elementary at Erdkinder Adolescent environments.\n\n📍 *Address:* Loyola St., Bo. Obrero / Mandug, Davao City\n📞 *Direct Line:* (0917) 707 2669\n📧 *Campus Coordinator:* **davao@theabbasorchard.edu.ph**\n\nIlang taon na po ang inyong anak, o nais niyo po bang magpa-schedule ng classroom observation walkthrough sa Davao?\n<!-- DISPATCH: {"campus": "Davao City - Obrero & Mandug", "to": "davao@theabbasorchard.edu.ph", "subject": "Davao Campus Inquiry (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Davao City campuses."} -->`;
     }
     return `We are delighted by your interest in our **Davao City Campuses**! 🌱\n\nIn Davao City, we operate two authentic Montessori prepared environments:\n1. **Obrero Campus:** Infant Community (14 mos – 3 yrs), Casa dei Bambini (3 – 6 yrs), and Lower & Upper Elementary (6 – 12 yrs).\n2. **Mandug Campus:** Elementary and Erdkinder Adolescent environments.\n\n📍 *Address:* Loyola St., Bo. Obrero / Mandug, Davao City\n📞 *Direct Line:* (0917) 707 2669\n📧 *Campus Coordinator:* **davao@theabbasorchard.edu.ph**\n\nHow old is your child, or would you like me to connect you with our Davao admissions coordinator to book a morning observation walkthrough?\n<!-- DISPATCH: {"campus": "Davao City - Obrero & Mandug", "to": "davao@theabbasorchard.edu.ph", "subject": "Davao Campus Admissions Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Davao City campuses."} -->`;
   }
 
   if (isCdo) {
     if (isBisaya) {
-      return `Maayong adlaw! Ang atong **Cagayan de Oro — Alwana Campus** nagtanyag sa: 🌱\n• **Infant Community:** 14 mos – 3 yrs\n• **Casa dei Bambini:** 3 – 6 yrs\n• **Elementary:** 6 – 12 yrs\n\n📍 *Address:* Alwana Business Park, Cugman, CDO\n📞 *Direct Line:* (0917) 707 2668\n📧 *Email:* alwana@theabbasorchard.edu.ph\n\nGusto ba ninyo madawat ang complete fee schedule o mag-book og morning walkthrough sa Alwana?\n<!-- DISPATCH: {"campus": "Cagayan de Oro - Alwana", "to": "alwana@theabbasorchard.edu.ph", "subject": "CDO Alwana Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on CDO Alwana campus."} -->`;
+      return `Maayong adlaw! Ang atong **Cagayan de Oro — Alwana Campus** nagtanyag sa authentic AMI Montessori environments: 🌱\n• **Infant Community:** 14 mos – 3 yrs\n• **Casa dei Bambini:** 3 – 6 yrs\n• **Elementary:** 6 – 12 yrs\n\n📍 *Address:* Alwana Business Park, Cugman, Cagayan de Oro City\n📞 *Direct Line:* (0917) 707 2668\n📧 *Email:* **alwana@theabbasorchard.edu.ph**\n\nPila man ang edad sa inyong anak, o gusto ba ninyo mag-schedule og weekday morning classroom observation walkthrough sa Alwana?\n<!-- DISPATCH: {"campus": "Cagayan de Oro - Alwana", "to": "alwana@theabbasorchard.edu.ph", "subject": "CDO Alwana Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on CDO Alwana campus."} -->`;
     }
-    return `Our **Cagayan de Oro — Alwana Campus** offers authentic AMI Montessori environments:\n• **Infant Community:** 14 mos – 3 yrs\n• **Casa dei Bambini:** 3 – 6 yrs\n• **Elementary:** 6 – 12 yrs\n\n📍 *Address:* Alwana Business Park, Cugman, CDO\n📞 *Direct Line:* (0917) 707 2668\n📧 *Coordinator:* alwana@theabbasorchard.edu.ph\n\nWould you like the application packet or to book a morning observation walkthrough in Alwana?\n<!-- DISPATCH: {"campus": "Cagayan de Oro - Alwana", "to": "alwana@theabbasorchard.edu.ph", "subject": "CDO Alwana Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on CDO Alwana campus."} -->`;
+    return `Our **Cagayan de Oro — Alwana Campus** offers authentic AMI Montessori environments:\n• **Infant Community:** 14 mos – 3 yrs\n• **Casa dei Bambini:** 3 – 6 yrs\n• **Elementary:** 6 – 12 yrs\n\n📍 *Address:* Alwana Business Park, Cugman, Cagayan de Oro City\n📞 *Direct Line:* (0917) 707 2668\n📧 *Coordinator:* **alwana@theabbasorchard.edu.ph**\n\nHow old is your child, or would you like to schedule a morning Montessori observation walkthrough at our Alwana campus?\n<!-- DISPATCH: {"campus": "Cagayan de Oro - Alwana", "to": "alwana@theabbasorchard.edu.ph", "subject": "CDO Alwana Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on CDO Alwana campus."} -->`;
   }
 
   if (isBukidnon) {
@@ -245,16 +349,9 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
     return `🌿 **The Abba's Orchard — Laguna Campus (Carmelray Canlubang):**\nLocated in Carmelray Industrial Park, Canlubang, Laguna:\n• Casa dei Bambini (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n\n📍 *Address:* Carmelray Industrial Park 1, Canlubang, Calamba, Laguna\n📞 *Direct Line:* (0917) 859 2668\n📧 *Campus Coordinator:* **carmelray@theabbasorchard.edu.ph**\n\nWould you like to schedule a morning Montessori walkthrough at Carmelray Laguna?\n<!-- DISPATCH: {"campus": "Canlubang - Carmelray Laguna", "to": "carmelray@theabbasorchard.edu.ph", "subject": "Laguna Campus Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Laguna Carmelray campus."} -->`;
   }
 
-  if (isTuition) {
-    if (isBisaya) {
-      return `Maayong adlaw! Mahitungod sa **Tuition & Payment Terms** sa The Abba's Orchard: 🌱\n\nAng among admissions office nag-offer ug flexible payment terms:\n• **Annual (Full Payment)**\n• **Semi-Annual (2 Installments)**\n• **Quarterly (4 Installments)**\n\nGipasa na nako ang inyong inquiry ngadto sa campus admissions coordinator ug sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nPila ang edad sa inyong anak ug asa nga campus ang inyong target para ma-send namo ang saktong schedule?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee schedule."} -->`;
-    }
-    if (isTagalog) {
-      return `Magandang araw po! Tungkol po sa **Tuition at Payment Options** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules:\n• **Annual (Isahang Bayad)**\n• **Semi-Annual (2 Hulog)**\n• **Quarterly (4 na Hulog)**\n\nNa-forward na po ang inyong inquiry sa campus coordinator at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak at aling campus po ang inyong target para ma-send po namin ang tamang breakdown?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee schedule in Tagalog."} -->`;
-    }
-    return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our campus coordinator and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your child's age and target campus so we can provide the exact schedule of fees?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent requested tuition fee breakdown."} -->`;
-  }
-
+  // --------------------------------------------------------------------------
+  // PRIORITY 6: Programs Overview
+  // --------------------------------------------------------------------------
   if (lower.includes('grade') || lower.includes('level') || lower.includes('offer') || lower.includes('program') || lower.includes('curriculum')) {
     return `At **The Abba's Orchard School**, we follow authentic Association Montessori Internationale (AMI) pedagogical planes of development from infancy through adolescence:\n\n1. **Infant Community (14 months – 3 years):** Toddler environment fostering functional independence, language acquisition, and coordinated movement.\n2. **Casa dei Bambini (3 – 6 years / Pre-School & Kindergarten):** Practical Life, Sensorial, Language, Mathematics, and Cultural subjects.\n3. **Elementary (6 – 12 years / Lower & Upper Elementary):** Cosmic Education fostering collaborative research, moral development, critical thinking, and broad intellectual curiosity.\n4. **Erdkinder Adolescent Program (12 – 18 years / Junior & Senior High):** Offered at our Bukidnon La Granja farm campus with boarding, combining academic rigor with real-world land stewardship and student-run micro-economies.\n\nWhich grade level or campus are you inquiring about for your child?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Grade Levels & Programs Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on offered grade levels."} -->`;
   }
