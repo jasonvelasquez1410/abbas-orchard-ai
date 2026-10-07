@@ -1028,6 +1028,85 @@
     }
 
     /* ==========================================================================
+       Admissions & CADO Workflow Q&A Section Styles
+       ========================================================================== */
+    .admissions-faq-section {
+      padding: 60px 48px;
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+    }
+    .faq-pill-tag {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .faq-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .faq-card:hover {
+      border-color: var(--brand-green-primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+      background: #ffffff;
+    }
+    .faq-card-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .faq-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .faq-card-header h4 {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--brand-green-dark);
+      line-height: 1.35;
+    }
+    .faq-card-body p {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .faq-action-hint {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-accent-gold);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .faq-card:hover .faq-action-hint {
+      color: var(--brand-green-primary);
+    }
+
+    /* ==========================================================================
        RESPONSIVE DESIGN: Tablet & Mobile Breakpoints
        ========================================================================== */
     @media (max-width: 900px) {
@@ -1044,7 +1123,7 @@
       .web-hero h2 {
         font-size: 30px;
       }
-      .programs-strip, .campus-explorer {
+      .programs-strip, .campus-explorer, .admissions-faq-section {
         padding: 40px 24px;
       }
     }
@@ -1179,13 +1258,13 @@
         padding: 12px 16px;
       }
 
-      .programs-strip, .campus-explorer {
+      .programs-strip, .campus-explorer, .admissions-faq-section {
         padding: 30px 16px;
       }
       .section-header h3 {
         font-size: 21px;
       }
-      .planes-grid {
+      .planes-grid, .faq-grid {
         grid-template-columns: 100%;
       }
 
@@ -1275,6 +1354,7 @@
           <span class="active">Home</span>
           <span onclick="scrollToSection('planes')">Planes of Development</span>
           <span onclick="scrollToSection('campuses')">15+ Campuses</span>
+          <span onclick="scrollToSection('faq')">Admissions & CADO Q&A</span>
           <span onclick="openChatWithPrompt('What are the admission requirements for Casa?')">Admissions & Fees</span>
           <span onclick="openChatWithPrompt('How do we book a campus tour observation?')">Visit a Campus</span>
         </div>
@@ -1354,6 +1434,61 @@
 
         <div class="campus-cards-grid" id="campus-cards-list">
           <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Admissions & Campus CADO Workflow Q&A Section -->
+      <section class="admissions-faq-section" id="faq">
+        <div class="section-header">
+          <div class="faq-pill-tag">💡 Admissions & CADO Workflow Guide</div>
+          <h3>Frequently Asked Questions & Coordinator Direct Routing</h3>
+          <p>How our 24/7 AI Admissions Digital Employee guides parents and seamlessly connects them with Campus Admissions & Development Officers (CADO).</p>
+        </div>
+
+        <div class="faq-grid">
+          <div class="faq-card" onclick="openChatWithPrompt('I want to contact the coordinator of CDO Alwana campus')">
+            <div class="faq-card-header">
+              <span class="faq-icon">📞</span>
+              <h4>How do parents connect directly with a Campus CADO (e.g., CDO Alwana)?</h4>
+            </div>
+            <div class="faq-card-body">
+              <p>When a parent asks to contact a coordinator (e.g., CDO Alwana, Bukidnon, BGC, Cebu, Davao), the AI instantly provides their direct mobile/hotline (<strong>(0917) 707 2668</strong>) and dedicated email (<strong>alwana@theabbasorchard.edu.ph</strong>). If the parent leaves their name and phone number, the AI automatically dispatches an immediate callback alert directly to the Alwana CADO desk.</p>
+              <div class="faq-action-hint">Test in AI Chat: "Contact CDO Alwana Coordinator" →</div>
+            </div>
+          </div>
+
+          <div class="faq-card" onclick="switchView('fb')">
+            <div class="faq-card-header">
+              <span class="faq-icon">💬</span>
+              <h4>How does human handoff work on the official Facebook Page?</h4>
+            </div>
+            <div class="faq-card-body">
+              <p>When the Facebook Page is connected with Admin access, Meta's native Handover Protocol automatically flags parent inquiries requesting staff assistance as <em>"Unread / Needs Human Attention"</em> inside Meta Business Suite. School administrators and CADO coordinators receive push notifications and can reply directly in the chat at any time.</p>
+              <div class="faq-action-hint">View Facebook Messenger Demo →</div>
+            </div>
+          </div>
+
+          <div class="faq-card" onclick="openChatWithPrompt('How do we book a weekday morning Montessori observation walkthrough?')">
+            <div class="faq-card-header">
+              <span class="faq-icon">📅</span>
+              <h4>How are Montessori Observation Walkthroughs scheduled?</h4>
+            </div>
+            <div class="faq-card-body">
+              <p>Montessori observation tours occur during authentic weekday morning work cycles (8:00 AM – 11:30 AM). The AI collects parent date preferences, child's age/level, and chosen campus, formatting a confirmed booking dispatch to the target campus admissions calendar.</p>
+              <div class="faq-action-hint">Test in AI Chat: "Book a Walkthrough" →</div>
+            </div>
+          </div>
+
+          <div class="faq-card" onclick="openChatWithPrompt('Unsa man ang tuition breakdown ug payment options?')">
+            <div class="faq-card-header">
+              <span class="faq-icon">🌐</span>
+              <h4>What languages does the Admissions AI speak?</h4>
+            </div>
+            <div class="faq-card-body">
+              <p>The AI is multi-lingual and culturally attuned: it fluently converses in <strong>English</strong>, <strong>Bisaya / Cebuano</strong> (for CDO, Bukidnon, Davao, and Cebu families), and <strong>Tagalog</strong> (for Luzon campuses), answering questions warmly and naturally in the parent's preferred language.</p>
+              <div class="faq-action-hint">Try asking in Bisaya or Tagalog →</div>
+            </div>
+          </div>
         </div>
       </section>
 
