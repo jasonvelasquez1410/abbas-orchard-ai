@@ -272,12 +272,17 @@ function analyzeAgesAndPlanes(text) {
 /**
  * Context-Aware Multi-Turn Conversational Engine with Language Mirroring & Lead Capture
  */
+/**
+ * Context-Aware Multi-Turn Conversational Engine with Deep Intent Analysis & Language Mirroring
+ */
 function generateFallbackMontessoriResponse(message, history = [], campusName = null) {
   const currentText = (message || '').trim();
   const lower = currentText.toLowerCase();
 
   const historyArray = Array.isArray(history) ? history : [];
   const historyText = historyArray.map(h => (h && h.content ? h.content : '')).join(' ').toLowerCase();
+  const lastModelMsg = [...historyArray].reverse().find(h => h && h.role === 'model')?.content || '';
+  const lastModelLower = lastModelMsg.toLowerCase();
   const fullContext = (historyText + ' ' + lower).trim();
 
   // Language Detection
@@ -304,7 +309,7 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
                       lower.includes('thursday') || lower.includes('friday') || lower.includes('buntag') || 
                       lower.includes('hapon') || lower.includes('bukas') || lower.includes('tomorrow');
 
-  // Active Campus Resolution (from current message or context)
+  // Active Campus Resolution
   let campusInfo = {
     name: "The Abba's Orchard Central Admissions",
     email: "admission_application@theabbasorchard.edu.ph",
@@ -338,7 +343,61 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 1: Coordinator / CADO Direct Connection Request
+  // INTENT 1: Explanation / Inquiry: "What is that?" / "What is a walkthrough / tour / observation?"
+  // --------------------------------------------------------------------------
+  const isAskingWhatIsThat = lower === 'what is that' || lower === 'what is that?' || 
+                             lower === 'what is that walkthrough' || lower === 'what is that walkthrough?' ||
+                             lower.includes('what is a walkthrough') || lower.includes('what is the walkthrough') || 
+                             lower.includes('what is an observation') || lower.includes('what is the observation') ||
+                             lower.includes('what do you do in a walkthrough') || lower.includes('what happens during a walkthrough') ||
+                             lower.includes('how does a walkthrough work') || lower.includes('explain walkthrough') ||
+                             lower.includes('tell me about the walkthrough') || lower.includes('unsa na ang walkthrough') ||
+                             lower.includes('ano yung walkthrough') || lower.includes('ano po ang observation') ||
+                             ((lower.startsWith('what is') || lower.startsWith('ano') || lower.startsWith('unsa') || lower.includes('explain') || lower.includes('tell me more')) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation')));
+
+  if (isAskingWhatIsThat) {
+    if (isBisaya) {
+      return `🌿 **Unsa man ang usa ka Montessori Observation Walkthrough?**\n\nDili kini ordinaryo nga school tour kung asa igo lang mo tan-aw sa haw-ang nga mga kwarto. Sa The Abba's Orchard, ang Observation Walkthrough usa ka **30 hangtod 45 minutos nga live classroom observation** panahon sa tinuod nga **uninterrupted morning work cycle** (8:30 AM – 11:00 AM):\n\n• **Makita nimo ang True Montessori sa Lihok:** Molingkod kamo sulod sa prepared environment ug makita kung unsa ka-focus ug ka-independent ang mga bata samtang nagamit sa authentic Montessori materials (math beads, sensorial apparatus, practical life).\n• **Walay Rote Teaching:** Makita ninyo nga ang mga bata nagapili sa ilang buluhaton nga may disiplina ug kalinaw.\n• **One-on-One Consultation:** Human sa classroom observation, makigtagbo kamo sa atong Montessori Directress o Campus Coordinator (CADO) aron hisgutan ang developmental readiness sa inyong anak ug tubagon ang tanan ninyong pangutana.\n\nGusto ba ninyo sulayan kini nga observation walkthrough sa **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Explanation Provided (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked what a walkthrough is."} -->`;
+    }
+
+    if (isTagalog) {
+      return `🌿 **Ano po ang isang Montessori Observation Walkthrough?**\n\nHindi po ito pangkaraniwang school tour na titingin lang sa mga bakanteng silid-aralan. Sa The Abba's Orchard, ang Walkthrough ay isang **30 hanggang 45 minutong live classroom observation** habang aktibong nagtatrabaho ang mga bata sa kanilang **uninterrupted morning work cycle** (8:30 AM – 11:00 AM):\n\n• **Aktwal na True Montessori in Action:** Tahimik po kayong uupo sa prepared environment upang saksihan ang lalim ng focus, self-discipline, at saya ng mga bata habang ginagamit ang mga hands-on materials (Math bead chains, Sensorial apparatus, Practical Life).\n• **Walang Sapilitang Rote Lectures:** Makikita ninyo kung paano kusang nag-aaral at nagtutulungan ang mga mag-aaral.\n• **Personal Consult with Directress:** Pagkatapos ng observation, magkakaroon po kayo ng private Q&A kasama ang aming Montessori Directress o Campus Coordinator (CADO) upang pag-usapan ang learning readiness ng inyong anak.\n\nNais po ba ninyong mag-book ng observation walkthrough para sa inyong mga anak sa **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Explanation Provided (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked what a walkthrough is."} -->`;
+    }
+
+    return `🌿 **What is a Montessori Observation Walkthrough?**\n\nUnlike traditional school tours where parents merely glance at empty classrooms or listen to sales brochures, a **Montessori Observation Walkthrough** at The Abba's Orchard is an immersive **30 to 45-minute live classroom observation** during our active **uninterrupted morning work cycle** (8:30 AM – 11:00 AM):\n\n• **Experience True Montessori in Action:** You sit peacefully inside the prepared environment and observe children deeply engaged in spontaneous, self-directed exploration with authentic AMI Montessori materials (such as concrete Math bead apparatus, Sensorial cylinders, and Practical Life exercises).\n• **Witness Natural Focus & Self-Regulation:** You will see children as young as 3 to 12 years old exercising calm concentration, independence, peer respect, and genuine love for learning without teacher lectures or rigid bells.\n• **Post-Observation Directress Consultation:** Right after your observation, our Campus Directress and Admissions Officer (CADO) will sit with you 1-on-1 to discuss what you observed, assess your children's developmental planes, and answer any curriculum or tuition questions.\n\nWould you like to experience an observation walkthrough at our **${campusInfo.name}**, or do you have more questions about how our classrooms work?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Explanation Provided", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked for explanation of walkthrough."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 2: Montessori Philosophy & AMI Accreditation Differences
+  // --------------------------------------------------------------------------
+  const isAskingPhilosophy = lower.includes('what is montessori') || lower.includes('what is ami') || 
+                             lower.includes('difference between') || lower.includes('different from traditional') || 
+                             lower.includes('why montessori') || lower.includes('why abbas') || lower.includes('pedagogy');
+  if (isAskingPhilosophy) {
+    return `🌿 **The Authentic AMI Montessori Difference at The Abba's Orchard:**\n\nThe Abba's Orchard is the first and largest **Association Montessori Internationale (AMI)** school network in the Philippines, founded on Dr. Maria Montessori's authentic scientific pedagogy:\n\n1. **3-Hour Uninterrupted Work Cycles:** Rather than switching subjects every 45 minutes by bells, children have deep blocks of time to achieve profound concentration and mastery.\n2. **Multi-Age Classrooms (3-Year Planes):** Children learn in mixed-age communities (e.g. Casa 3–6, Elementary 6–12) where older children solidify knowledge by mentoring younger peers, and younger children are inspired by advanced work.\n3. **Scientifically Designed Hands-On Materials:** Abstract concepts in arithmetic, geometry, biology, and language are learned concretely through physical, self-correcting apparatus.\n4. **Cosmic Education & Moral Leadership:** Children understand how the universe, earth, and human societies interconnect, developing deep gratitude and environmental responsibility.\n\nWould you like to know more about a specific age level for your children, or schedule a campus observation visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Montessori Pedagogy Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on AMI Montessori philosophy and differences."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 3: Admissions Process & Requirements
+  // --------------------------------------------------------------------------
+  const isAskingAdmissionsProcess = lower.includes('how to enroll') || lower.includes('enrollment process') || 
+                                   lower.includes('admission process') || lower.includes('requirements') || 
+                                   lower.includes('how to apply') || lower.includes('step by step') || lower.includes('steps to apply');
+  if (isAskingAdmissionsProcess) {
+    return `🌿 **Step-by-Step Admissions Process at The Abba's Orchard:**\n\n1. 🔍 **Step 1: Morning Observation Walkthrough:**\n   Parents schedule a 30-45 minute morning observation to experience our authentic Montessori classroom work cycle in session.\n\n2. 📝 **Step 2: Directress Consultation & Child Readiness Observation:**\n   A relaxed developmental meeting between our Montessori Directress and your child to assess developmental placement.\n\n3. 📄 **Step 3: Document Submission:**\n   • PSA Birth Certificate copy\n   • Previous Report Cards / Form 137 (for transferees)\n   • 2x2 ID photos & completed Application Form\n\n4. 🎓 **Step 4: Reservation & Enrollment Confirmation:**\n   Settlement of reservation fee and selection of flexible payment schedule (Annual, Semi-Annual, or Quarterly) with our Central Accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nWould you like to start with **Step 1** by reserving an observation walkthrough at **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Admissions Steps Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked for enrollment steps and requirements."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 4: School Hours, Schedule & Transportation
+  // --------------------------------------------------------------------------
+  const isAskingSchedule = lower.includes('school hours') || lower.includes('class hours') || 
+                           lower.includes('what time') || lower.includes('bus') || lower.includes('transport') || lower.includes('shuttle');
+  if (isAskingSchedule) {
+    return `⏰ **Daily School Schedules & Transportation at The Abba's Orchard:**\n\n• 🍼 **Infant Community (14 mos – 3 yrs):** 8:00 AM – 11:00 AM (Morning Half-Day)\n• 🌸 **Casa dei Bambini (3 – 6 yrs):** 8:00 AM – 11:30 AM (Junior Casa) / 8:00 AM – 1:00 PM (Senior Casa/Kinder)\n• 🌍 **Elementary (6 – 12 yrs):** 8:00 AM – 2:30 PM (Monday to Friday)\n• 🌾 **Erdkinder Farm Boarding (12 – 18 yrs, Bukidnon):** Full-time adolescent boarding schedule integrating farm stewardship and academic micro-economy.\n\n*Transportation / Carpool:* Each campus coordinator can connect you with trusted parent carpools or accredited shuttle providers for your area.\n\nWhich campus location are you considering for your children?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "School Hours & Transport Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked about class hours and transport."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 5: Coordinator / CADO Direct Connection Request
   // --------------------------------------------------------------------------
   const isCadoRequest = lower.includes('cado') || lower.includes('coordinator') || lower.includes('director') || 
                         lower.includes('contact person') || lower.includes('talk to') || lower.includes('speak with') || 
@@ -348,7 +407,7 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 2: Walkthrough Booking & Contact Information Acknowledgment
+  // INTENT 6: Walkthrough Booking & Contact Information Acknowledgment
   // --------------------------------------------------------------------------
   if (capturedContact || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('contact') || historyText.includes('number')))) {
     const contactStr = capturedContact ? `**${capturedContact}**` : "your provided contact details";
@@ -362,11 +421,11 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
       return `Maraming salamat po! 🌿 Ikinagagalak po naming matanggap ang inyong detalye para sa classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nMakikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass at oras ng walkthrough.\n\nMay maitatanong po ba kami ukol sa **edad o pangalan ng inyong anak** para maihanda po ng aming Montessori directress ang classroom sa inyong pagdating?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent requested walkthrough schedule: ${currentText}"} -->`;
     }
 
-    return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **child's current age or name** so our Montessori Directress can prepare the appropriate prepared environment (Infant Community, Casa, or Elementary) for your visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent booked walkthrough: ${currentText}"} -->`;
+    return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **children's ages or names** so our Montessori Directress can prepare the appropriate prepared environments (Casa, Elementary, etc.) for your visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent booked walkthrough: ${currentText}"} -->`;
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 3: Smart Child Age & Plane Analysis (Supports Multi-Child & Exact Ages)
+  // INTENT 7: Smart Child Age & Plane Analysis (Supports Multi-Child & Exact Ages)
   // --------------------------------------------------------------------------
   const ageAnalysis = analyzeAgesAndPlanes(currentText);
 
@@ -398,18 +457,21 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 3: Explicit Tour Booking Request (Without Phone Yet)
+  // INTENT 8: Explicit Booking Request (e.g. "I want to book", "Schedule my visit")
   // --------------------------------------------------------------------------
-  const isTour = lower.includes('tour') || lower.includes('visit') || lower.includes('observation') || lower.includes('walkthrough') || lower.includes('schedule') || lower.includes('appointment');
-  if (isTour) {
+  const isBookingAction = (lower.includes('book') || lower.includes('schedule') || lower.includes('reserve') || 
+                          lower.includes('gusto ko mag-visit') || lower.includes('mag-tour') || lower.includes('i want to visit') ||
+                          lower.includes('sign me up') || lower.includes('set an appointment')) && 
+                          !lower.includes('what is') && !lower.includes('ano') && !lower.includes('unsa');
+  if (isBookingAction) {
     if (isBisaya) {
-      return `🌿 **Pag-schedule og Observation Walkthrough sa The Abba's Orchard:**\nAng labing maayong paagi aron makita ang Authentic Montessori mao ang pag-obserba sa tinuod nga morning work cycle (kasagaran 8:30 AM hangtod 11:00 AM sa mga adlaw nga Lunes hangtod Biyernes).\n\nPalihug i-share kanamo ang inyong:\n1. 📍 **Target Campus** (sama sa CDO Alwana, Davao, Bukidnon, Cebu, Manila)\n2. ⏰ **Gusto nga weekday morning**\n3. 📞 **Contact Number**\n\narron ma-forward namo sa campus admissions coordinator para sa inyong observation pass!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Schedule Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked how to book a tour."} -->`;
+      return `🌿 **Pag-schedule og Observation Walkthrough sa The Abba's Orchard:**\nAng labing maayong paagi aron makita ang Authentic Montessori mao ang pag-obserba sa tinuod nga morning work cycle (kasagaran 8:30 AM hangtod 11:00 AM sa mga adlaw nga Lunes hangtod Biyernes).\n\nPalihug i-share kanamo ang inyong:\n1. 📍 **Target Campus** (sama sa CDO Alwana, Davao, Bukidnon, Cebu, Manila)\n2. ⏰ **Gusto nga weekday morning**\n3. 📞 **Contact Number**\n\narron ma-forward namo sa campus admissions coordinator para sa inyong observation pass!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Schedule Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked to book a tour."} -->`;
     }
-    return `🌿 **Scheduling a Montessori Campus Observation Walkthrough:**\nObserving an authentic AMI Montessori environment during our morning work cycle (8:30 AM – 11:00 AM, Monday to Friday) is the best way to experience True Montessori® in action.\n\nPlease share your:\n1. 📍 **Preferred Campus** (e.g. ${campusInfo.name})\n2. ⏰ **Preferred Weekday Morning**\n3. 📞 **Contact Number**\n\nand our admissions coordinator will immediately prepare your visitor pass and welcome packet!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked for observation walkthrough schedule."} -->`;
+    return `🌿 **Scheduling a Montessori Campus Observation Walkthrough:**\nObserving an authentic AMI Montessori environment during our morning work cycle (8:30 AM – 11:00 AM, Monday to Friday) is the best way to experience True Montessori® in action.\n\nPlease share your:\n1. 📍 **Preferred Campus** (e.g. ${campusInfo.name})\n2. ⏰ **Preferred Weekday Morning**\n3. 📞 **Contact Number**\n\nand our admissions coordinator will immediately prepare your visitor pass and welcome packet!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked to book walkthrough schedule."} -->`;
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 4: Tuition & Payment Inquiries
+  // INTENT 9: Tuition & Payment Inquiries
   // --------------------------------------------------------------------------
   const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment');
   if (isTuition) {
@@ -419,11 +481,11 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
     if (isTagalog) {
       return `Magandang araw po! Tungkol po sa **Tuition at Payment Options** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules:\n• **Annual (Isahang Bayad)**\n• **Semi-Annual (2 Hulog)**\n• **Quarterly (4 na Hulog)**\n\nNa-forward na po ang inyong inquiry sa campus coordinator ng **${campusInfo.name}** at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak para ma-send po namin ang saktong breakdown ng fees?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee breakdown."} -->`;
     }
-    return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our coordinator at **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **child's age** so we can provide the exact schedule of fees for their developmental level?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown."} -->`;
+    return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our coordinator at **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **children's ages** so we can provide the exact schedule of fees for their developmental levels?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown."} -->`;
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 5: Specific Campus Mentions & Quick-Select Clicks
+  // INTENT 10: Specific Campus Mentions & Quick-Select Clicks
   // --------------------------------------------------------------------------
   const isDavao = lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug');
   const isBukidnon = lower.includes('bukidnon') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('farm') || lower.includes('baungon');
@@ -493,7 +555,7 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 6: Programs Overview
+  // INTENT 11: Programs Overview
   // --------------------------------------------------------------------------
   if (lower.includes('grade') || lower.includes('level') || lower.includes('offer') || lower.includes('program') || lower.includes('curriculum')) {
     return `At **The Abba's Orchard School**, we follow authentic Association Montessori Internationale (AMI) pedagogical planes of development from infancy through adolescence:\n\n1. **Infant Community (14 months – 3 years):** Toddler environment fostering functional independence, language acquisition, and coordinated movement.\n2. **Casa dei Bambini (3 – 6 years / Pre-School & Kindergarten):** Practical Life, Sensorial, Language, Mathematics, and Cultural subjects.\n3. **Elementary (6 – 12 years / Lower & Upper Elementary):** Cosmic Education fostering collaborative research, moral development, critical thinking, and broad intellectual curiosity.\n4. **Erdkinder Adolescent Program (12 – 18 years / Junior & Senior High):** Offered at our Bukidnon La Granja farm campus with boarding, combining academic rigor with real-world land stewardship and student-run micro-economies.\n\nWhich grade level or campus are you inquiring about for your child?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Grade Levels & Programs Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on offered grade levels."} -->`;
