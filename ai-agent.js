@@ -147,6 +147,100 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
   };
 }
 
+function analyzeAgesAndPlanes(text) {
+  const lower = (text || '').toLowerCase();
+  
+  const wordMap = {
+    'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+    'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14,
+    'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18
+  };
+
+  const detectedAges = [];
+  
+  // Match numbers: 1 to 18 (guarding against phone numbers or timestamps)
+  const regexNum = /\b([1-9]|1[0-8])\s*(?:yo|y\.o\.|years?\s*old|years?|yrs?|yr)?\b/gi;
+  let match;
+  while ((match = regexNum.exec(lower)) !== null) {
+    const num = parseInt(match[1], 10);
+    const idx = match.index;
+    const prevChar = idx > 0 ? lower[idx - 1] : '';
+    const nextChar = idx + match[0].length < lower.length ? lower[idx + match[0].length] : '';
+    // Skip if inside time (8:30) or phone number (0917-xxx)
+    if (prevChar === ':' || prevChar === '-' || prevChar === '/' || prevChar === '0' || nextChar === ':') {
+      continue;
+    }
+    if (num >= 1 && num <= 18 && !detectedAges.includes(num)) {
+      detectedAges.push(num);
+    }
+  }
+
+  // Match word numbers: "five", "eleven", etc.
+  for (const [word, num] of Object.entries(wordMap)) {
+    const wordRegex = new RegExp(`\\b${word}\\b`, 'i');
+    if (wordRegex.test(lower) && !detectedAges.includes(num)) {
+      detectedAges.push(num);
+    }
+  }
+
+  // Month patterns (e.g. 14 months, 18 mos)
+  const monthMatch = lower.match(/\b(1[4-9]|[2-3]\d)\s*(?:months?|mos|mo)\b/);
+  const isToddlerExplicit = Boolean(monthMatch) || lower.includes('toddler') || lower.includes('infant');
+
+  const planes = [];
+  
+  if (isToddlerExplicit || detectedAges.some(a => a <= 2)) {
+    const ageList = detectedAges.filter(a => a <= 2);
+    const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '14 mos – 3 yrs';
+    planes.push({
+      id: 'infant',
+      name: 'Infant Community (Toddler Environment)',
+      ageLabel: ageLabel,
+      range: '14 Months – 3 Years',
+      description: 'Nurtures functional independence, coordinated movement, fine motor refinement, and expressive language acquisition in a peaceful, prepared setting.'
+    });
+  }
+
+  if (detectedAges.some(a => a >= 3 && a <= 6) || lower.includes('preschool') || lower.includes('kinder') || lower.includes('casa')) {
+    const ageList = detectedAges.filter(a => a >= 3 && a <= 6);
+    const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '3 – 6 Years';
+    planes.push({
+      id: 'casa',
+      name: 'Casa dei Bambini (Pre-School & Kindergarten)',
+      ageLabel: ageLabel,
+      range: '3 – 6 Years',
+      description: 'Fosters self-directed discovery across Practical Life, Sensorial refinement, concrete hands-on Mathematics bead materials, and language/phonics reading fluency.'
+    });
+  }
+
+  if (detectedAges.some(a => a >= 7 && a <= 12) || lower.includes('elementary') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6')) {
+    const ageList = detectedAges.filter(a => a >= 7 && a <= 12);
+    const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '6 – 12 Years';
+    planes.push({
+      id: 'elem',
+      name: 'Elementary (Lower & Upper Elementary)',
+      ageLabel: ageLabel,
+      range: '6 – 12 Years',
+      description: 'Provides Dr. Maria Montessori’s Cosmic Education — inspiring broad intellectual curiosity, collaborative scientific research, advanced mathematical reasoning, and moral consciousness.'
+    });
+  }
+
+  if (detectedAges.some(a => a >= 13 && a <= 18) || lower.includes('high school') || lower.includes('adolescent') || lower.includes('erdkinder') || lower.includes('boarding')) {
+    const ageList = detectedAges.filter(a => a >= 13 && a <= 18);
+    const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '12 – 18 Years';
+    planes.push({
+      id: 'erdkinder',
+      name: 'Erdkinder Adolescent Farm Boarding',
+      ageLabel: ageLabel,
+      range: '12 – 18 Years / Junior & Senior High',
+      description: 'Our flagship adolescent farm boarding community at Bukidnon La Granja combining academic rigor with land stewardship, animal husbandry, and a student-run micro-economy.'
+    });
+  }
+
+  return { detectedAges, planes };
+}
+
 function generateFallbackResponse(userMessage, conversationHistory = [], preferredCampus = null) {
   const currentText = (userMessage || '').trim();
   const lower = currentText.toLowerCase();
@@ -213,7 +307,17 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 1: Walkthrough Booking & Contact Information Acknowledgment
+  // PRIORITY 1: Coordinator / CADO Direct Connection Request
+  // --------------------------------------------------------------------------
+  const isCadoRequest = lower.includes('cado') || lower.includes('coordinator') || lower.includes('director') || 
+                        lower.includes('contact person') || lower.includes('talk to') || lower.includes('speak with') || 
+                        lower.includes('call me') || lower.includes('reach out');
+  if (isCadoRequest && !capturedContact) {
+    return `Certainly! Here is the direct contact information for the Campus Admissions & Development Officer (CADO) for **${campusInfo.name}**: 🌿\n\n• 📞 **Direct Line / Mobile:** **${campusInfo.phone}**\n• 📧 **Direct Coordinator Email:** **${campusInfo.email}**\n• ⏰ **Office Hours:** Monday to Friday, 8:00 AM – 4:00 PM\n\nIf you would like the coordinator to call or email you directly, please share your **name, phone number, and your children's ages**, and I will immediately dispatch a priority callback notification to the CADO desk!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "CADO Coordinator Contact Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested CADO contact info."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // PRIORITY 2: Walkthrough Booking & Contact Information Acknowledgment
   // --------------------------------------------------------------------------
   if (capturedContact || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('contact') || historyText.includes('number')))) {
     const contactStr = capturedContact ? `**${capturedContact}**` : "your provided contact details";
@@ -231,27 +335,35 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   // --------------------------------------------------------------------------
-  // PRIORITY 2: Child Age / Developmental Plane Consultation
+  // PRIORITY 3: Smart Child Age & Plane Analysis (Supports Multi-Child & Exact Ages)
   // --------------------------------------------------------------------------
-  const isInfantAge = lower.includes('1 year') || lower.includes('1 yo') || lower.includes('2 year') || lower.includes('2 yo') || lower.includes('14 month') || lower.includes('18 month') || lower.includes('toddler');
-  const isCasaAge = lower.includes('3 year') || lower.includes('3 yo') || lower.includes('4 year') || lower.includes('4 yo') || lower.includes('5 year') || lower.includes('5 yo') || lower.includes('6 year') || lower.includes('6 yo') || lower.includes('preschool') || lower.includes('kinder');
-  const isElemAge = lower.includes('7 year') || lower.includes('8 year') || lower.includes('9 year') || lower.includes('10 year') || lower.includes('11 year') || lower.includes('12 year') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6');
-  const isHighSchoolAge = lower.includes('13 year') || lower.includes('14 year') || lower.includes('15 year') || lower.includes('16 year') || lower.includes('high school') || lower.includes('adolescent') || lower.includes('boarding') || lower.includes('erdkinder');
+  const ageAnalysis = analyzeAgesAndPlanes(currentText);
 
-  if (isInfantAge) {
-    return `Wonderful! For children between 14 months to 3 years old, our **Infant Community (Toddler Environment)** nurtures:\n• Functional independence & self-care\n• Coordinated movement & fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community"} -->`;
+  // Scenario A: MULTIPLE CHILDREN / MULTIPLE PLANES (e.g. 5yo and 11yo)
+  if (ageAnalysis.planes.length >= 2) {
+    let multiResponse = `Wonderful! That is a fantastic combination of developmental planes for your family: 🌱\n\n`;
+    ageAnalysis.planes.forEach((plane, idx) => {
+      multiResponse += `${idx + 1}. 🌿 **For your ${plane.ageLabel} (${plane.name}):**\n${plane.description}\n\n`;
+    });
+    multiResponse += `Would you like to schedule a weekday morning observation walkthrough at **${campusInfo.name}** to observe both environments, or would you like to receive the admissions checklist and tuition schedule for these levels?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Multi-Child Admissions Consultation", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent inquired for children ages: ${ageAnalysis.detectedAges.join(', ')}"} -->`;
+    return multiResponse;
   }
 
-  if (isCasaAge) {
-    return `That is a golden stage of development! For ages 3 to 6 years old, our authentic **Casa dei Bambini (Pre-School & Kindergarten)** fosters:\n• **Practical Life:** Concentration, care of self and environment\n• **Sensorial:** Refining the senses as the foundation for intellectual exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to abstract arithmetic\n• **Language & Phonics:** Reading fluency and self-expression\n\nWould you like to book a morning observation walkthrough at **${campusInfo.name}** or request the Casa tuition breakdown?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (3-6 yrs)"} -->`;
-  }
-
-  if (isElemAge) {
-    return `Fantastic! For ages 6 to 12 years old, our **Lower & Upper Elementary** program provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative research projects & critical thinking\n• Interconnected curriculum: Science, History, Geography, Mathematics, and Literature\n• Developing moral responsibility, empathy, and leadership\n\nWould you like us to connect you with the Elementary Directress at **${campusInfo.name}** for an observation tour?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (6-12 yrs)"} -->`;
-  }
-
-  if (isHighSchoolAge) {
-    return `For adolescent students (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic farming, animal stewardship, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding."} -->`;
+  // Scenario B: SINGLE CHILD PLANE
+  if (ageAnalysis.planes.length === 1) {
+    const p = ageAnalysis.planes[0];
+    if (p.id === 'casa') {
+      return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** or request the Casa admissions schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (${p.ageLabel})"} -->`;
+    }
+    if (p.id === 'elem') {
+      return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** for a classroom observation walkthrough?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (${p.ageLabel})"} -->`;
+    }
+    if (p.id === 'infant') {
+      return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
+    }
+    if (p.id === 'erdkinder') {
+      return `For your **${p.ageLabel}** adolescent student (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic agriculture, land stewardship, animal husbandry, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding (${p.ageLabel})."} -->`;
+    }
   }
 
   // --------------------------------------------------------------------------
