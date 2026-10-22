@@ -4,6 +4,7 @@ const cors = require('cors');
 const axios = require('axios');
 const path = require('path');
 const { generateAIResponse } = require('./ai-agent');
+const { dispatchLead } = require('./api/_dispatcher');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -107,6 +108,7 @@ async function handleMessengerMessage(senderPsid, userText) {
     // 6. Log or dispatch lead if campus lead tag was generated
     if (aiResult.dispatch) {
       console.log('⚡ [LEAD DISPATCHED VIA MESSENGER]:', aiResult.dispatch);
+      dispatchLead(aiResult.dispatch, 'facebook_messenger').catch(e => console.warn('Dispatch err:', e.message));
     }
 
   } catch (err) {
@@ -163,6 +165,9 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const aiResult = await generateAIResponse(message, history, campus);
+    if (aiResult.dispatch) {
+      dispatchLead(aiResult.dispatch, 'website').catch(e => console.warn('Dispatch err:', e.message));
+    }
     return res.json(aiResult);
 
   } catch (err) {

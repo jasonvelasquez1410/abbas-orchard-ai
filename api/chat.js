@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { dispatchLead } = require('./_dispatcher');
 
 const ABBAS_SYSTEM_PROMPT = `
 You are the official 24/7 AI Admissions Digital Employee and Montessori Guide for "The Abba's Orchard School", the premier and first Association Montessori Internationale (AMI) school network in the Philippines.
@@ -162,6 +163,10 @@ module.exports = async function handler(req, res) {
       cleanText = cleanText.replace(dispatchMatch[0], '').trim();
       try {
         dispatchData = JSON.parse(dispatchMatch[1]);
+        // Trigger automated multi-channel lead dispatching
+        dispatchLead(dispatchData, 'website').catch(err => {
+          console.warn('Asynchronous dispatch error:', err.message);
+        });
       } catch (e) {}
     }
 

@@ -143,12 +143,17 @@ graph TD
 * [`abbas-widget-embed.js`](./abbas-widget-embed.js) — Single-script drop-in widget for embedding onto `theabbasorchard.edu.ph`.
 * [`Abbas_Orchard_AI_Pitch_Presentation.html`](./Abbas_Orchard_AI_Pitch_Presentation.html) — 8-slide presentation deck with speaker notes.
 * [`Abbas_Orchard_AI_Executive_Proposal.html`](./Abbas_Orchard_AI_Executive_Proposal.html) — Executive proposal document.
+* [`IT_INTEGRATION_GUIDE.md`](./IT_INTEGRATION_GUIDE.md) — Technical webmaster deployment guide.
+* [`IT_Integration_Guide.html`](./IT_Integration_Guide.html) — Styled, printable single-page PDF/HTML deployment handout.
+* [`api/_dispatcher.js`](./api/_dispatcher.js) — Real-time webhook & transactional email lead notification dispatcher.
 * [`package.json`](./package.json) & [`vercel.json`](./vercel.json) — Dependencies and edge deployment configuration.
 
 ---
 
 ## 📋 8. Next Action Items When Resuming
 - [x] **Conversational Lead Capture Tested:** Fully verified locally and live on Vercel.
-- [x] **GitHub Auto-Deploy Synchronized:** All changes pushed to `origin/main` (`97ee8f7`).
+- [x] **Real-Time Lead Dispatcher Pipeline:** Structured multi-channel forwarding (Google Sheets/Zapier webhook + Resend email + serverless audit logs).
+- [x] **Meta Graph API Webhook Hardened:** Graph API v20.0, postback/quick_reply support, message chunking, and unified Montessori AI engine.
+- [x] **1-Page IT Integration Handout Ready:** Markdown & printable HTML guide for the Abba's Orchard webmaster.
 - [ ] **Facebook Page Access Token:** Once admin access on `facebook.com/abbasorchardschool/` is granted, insert `META_PAGE_ACCESS_TOKEN` into Vercel Environment Variables.
-- [ ] **Embed on Main Website:** Add `<script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js"></script>` before `</body>` on `theabbasorchard.edu.ph`.
+- [ ] **Embed on Main Website:** Add `<script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer></script>` before `</body>` on `theabbasorchard.edu.ph`.

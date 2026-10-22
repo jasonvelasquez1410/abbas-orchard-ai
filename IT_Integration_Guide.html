@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT & Web Integration Guide — The Abba's Orchard AI Admissions Widget</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2d6a38;
+      --primary-dark: #1b3d22;
+      --primary-light: #52b788;
+      --bg: #0b131e;
+      --surface: #141f2e;
+      --surface-border: #223449;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #86efac;
+      --code-bg: #090e17;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    header {
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 28px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(45, 106, 56, 0.25);
+      border: 1px solid rgba(82, 183, 136, 0.4);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-print {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-print:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .spec-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .spec-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .spec-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    p {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .code-box pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0 28px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--surface-border);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    .check-icon {
+      color: var(--primary-light);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    @media print {
+      body { background: #fff; color: #000; padding: 0; }
+      .container { box-shadow: none; border: none; padding: 0; }
+      .btn-print, .copy-btn { display: none; }
+      .code-box { background: #f8fafc; border-color: #cbd5e1; }
+      .code-box pre { color: #0f172a; }
+      code { color: #166534; background: #e2e8f0; }
+      table { border-color: #cbd5e1; }
+      th { background: #f1f5f9; color: #475569; }
+      td { border-color: #e2e8f0; color: #1e293b; }
+      .badge { border-color: #166534; color: #166534; background: #dcfce7; }
+      h1, h2, .spec-val { color: #0f172a; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <div class="badge">🌿 Official Integration Specification</div>
+        <h1>The Abba's Orchard School</h1>
+        <div class="subtitle">24/7 AI Admissions Digital Employee · Web Embed Documentation</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      </div>
+    </header>
+
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="spec-label">Target Website</div>
+        <div class="spec-val">theabbasorchard.edu.ph</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Payload Size</div>
+        <div class="spec-val">~10 KB (Gzipped)</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Dependencies</div>
+        <div class="spec-val">0 (Vanilla JS & CSS)</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Performance Impact</div>
+        <div class="spec-val">Non-blocking / Defer</div>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <h2><span class="step-num">1</span> 1-Line Embed Installation</h2>
+    <p>Paste this single script tag right before the closing <code>&lt;/body&gt;</code> tag on your website layout:</p>
+
+    <div class="code-box">
+      <button class="copy-btn" onclick="copySnippet(this, 'snippet-1')">Copy Snippet</button>
+      <pre id="snippet-1">&lt;!-- The Abba's Orchard 24/7 AI Admissions Assistant Widget --&gt;
+&lt;script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer&gt;&lt;/script&gt;</pre>
+    </div>
+
+    <!-- Step 2 -->
+    <h2><span class="step-num">2</span> Framework-Specific Placement</h2>
+    <p><strong>For Laravel & Inertia.js (Current Stack):</strong> Place the tag into your primary layout blade file (e.g. <code>resources/views/layouts/app.blade.php</code> or <code>master.blade.php</code>) right before <code>&lt;/body&gt;</code>.</p>
+
+    <div class="code-box">
+      <button class="copy-btn" onclick="copySnippet(this, 'snippet-2')">Copy Snippet</button>
+      <pre id="snippet-2">    ...
+    &lt;!-- Floating 24/7 Admissions Assistant --&gt;
+    &lt;script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    </div>
+
+    <!-- Step 3 -->
+    <h2><span class="step-num">3</span> Optional Custom Attributes</h2>
+    <p>The embed script works with zero configuration by default. You may optionally supply HTML data attributes to adjust placement or behavior:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Attribute</th>
+          <th>Accepted Values</th>
+          <th>Default</th>
+          <th>Behavior</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>data-position</code></td>
+          <td><code>"bottom-right"</code> | <code>"bottom-left"</code></td>
+          <td><code>"bottom-right"</code></td>
+          <td>Screen corner where the floating 🌱 bubble appears.</td>
+        </tr>
+        <tr>
+          <td><code>data-default-open</code></td>
+          <td><code>"true"</code> | <code>"false"</code></td>
+          <td><code>"false"</code></td>
+          <td>Automatically expands the chat drawer upon page load.</td>
+        </tr>
+        <tr>
+          <td><code>data-server</code></td>
+          <td>HTTPS URL</td>
+          <td>Script Origin</td>
+          <td>Direct backend API destination (auto-detected by default).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Step 4 -->
+    <h2><span class="step-num">4</span> Content Security Policy (CSP) & CORS Guidelines</h2>
+    <p>If your web server or Cloudflare reverse proxy enforces a strict CSP header, ensure the following directive whitelist is included:</p>
+
+    <div class="code-box">
+      <button class="copy-btn" onclick="copySnippet(this, 'snippet-3')">Copy Snippet</button>
+      <pre id="snippet-3">Content-Security-Policy: 
+  script-src 'self' https://abbas-orchard-ai.vercel.app;
+  connect-src 'self' https://abbas-orchard-ai.vercel.app;
+  style-src 'self' 'unsafe-inline';</pre>
+    </div>
+
+    <!-- Step 5 -->
+    <h2><span class="step-num">5</span> Verification & Health Check (30 Seconds)</h2>
+    <ul class="check-list">
+      <li><span class="check-icon">✓</span> <strong>Floating Bubble:</strong> Verify the emerald green circular bubble appears at the bottom-right corner.</li>
+      <li><span class="check-icon">✓</span> <strong>Drawer Expansion:</strong> Click the bubble to ensure the responsive admissions drawer slides up smoothly.</li>
+      <li><span class="check-icon">✓</span> <strong>Interactive Campus Routing:</strong> Click <em>"📍 CDO Alwana"</em> or <em>"🌾 Bukidnon La Granja"</em> chips to test AI campus matching.</li>
+      <li><span class="check-icon">✓</span> <strong>Lead Dispatch Test:</strong> Type: <em>"Hi, I want to book an observation tour in CDO Alwana, here is my number 09989576496"</em> and verify confirmation.</li>
+    </ul>
+
+    <footer>
+      <div>Developed by <strong>Jason Velasquez · Sethcon Technologies</strong> for The Abba's Orchard School</div>
+      <div>Live Production Endpoint: <code>https://abbas-orchard-ai.vercel.app</code></div>
+    </footer>
+  </div>
+
+  <script>
+    function copySnippet(btn, id) {
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied! ✓';
+        btn.style.background = '#2d6a38';
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

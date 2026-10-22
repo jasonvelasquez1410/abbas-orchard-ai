@@ -8,7 +8,22 @@
 
 (function () {
   const currentScript = document.currentScript;
-  const SERVER_URL = (currentScript && currentScript.getAttribute('data-server')) || 'http://localhost:3000';
+  let SERVER_URL = currentScript && currentScript.getAttribute('data-server');
+  if (!SERVER_URL) {
+    if (currentScript && currentScript.src) {
+      try {
+        SERVER_URL = new URL(currentScript.src).origin;
+      } catch (e) {
+        SERVER_URL = 'https://abbas-orchard-ai.vercel.app';
+      }
+    } else {
+      SERVER_URL = 'https://abbas-orchard-ai.vercel.app';
+    }
+  }
+
+  const POSITION = (currentScript && currentScript.getAttribute('data-position')) || 'bottom-right';
+  const DEFAULT_OPEN = (currentScript && currentScript.getAttribute('data-default-open')) === 'true';
+  const isLeft = POSITION === 'bottom-left';
 
   // Inject CSS Styles
   const style = document.createElement('style');
@@ -16,7 +31,7 @@
     #abbas-ai-bubble {
       position: fixed;
       bottom: 24px;
-      right: 24px;
+      ${isLeft ? 'left: 24px;' : 'right: 24px;'}
       width: 60px;
       height: 60px;
       border-radius: 50%;
@@ -39,7 +54,7 @@
     #abbas-ai-window {
       position: fixed;
       bottom: 96px;
-      right: 24px;
+      ${isLeft ? 'left: 24px;' : 'right: 24px;'}
       width: 380px;
       height: 580px;
       max-width: calc(100vw - 48px);
@@ -196,6 +211,10 @@
 
   document.body.appendChild(bubble);
   document.body.appendChild(chatWindow);
+
+  if (DEFAULT_OPEN) {
+    chatWindow.style.display = 'flex';
+  }
 
   let history = [];
 
