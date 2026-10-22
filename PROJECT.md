@@ -1,6 +1,6 @@
 # The Abba's Orchard School — 24/7 AI Admissions Digital Employee & Prototype Project
 
-**Last Updated:** October 7, 2026  
+**Last Updated:** October 22, 2026  
 **Project Owner / Principal Developer:** Jason Velasquez (SETHCON)  
 **Client / Stakeholders:** Sir Angelo, Sir Ram, Mr. Xavier, Dr. Maria Angelica Paez-Barrameda ("Teacher Ann"), Joseph Christopher N. Barrameda ("Mr. Chris")  
 **Target Organization:** The Abba's Orchard School (15+ Campuses nationwide — Luzon, Visayas, Mindanao)  
@@ -16,7 +16,7 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 2. **Facebook Messenger Integration:** Official Meta Graph API integration with The Abba's Orchard Facebook page (`facebook.com/abbasorchardschool/`).
 3. **Multi-Campus Knowledge System:** 15+ branches across Luzon, Visayas, and Mindanao (Alwana CDO, Bukidnon La Granja, Davao Obrero/Mandug, Cebu Magsaysay/Tandang Sora, Taguig BGC McKinley & Bayani Rd, Greenhills, Alabang, Antipolo, QC Bridgetowne, Canlubang Laguna, Iloilo).
 4. **True Montessori® & AMI Pedagogical Persona:** Trained in authentic Association Montessori Internationale (AMI) philosophy across Infant Community (14m–3y), Casa dei Bambini (3–6y), Elementary (6–12y), and Erdkinder adolescent farm boarding (12–18y).
-5. **Staff Escalation Workflow:** Automated structured lead auto-dispatching (`<!-- DISPATCH: {...} -->`) with routing to campus coordinators and Ms. Roxane's accounting desk for custom requests and fee schedules.
+5. **Staff Escalation Workflow:** Automated structured lead auto-dispatching (`<!-- DISPATCH: {...} -->`) with routing to campus coordinators, central admissions, and Ms. Roxane's accounting desk for custom requests and fee schedules.
 
 ---
 
@@ -44,17 +44,21 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 
 ### B. Backend Serverless Functions (`/api`)
 * `api/chat.js`: Real-time streaming & JSON admissions AI endpoint powered by **Google Gemini 2.0 Flash** / OpenAI with priority-based lead capture, language detection, and fallback resolution.
-* `api/webhook.js`: Production Meta Graph API webhook endpoint supporting:
+* `api/webhook.js`: Production Meta Graph API (v20.0) webhook endpoint supporting:
   * `GET /api/webhook`: Meta Webhook Challenge verification (`hub.verify_token`, `hub.challenge`).
-  * `POST /api/webhook`: Instant Facebook Messenger event processing, typing indicator trigger, Gemini AI generation, and message dispatch via Send API.
-* `vercel.json`: Edge routing configuration and API rewrites.
+  * `POST /api/webhook`: Instant Facebook Messenger event processing, postback & quick reply parsing, typing indicator triggers, Gemini AI generation, message chunking, and automated lead forwarding.
+* `api/_dispatcher.js`: Production multi-channel lead notification dispatcher supporting Google Sheets/Zapier webhooks and Resend transactional email.
+* `vercel.json`: Edge routing configuration, CORS headers, and API rewrites.
 
 ### C. Environment Variables on Vercel
 * `GEMINI_API_KEY`: Google AI Studio production API key for Gemini 2.0 Flash.
 * `AI_PROVIDER`: `gemini` (or `openai`)
 * `AI_MODEL`: `gemini-2.0-flash`
-* `META_VERIFY_TOKEN`: Verification token matching Meta Developer App webhook settings.
+* `META_VERIFY_TOKEN`: Verification token matching Meta Developer App webhook settings (`abbas_orchard_meta_verify_token_2026`).
 * `META_PAGE_ACCESS_TOKEN`: Page access token for message dispatching.
+* `LEAD_WEBHOOK_URL`: (Optional) Webhook URL (Google Sheets AppScript, Zapier, Make, Discord) for instant lead capture.
+* `RESEND_API_KEY`: (Optional) Resend API key for automated HTML admissions email alerts.
+* `NOTIFICATION_EMAIL_TO`: Central admissions inbox for email lead delivery (`admission_application@theabbasorchard.edu.ph`).
 
 ---
 
@@ -150,10 +154,90 @@ graph TD
 
 ---
 
-## 📋 8. Next Action Items When Resuming
+## 📬 8. Client Follow-Up Status (Dispatched October 22, 2026)
+* **Initial Delivery Email:** October 7, 2026 (Live prototype link & testing guide sent to Sir Angelo, Seth, Kristine, and Ms. Roxane).
+* **Follow-Up Inquiries Sent:** October 22, 2026
+  * **Email Thread Reply:** Sent to Sir Angelo following up on prototype review and requesting:
+    1. Facebook Page admin/task invite for Jason Velasquez on `facebook.com/abbasorchardschool/`.
+    2. Website repository/cPanel access or webmaster contact to embed the widget on `theabbasorchard.edu.ph`.
+  * **Viber Direct Message:** Short, friendly follow-up sent directly to Sir Angelo.
+
+---
+
+## 🎯 9. Operational Runbook: What to Do The Moment Credentials Arrive
+
+The moment Sir Angelo or their team responds with access, follow this exact step-by-step checklist:
+
+### A. When Facebook Page / Meta Access is Granted:
+1. **Accept Invite:** Log in to Facebook / Meta Business Suite and accept the Page Manager or Task access for `The Abba's Orchard School`.
+2. **Access Meta Developer Dashboard:**
+   * Go to [https://developers.facebook.com/apps](https://developers.facebook.com/apps)
+   * Select or create the app connected to The Abba's Orchard.
+3. **Configure Messenger Product:**
+   * Under **Messenger → Settings**, locate **Access Tokens**.
+   * Link the official page: `The Abba's Orchard School`.
+   * Click **Generate Token** and copy the permanent Page Access Token.
+4. **Update Vercel Environment Variables:**
+   * Go to [Vercel Project Settings](https://vercel.com/) → **Environment Variables**.
+   * Add / Update `META_PAGE_ACCESS_TOKEN` = `<generated_token>`.
+   * Verify `META_VERIFY_TOKEN` = `abbas_orchard_meta_verify_token_2026`.
+   * Click **Redeploy** on the latest commit.
+5. **Set Meta Webhook Callback:**
+   * In Meta App Dashboard → **Webhooks → Edit Callback URL**:
+     * **Callback URL:** `https://abbas-orchard-ai.vercel.app/api/webhook`
+     * **Verify Token:** `abbas_orchard_meta_verify_token_2026`
+   * Click **Verify and Save**.
+   * In **Subscription Fields**, subscribe to:
+     * `messages`
+     * `messaging_postbacks`
+6. **Live Verification Test:**
+   * Open Facebook Messenger on mobile/desktop and send a test message to `The Abba's Orchard School` page (e.g. *"Hi, how much is tuition for Casa in CDO Alwana?"*).
+   * Verify typing indicator, quick response, and campus routing.
+
+---
+
+### B. When Website / Webmaster Access is Granted:
+1. **Provide Integration Handout:**
+   * Share [`IT_Integration_Guide.html`](./IT_Integration_Guide.html) (or send via PDF) and [`IT_INTEGRATION_GUIDE.md`](./IT_INTEGRATION_GUIDE.md) to their Laravel/web developer.
+2. **If Direct Code Access (GitHub / cPanel / FTP) is Provided:**
+   * Open the master layout blade file (typically `resources/views/layouts/app.blade.php` or `resources/views/master.blade.php`).
+   * Insert this single line right before the closing `</body>` tag:
+     ```html
+     <!-- The Abba's Orchard 24/7 AI Admissions Assistant Widget -->
+     <script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer></script>
+     ```
+   * Save and deploy/clear cache (`php artisan view:clear`).
+3. **Live Verification Test:**
+   * Visit `https://www.theabbasorchard.edu.ph`.
+   * Confirm the green 🌱 bubble appears at bottom-right.
+   * Click the bubble, test the chips, and verify that mobile viewports display smoothly without overlapping navigation elements.
+
+---
+
+### C. When Lead Delivery Preferences are Confirmed:
+1. Ask Sir Angelo / Ms. Roxane: *"Where would you prefer automated lead notifications delivered?"*
+2. **Option 1: Google Sheet (Preferred for Admissions Teams):**
+   * Provide them with a simple Google Apps Script webhook URL that appends rows (Date, Campus, Parent Name, Contact, Summary).
+   * Set `LEAD_WEBHOOK_URL` in Vercel Environment Variables.
+3. **Option 2: Direct Email Notifications:**
+   * Add `RESEND_API_KEY` and set `NOTIFICATION_EMAIL_TO` = `admission_application@theabbasorchard.edu.ph` (or Sir Angelo's / Ms. Roxane's preferred email).
+4. **Option 3: Discord / Slack / Viber Group Webhook:**
+   * Simply set `LEAD_WEBHOOK_URL` to their internal notification channel webhook.
+
+---
+
+### D. Commercial Kickoff:
+1. Confirm invoice details for the **₱28,000** one-time setup & custom ingestion.
+2. Confirm the **₱2,500 / month** maintenance retainer schedule.
+
+---
+
+## 📋 10. Action Item Status
 - [x] **Conversational Lead Capture Tested:** Fully verified locally and live on Vercel.
-- [x] **Real-Time Lead Dispatcher Pipeline:** Structured multi-channel forwarding (Google Sheets/Zapier webhook + Resend email + serverless audit logs).
+- [x] **Real-Time Lead Dispatcher Pipeline:** Structured multi-channel forwarding (`api/_dispatcher.js` supporting Google Sheets/Zapier webhooks + Resend email + serverless audit logs).
 - [x] **Meta Graph API Webhook Hardened:** Graph API v20.0, postback/quick_reply support, message chunking, and unified Montessori AI engine.
 - [x] **1-Page IT Integration Handout Ready:** Markdown & printable HTML guide for the Abba's Orchard webmaster.
+- [x] **Follow-Up Communications Dispatched:** Email and Viber follow-up sent to Sir Angelo on October 22, 2026.
 - [ ] **Facebook Page Access Token:** Once admin access on `facebook.com/abbasorchardschool/` is granted, insert `META_PAGE_ACCESS_TOKEN` into Vercel Environment Variables.
 - [ ] **Embed on Main Website:** Add `<script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer></script>` before `</body>` on `theabbasorchard.edu.ph`.
+- [ ] **Lead Notification Webhook / Email Live:** Populate `LEAD_WEBHOOK_URL` or `RESEND_API_KEY` on Vercel once destination confirmed.
