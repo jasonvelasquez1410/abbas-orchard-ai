@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { getTuitionResponse } = require('./api/_tuition_data');
 
 // Official Multi-Campus Directory & System Prompt
 const ABBAS_SYSTEM_PROMPT = `
@@ -453,9 +454,13 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // INTENT 7: School Calendar, Earliest Enrollment & Mid-Year Transfers
   // --------------------------------------------------------------------------
   const isEarliestEnroll = lower.includes('earliest') || lower.includes('when can we enroll') || 
-                           lower.includes('when would be the earliest') || lower.includes('kailan pwede mag-enroll') || 
-                           lower.includes('anus-a pwede mag-enroll') || lower.includes('when can i enroll') || 
-                           lower.includes('earliest we could enroll');
+                               lower.includes('when would be the earliest') || lower.includes('kailan pwede mag-enroll') || 
+                               lower.includes('kanus-a pwede mag-enroll') || lower.includes('anus-a pwede mag-enroll') ||
+                               lower.includes('when can i enroll') || lower.includes('earliest we could enroll') || 
+                               lower.includes('pinakamaaga') || lower.includes('pinakasayo') || lower.includes('pinaka-sayo') ||
+                               (lower.includes('kailan') && lower.includes('enroll')) ||
+                               (lower.includes('kanus-a') && lower.includes('enroll')) ||
+                               (lower.includes('kelan') && lower.includes('enroll'));
   if (isEarliestEnroll) {
     return `📅 **When is the Earliest You Can Enroll at The Abba's Orchard?**\n\n• 🍼 **Infant Community (14 mos – 3 yrs) & Casa (3 – 6 yrs):**\n  We practice **rolling admissions** year-round! As soon as your child reaches developmental readiness (as early as 14 months) and a slot is open in the prepared environment, you may enroll immediately.\n\n• 🎒 **Elementary & High School (Ages 6 to 18):**\n  - **Upcoming School Year (SY 2026–2027):** Priority reservation and admissions observation are open now.\n  - **Mid-Year Transferees:** Accepted during the ongoing school year subject to slot availability and evaluation of previous school records (Form 137 / SF9).\n\nHow old is your child, and which campus are you interested in?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Earliest Enrollment Timing Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for earliest enrollment dates."} -->`;
   }
@@ -525,9 +530,13 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   const isAskingAdmissionsProcess = lower.includes('how to enroll') || lower.includes('enrollment process') || 
-                                   lower.includes('admission process') || lower.includes('requirements') || 
-                                   lower.includes('how to apply') || lower.includes('step by step') || lower.includes('steps to apply');
-  if (isAskingAdmissionsProcess) {
+                                       lower.includes('admission process') || lower.includes('requirements') || 
+                                       lower.includes('how to apply') || lower.includes('step by step') || lower.includes('steps to apply') ||
+                                       lower.includes('unsaon pag-apply') || lower.includes('paano mag-apply') ||
+                                       lower.includes('unsaon pag apply') || lower.includes('paano mag apply') ||
+                                       (lower.includes('unsaon') && lower.includes('enroll')) ||
+                                       (lower.includes('paano') && lower.includes('enroll'));
+      if (isAskingAdmissionsProcess) {
     return `🌿 **Step-by-Step Admissions Process at The Abba's Orchard:**\n\n1. 🔍 **Step 1: Morning Observation Walkthrough:**\n   Parents schedule a 30-45 minute morning observation to experience our authentic Montessori classroom work cycle in session.\n\n2. 📝 **Step 2: Directress Consultation & Child Readiness Observation:**\n   A relaxed developmental meeting between our Montessori Directress and your child to assess developmental placement.\n\n3. 📄 **Step 3: Document Submission:**\n   • PSA Birth Certificate copy\n   • Previous Report Cards / Form 137 (for transferees)\n   • 2x2 ID photos & completed Application Form\n\n4. 🎓 **Step 4: Reservation & Enrollment Confirmation:**\n   Settlement of reservation fee and selection of flexible payment schedule (Annual, Semi-Annual, or Quarterly) with our Central Accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nWould you like to start with **Step 1** by reserving an observation walkthrough at **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Admissions Steps Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for enrollment steps and requirements."} -->`;
   }
 
@@ -566,6 +575,14 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
     }
 
     return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **children's ages or names** so our Montessori Directress can prepare the appropriate prepared environments (Casa, Elementary, etc.) for your visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent booked walkthrough: ${currentText}"} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 6B: Tuition & Payment Inquiries (Official SY 2026-2027 Summary)
+  // --------------------------------------------------------------------------
+  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates');
+  if (isTuition) {
+    return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
   }
 
   // --------------------------------------------------------------------------
@@ -615,19 +632,7 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
     return `🌿 **Scheduling a Montessori Campus Observation Walkthrough:**\nObserving an authentic AMI Montessori environment during our morning work cycle (8:30 AM – 11:00 AM, Monday to Friday) is the best way to experience True Montessori® in action.\n\nPlease share your:\n1. 📍 **Preferred Campus** (e.g. ${campusInfo.name})\n2. ⏰ **Preferred Weekday Morning**\n3. 📞 **Contact Number**\n\nand our admissions coordinator will immediately prepare your visitor pass and welcome packet!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent asked to book walkthrough schedule."} -->`;
   }
 
-  // --------------------------------------------------------------------------
-  // INTENT 9: Tuition & Payment Inquiries (SY 2026-2027 Summary)
-  // --------------------------------------------------------------------------
-  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates');
-  if (isTuition) {
-    if (isBisaya) {
-      return `Maayong adlaw! Mahitungod sa **Tuition & SY 2026–2027 Fee Schedules** sa The Abba's Orchard: 🌱\n\nAng admissions office nag-offer ug flexible payment terms subay sa official **SY 2026–2027 Annual Tuition Fees Summary**:\n• **Annual Plan (Full Payment with discount)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\n*Naa pud tay Sibling Discount privileges para sa pamilya nga dunay 2 o kapin pa ka mga anak nga naka-enroll.*\n\nNa-forward na nako ang inyong inquiry sa coordinator sa **${campusInfo.name}** ug kay Ms. Roxane sa central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nPila ang **edad sa inyong anak o unsa nga developmental level** (Infant Community, Casa, Elementary, o Erdkinder High School) aron ma-send namo ang eksaktong tuition breakdown sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request SY 2026-2027 (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee schedule for SY 2026-2027."} -->`;
-    }
-    if (isTagalog) {
-      return `Magandang araw po! Tungkol po sa **Tuition at SY 2026–2027 Fee Rates** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules ayon sa official **SY 2026–2027 Annual Tuition Fees Summary**:\n• **Annual Plan (Isahang Bayad na may Full Payment Discount)**\n• **Semi-Annual Plan (2 Hulog)**\n• **Quarterly Plan (4 na Hulog)**\n\n*May Sibling Discount privileges din po para sa mga pamilyang may 2 o higit pang anak na naka-enroll.*\n\nNa-forward na po ang inyong inquiry sa campus coordinator ng **${campusInfo.name}** at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak o anong grade/developmental level (Infant Community, Casa, Elementary, o Erdkinder) para mai-provide namin ang saktong breakdown ng fees sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request SY 2026-2027 (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee breakdown for SY 2026-2027."} -->`;
-    }
-    return `Regarding tuition and fees at **The Abba's Orchard School** for **School Year 2026–2027**, we offer structured, flexible payment plans based on our official **Annual Tuition Fees Summary**:\n\n• **Annual Plan:** Full one-time payment with term discount\n• **Semi-Annual Plan:** 2 installments\n• **Quarterly Plan:** 4 installments\n• 👨‍👩‍👧‍👦 **Sibling Discounts:** Available for families enrolling 2 or more children\n\nTuition rates vary slightly per campus and developmental plane (Infant Community, Casa dei Bambini, Elementary, or Erdkinder Adolescent Farm Boarding). I have registered your inquiry with **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **children's ages or target level** so we can provide the exact schedule of fees for their level?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request SY 2026-2027", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown for SY 2026-2027."} -->`;
-  }
+
 
   // --------------------------------------------------------------------------
   // INTENT 10: Specific Campus Mentions & Quick-Select Clicks
