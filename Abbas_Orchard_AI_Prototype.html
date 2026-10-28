@@ -504,7 +504,7 @@
       width: 400px;
       max-width: calc(100vw - 36px);
       height: 580px;
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 90px);
       background: #ffffff;
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-xl);
@@ -669,6 +669,28 @@
       white-space: nowrap;
       font-family: inherit;
     }
+        .chip-btn.chip-btn-featured {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(245, 158, 11, 0.25);
+    }
+    .chip-btn.chip-btn-featured:hover {
+      background: #fde68a;
+      border-color: #d97706;
+      color: #78350f;
+    }
+    .chip-btn.fb-chip-featured {
+      background: #e7f3ff;
+      border-color: #1877f2;
+      color: #1877f2;
+      font-weight: 700;
+    }
+    .chip-btn.fb-chip-featured:hover {
+      background: #d8ebff;
+    }
+
     .chip-btn:hover {
       background: var(--brand-green-subtle);
       border-color: var(--brand-green-primary);
@@ -1542,34 +1564,34 @@
           </div>
         </div>
 
-        <!-- Quick Prompt Chips with High-Frequency FB/IG Inquiries & Campuses -->
+                <!-- Quick Prompt Chips: Top Parent Inquiries Prioritized First -->
         <div class="chat-chips-area">
+          <button class="chip-btn chip-btn-featured" onclick="sendChatPrompt('What are your tuition fee rates for SY 2026-2027 and payment options?')">
+            💰 Tuition & Rates (SY 26-27)
+          </button>
+          <button class="chip-btn" onclick="sendChatPrompt('How do we book a campus tour and observation walkthrough?')">
+            📅 Book Walkthrough Tour
+          </button>
+          <button class="chip-btn" onclick="sendChatPrompt('What is the step-by-step admission and enrollment process?')">
+            📝 How to Enroll
+          </button>
+          <button class="chip-btn" onclick="sendChatPrompt('What is the list of requirements for admission?')">
+            📋 List of Requirements
+          </button>
+          <button class="chip-btn" onclick="sendChatPrompt('When would be the earliest we could enroll?')">
+            ⏰ Earliest to Enroll
+          </button>
           <button class="chip-btn" onclick="sendChatPrompt('Where are you located?')">
             📍 Campus Locations
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Can you tell me more about your program and what services you specialize in?')">
             🌱 Programs & Specialization
           </button>
-          <button class="chip-btn" onclick="sendChatPrompt('What is the list of requirements for admission?')">
-            📋 List of Requirements
-          </button>
-          <button class="chip-btn" onclick="sendChatPrompt('How do we book a campus tour and observation walkthrough?')">
-            📅 Book Walkthrough Tour
-          </button>
           <button class="chip-btn" onclick="sendChatPrompt('Do you accept children with special needs?')">
             🧩 Special Needs Support
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Can we attend a trial class?')">
             🎒 Can We Attend a Trial Class?
-          </button>
-          <button class="chip-btn" onclick="sendChatPrompt('When would be the earliest we could enroll?')">
-            ⏰ Earliest Time to Enroll
-          </button>
-          <button class="chip-btn" onclick="sendChatPrompt('What is the step-by-step admission and enrollment process?')">
-            📝 How to Enroll
-          </button>
-          <button class="chip-btn" onclick="sendChatPrompt('What are your tuition fee rates for SY 2026-2027 and payment options?')">
-            💰 Tuition & Rates (SY 26-27)
           </button>
           <button class="chip-btn" onclick="sendChatPrompt('Tell me about the Bukidnon La Granja Erdkinder farm boarding program')">
             🌾 Bukidnon Farm Boarding
@@ -1733,34 +1755,34 @@
                 </div>
               </div>
 
-              <!-- Quick Chips on FB with High-Frequency Questions & Campuses -->
+                            <!-- Quick Chips on FB: Top Inquiries Prioritized First -->
               <div class="chat-chips-area">
+                <button class="chip-btn fb-chip-featured" onclick="sendFbChatPrompt('What are your tuition fee rates for SY 2026-2027 and payment options?')">
+                  💰 Tuition Fee Rates (SY 26-27)
+                </button>
+                <button class="chip-btn" onclick="sendFbChatPrompt('How do we book a campus tour observation?')">
+                  📅 Campus Tour Walkthrough
+                </button>
+                <button class="chip-btn" onclick="sendFbChatPrompt('How to enroll / admission process?')">
+                  📝 How to Enroll
+                </button>
+                <button class="chip-btn" onclick="sendFbChatPrompt('What is the list of requirements for admission?')">
+                  📋 List of Requirements
+                </button>
+                <button class="chip-btn" onclick="sendFbChatPrompt('When would be the earliest we could enroll?')">
+                  ⏰ Earliest to Enroll
+                </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Where are you located?')">
                   📍 Where are you located?
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Can you tell me more about your program and what services you specialize in?')">
                   🌱 Programs & Specialization
                 </button>
-                <button class="chip-btn" onclick="sendFbChatPrompt('What is the list of requirements for admission?')">
-                  📋 List of Requirements
-                </button>
-                <button class="chip-btn" onclick="sendFbChatPrompt('How do we book a campus tour observation?')">
-                  📅 Campus Tour Walkthrough
-                </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Do you accept children with special needs?')">
                   🧩 Special Needs
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Can we attend a trial class?')">
                   🎒 Can We Attend a Trial Class?
-                </button>
-                <button class="chip-btn" onclick="sendFbChatPrompt('When would be the earliest we could enroll?')">
-                  ⏰ Earliest to Enroll
-                </button>
-                <button class="chip-btn" onclick="sendFbChatPrompt('How to enroll / admission process?')">
-                  📝 How to Enroll
-                </button>
-                <button class="chip-btn" onclick="sendFbChatPrompt('What are your tuition fee rates for SY 2026-2027 and payment options?')">
-                  💰 Tuition Fee Rates
                 </button>
                 <button class="chip-btn" onclick="sendFbChatPrompt('Tell me about the Bukidnon La Granja farm boarding program')">
                   🌾 Bukidnon
