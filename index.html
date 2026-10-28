@@ -3588,6 +3588,95 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
         }
       }
 
+
+      // ==========================================================================
+      // MULTI-TURN CONVERSATIONAL INTELLIGENCE & CONTEXT RESOLVER
+      // ==========================================================================
+      const cleanLower = lower.replace(/[?!.,;:()]/g, '').trim();
+
+      const isHowQuestion = cleanLower === 'how' || cleanLower === 'how?' || cleanLower === 'how so' ||
+                            cleanLower === 'paano' || cleanLower === 'paano po' || cleanLower === 'panno' ||
+                            cleanLower === 'unsaon' || cleanLower === 'unsaon man' || cleanLower === 'unsaon pag' ||
+                            cleanLower === 'how to book' || cleanLower === 'how to visit' || cleanLower === 'how to schedule' ||
+                            cleanLower === 'how do we do that' || cleanLower === 'how can i do that' || cleanLower === 'how to do that' ||
+                            cleanLower === 'how does it work' || cleanLower === 'how to proceed';
+
+      const isAffirmative = cleanLower === 'yes' || cleanLower === 'yes please' || cleanLower === 'sure' || 
+                            cleanLower === 'ok' || cleanLower === 'okay' || cleanLower === 'sige' || cleanLower === 'cge' ||
+                            cleanLower === 'oo' || cleanLower === 'opo' || cleanLower === 'yes po' || cleanLower === 'pwede' ||
+                            cleanLower === 'puwede' || cleanLower === 'pede' || cleanLower === 'go' || cleanLower === 'proceed' ||
+                            cleanLower === 'gusto ko' || cleanLower === 'sounds good' || cleanLower === 'i want to' ||
+                            cleanLower === 'i would like that' || cleanLower === 'gusto ko mag visit' || cleanLower === 'yes we want';
+
+      const isWhenQuestion = cleanLower === 'when' || cleanLower === 'when is it' || cleanLower === 'what time' || 
+                             cleanLower === 'what day' || cleanLower === 'kailan' || cleanLower === 'kelan' || 
+                             cleanLower === 'kanus-a' || cleanLower === 'anong oras' || cleanLower === 'unsang orasa' ||
+                             cleanLower.startsWith('when ') || cleanLower.startsWith('kailan ') || cleanLower.startsWith('kanus-a ');
+
+      const isWhereQuestion = cleanLower === 'where' || cleanLower === 'where is it' || cleanLower === 'where is that' || 
+                              cleanLower === 'saan' || cleanLower === 'saan banda' || cleanLower === 'saan ito' || 
+                              cleanLower === 'asa' || cleanLower === 'asa dapit' || cleanLower === 'asa dapit ni' || 
+                              cleanLower === 'location' || cleanLower === 'address' ||
+                              cleanLower.startsWith('where ') || cleanLower.startsWith('saan ') || cleanLower.startsWith('asa ');
+
+      const isCostFollowup = cleanLower === 'how much' || cleanLower === 'how much is it' || cleanLower === 'how much does it cost' || 
+                             cleanLower === 'magkano' || cleanLower === 'magkano po' || cleanLower === 'pila' || 
+                             cleanLower === 'tagpila' || cleanLower === 'pila man' || cleanLower === 'cost' || cleanLower === 'rates';
+
+      const isWhoQuestion = cleanLower === 'who' || cleanLower === 'who to contact' || cleanLower === 'who is the coordinator' ||
+                            cleanLower === 'sino' || cleanLower === 'sinong kokontakin' || cleanLower === 'kinsay kontakon' ||
+                            cleanLower === 'who is in charge';
+
+      // 1. Walkthrough / Visit Follow-up ("how?", "yes", "sure", "sige", "ok")
+      if ((isHowQuestion || isAffirmative) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation') || lastModelLower.includes('tour') || lastModelLower.includes('visit') || lastModelLower.includes('classroom'))) {
+        if (isBisaya) {
+          return `🌿 **Unsaon Pag-schedule og Observation Walkthrough sa ${campusInfo.name}:**\n\nSayon ra kaayo ang pagbisita aron makita ninyo ang Authentic Montessori sa lihok:\n\n1. ⏰ **Gusto nga Adlaw:** Ang walkthrough gihimo sa mga **weekday mornings tali sa 8:30 AM ug 11:00 AM** (panahon sa 3-hour uninterrupted work cycle sa mga bata).\n2. 📞 **I-share ang inyong Contact Details:** Palihug i-reply diri ang inyong **pangalan, contact number, ug edad sa inyong anak**.\n3. 🎟️ **Kumpirmasyon sa Visitor Pass:** Ang atong campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) motawag o mo-message ninyo aron kumpirmahon ang inyong observation pass ug schedule.\n\nUnsa nga weekday morning ang labing komportable para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+        }
+        if (isTagalog) {
+          return `🌿 **Paano po Mag-schedule ng Observation Walkthrough sa ${campusInfo.name}:**\n\nNapakadali lang po mag-set ng inyong pagbisita upang masaksihan ang True Montessori in action:\n\n1. ⏰ **Pumili ng Araw:** Ang observation walkthrough ay bukas tuwing **weekday mornings mula 8:30 AM hanggang 11:00 AM** (habang aktibong nag-aaral ang mga bata sa kanilang 3-hour uninterrupted work cycle).\n2. 📞 **I-share ang inyong Contact Details:** I-reply lamang po rito ang inyong **pangalan, mobile number, at edad ng inyong anak**.\n3. 🎟️ **Visitor Pass & Confirmation:** Agad pong makikipag-ugnayan ang aming campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) upang i-confirm ang inyong visitor schedule at orientation brief.\n\nAling weekday morning po ang pinaka-convenient para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+        }
+        return `🌿 **How to Schedule an Observation Walkthrough at ${campusInfo.name}:**\n\nArranging your classroom observation walkthrough is very simple:\n\n1. ⏰ **Choose a Preferred Weekday Morning:** Walkthroughs are conducted Monday through Friday between **8:30 AM and 11:00 AM** during our active 3-hour uninterrupted morning work cycle.\n2. 📞 **Share Your Details:** Simply reply here with your **name, mobile number, and your child's age or grade level**.\n3. 🎟️ **Pass Confirmation:** Our designated campus admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will immediately prepare your personalized visitor pass and welcome packet.\n\nWhich weekday morning would work best for your family visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+      }
+
+      // 2. Tuition / Payment Follow-up ("how?", "how to pay?", "paano magbayad?", "unsaon pagbayad?")
+      if (isHowQuestion && (lastModelLower.includes('tuition') || lastModelLower.includes('fee') || lastModelLower.includes('down payment') || lastModelLower.includes('installment') || lastModelLower.includes('balance'))) {
+        if (isBisaya) {
+          return `💳 **Unsaon Pagbayad sa Tuition & Slot Reservation sa ${campusInfo.name}:**\n\n1. 🌟 **15% Slot Reservation Down Payment:** Mobayad sulod sa **24 March hangtod 13 April** aron masiguro ang slot sa inyong anak.\n2. 📝 **Mga Paagi sa Pagbayad (Payment Modes):**\n   • Direct Bank Transfer / Online Banking (BDO, BPI, Metrobank)\n   • Post-Dated Checks (PDC) para sa Semi-Annual, Quarterly, o Monthly plans\n   • Over-the-counter sa campus cashier desk\n3. 📧 **Central Accounting Assistance:** Makig-alayon kay Ms. Roxane sa **accounting@theabbasorchard.edu.ph** o sa coordinator sa ${campusInfo.name} (**${campusInfo.email}**).\n\nGusto ba ninyo madawat ang official bank account details para sa inyong reservation?`;
+        }
+        if (isTagalog) {
+          return `💳 **Paano po Magbayad ng Tuition & Slot Reservation sa ${campusInfo.name}:**\n\n1. 🌟 **15% Slot Reservation Down Payment:** Magbayad sa window ng **24 March hanggang 13 April** upang ma-secure ang slot ng inyong anak.\n2. 📝 **Mga Paraan ng Pagbabayad (Payment Modes):**\n   • Direct Bank Transfer / Online Banking (BDO, BPI, Metrobank)\n   • Post-Dated Checks (PDC) para sa Semi-Annual, Quarterly, o Monthly plans\n   • Cashier settlement sa campus\n3. 📧 **Central Accounting Desk:** Makipag-ugnayan kay Ms. Roxane sa **accounting@theabbasorchard.edu.ph** o sa coordinator ng ${campusInfo.name} (**${campusInfo.email}**).\n\nNais po ba ninyong ipadala namin ang official bank account details para sa reservation?`;
+        }
+        return `💳 **How to Settle Tuition & Slot Reservation at ${campusInfo.name}:**\n\n1. 🌟 **15% Slot Reservation Down Payment:** Payable between **March 24 and April 13** to lock in your child's slot for SY 2026–2027.\n2. 📝 **Payment Methods:**\n   • Direct Bank Transfer / Online Banking (accredited major banks)\n   • Post-Dated Checks (PDCs) for Semi-Annual, Quarterly, or 10-month plans\n   • Campus cashier payment during office hours\n3. 📧 **Central Accounting Assistance:** Coordinate directly with Ms. Roxane at **accounting@theabbasorchard.edu.ph** or with **${campusInfo.email}**.\n\nWould you like me to connect you with accounting for the official deposit account details?`;
+      }
+
+      // 3. Admissions / Enrollment Follow-up ("how?", "paano?", "unsaon?")
+      if (isHowQuestion && (lastModelLower.includes('enroll') || lastModelLower.includes('admission') || lastModelLower.includes('requirement'))) {
+        return `🌿 **Step-by-Step Admissions Process at ${campusInfo.name}:**\n\n1. 🔍 **Step 1: Morning Observation Walkthrough:**\n   Schedule a 30-45 minute morning observation (8:30 AM – 11:00 AM) to experience the classroom in session.\n2. 📝 **Step 2: Directress Consultation & Child Readiness Observation:**\n   A relaxed developmental meeting between our Montessori Directress and your child.\n3. 📄 **Step 3: Document Submission:**\n   PSA Birth Certificate copy, previous report cards (Form 137 / 138), and 2x2 ID photos.\n4. 🎓 **Step 4: Reservation & Enrollment Confirmation:**\n   Settlement of 15% slot reservation down payment and selection of payment term (Annual, Semi-Annual, Quarterly, or Monthly).\n\nWould you like to start with **Step 1** by reserving a morning walkthrough visit?`;
+      }
+
+      // 4. Time & Schedule Follow-up ("when?", "what time?", "kailan?", "kanus-a?")
+      if (isWhenQuestion) {
+        if (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation') || lastModelLower.includes('tour') || lastModelLower.includes('visit')) {
+          return `⏰ **Classroom Observation Walkthrough Schedule at ${campusInfo.name}:**\n\nWalkthroughs are held **Monday through Friday mornings between 8:30 AM and 11:00 AM** during our students' uninterrupted 3-hour work cycle.\n\nWhich weekday morning next week would you like to visit?`;
+        }
+        return `📅 **Admissions & School Calendar Schedule:**\n\n• 🍼 **Infant Community (14 mos - 3 yrs) & Casa (3 - 6 yrs):** **Rolling admissions year-round** upon developmental readiness!\n• 🎒 **Elementary & High School (SY 2026–2027):** Priority slot reservation window is **March 24 to April 13, 2026**, with regular classes beginning **August 2026**.\n\nWhat grade level or child age are you inquiring about?`;
+      }
+
+      // 5. Location Follow-up ("where?", "saan?", "asa?", "address?")
+      if (isWhereQuestion) {
+        return `📍 **Campus Address & Directions for ${campusInfo.name}:**\n\n• 🏢 **Location / Campus:** ${campusInfo.name}\n• 📞 **Direct Contact Line:** **${campusInfo.phone}**\n• 📧 **Admissions Coordinator:** **${campusInfo.email}**\n• ⏰ **Admissions Office Hours:** Monday to Friday, 8:00 AM – 4:00 PM\n\nWould you like to schedule a morning visit or receive driving directions to the campus?`;
+      }
+
+      // 6. Pricing Follow-up ("how much?", "magkano?", "pila?")
+      if (isCostFollowup) {
+        return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
+      }
+
+      // 7. Coordinator / Contact Follow-up ("who?", "who to contact?", "sino?")
+      if (isWhoQuestion) {
+        return `👤 **Designated Admissions Contact for ${campusInfo.name}:**\n\n• 📞 **Campus Hotline / Mobile:** **${campusInfo.phone}**\n• 📧 **Direct Admissions Email:** **${campusInfo.email}**\n• 💼 **Accounting Coordinator:** Ms. Roxane (**accounting@theabbasorchard.edu.ph**)\n\nIf you leave your name and phone number here, I will immediately notify our campus coordinator to give you a priority callback!`;
+      }
+
       // INTENT 1: Explanation / Inquiry: "What is that?" / "What is a walkthrough / tour / observation?"
       const isAskingWhatIsThat = lower === 'what is that' || lower === 'what is that?' || 
                                  lower === 'what is that walkthrough' || lower === 'what is that walkthrough?' ||
@@ -3919,15 +4008,26 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
         return `At **The Abba's Orchard School**, we follow authentic Association Montessori Internationale (AMI) pedagogical planes of development from infancy through adolescence:\n\n1. **Infant Community (14 months – 3 years):** Toddler environment fostering functional independence, language acquisition, and coordinated movement.\n2. **Casa dei Bambini (3 – 6 years / Pre-School & Kindergarten):** Practical Life, Sensorial, Language, Mathematics, and Cultural subjects.\n3. **Elementary (6 – 12 years / Lower & Upper Elementary):** Cosmic Education fostering collaborative research, moral development, critical thinking, and broad intellectual curiosity.\n4. **Erdkinder Adolescent Program (12 – 18 years / Junior & Senior High):** Offered at our Bukidnon La Granja farm campus with boarding, combining academic rigor with real-world land stewardship and student-run micro-economies.\n\nWhich grade level or campus are you inquiring about for your child?`;
       }
 
+  // Intelligent Context-Retaining Catch-All
+      if (historyArray.length > 0 || (campusInfo && campusInfo.name !== "The Abba's Orchard Central Admissions")) {
+        if (isBisaya) {
+          return `Nakasabot ko nga nag-inquire kamo mahitungod sa **${campusInfo.name}**. 🌿\n\nAron matabangan kamo sa labing maayong paagi, unsa man ang inyong gusto nga buhaton karon?\n\n1. 📅 **Pag-book og Morning Observation Walkthrough** (Lunes hangtod Biyernes, 8:30 AM – 11:00 AM)\n2. 💰 **Pagkuha sa SY 2026–2027 Tuition Fee Breakdown** (I-share lang ang edad o grade level sa inyong anak)\n3. 📋 **Listahan sa Admissions Requirements & Enrollment Process**\n4. 📞 **Direktang Pakig-istorya sa Campus Coordinator** (**${campusInfo.phone}** | **${campusInfo.email}**)\n\nIsulti lang kanako kung asa niini ang inyong gusto unahon!`;
+        }
+        if (isTagalog) {
+          return `Nauunawaan ko po na nagtatanong kayo patungkol sa aming **${campusInfo.name}**. 🌿\n\nUpang lubos po namin kayong matulungan, alin po sa mga sumusunod ang nais ninyong malaman o simulan?\n\n1. 📅 **Mag-book ng Morning Observation Walkthrough** (Lunes hanggang Biyernes, 8:30 AM – 11:00 AM)\n2. 💰 **Humingi ng Official SY 2026–2027 Tuition Breakdown** (Ibahagi lamang po ang edad o grade level ng inyong anak)\n3. 📋 **Alamin ang Admissions Requirements & Step-by-Step Enrollment**\n4. 📞 **Direktang Kumausap sa Campus Coordinator** (**${campusInfo.phone}** | **${campusInfo.email}**)\n\nSabihin lamang po ninyo kung alin ang nais ninyong unahin!`;
+        }
+        return `I understand you are inquiring regarding our **${campusInfo.name}**. 🌿\n\nTo assist your family best, which of the following would you like to explore next?\n\n1. 📅 **Schedule a Morning Observation Walkthrough** (Monday to Friday, 8:30 AM – 11:00 AM)\n2. 💰 **Receive the Official SY 2026–2027 Tuition Fee Breakdown** (Simply share your child's age or target grade level)\n3. 📋 **Review the Admissions Requirements Checklist & Process**\n4. 📞 **Connect Directly with the Campus Coordinator** (**${campusInfo.phone}** | **${campusInfo.email}**)\n\nPlease let me know what you would like to do next!`;
+      }
+
       if (isBisaya) {
-        return `Daghang salamat sa inyong mensahe! Mahitungod sa inyong inquiry: *" ${currentText} "* — andam mi motabang ninyo sa admissions, tuition details, o observation tour sa atong mga campuses (sama sa Davao, CDO Alwana, Bukidnon La Granja, Cebu, ug Manila).\n\nUnsa nga specific nga detalye o campus ang inyong gustong masayran?`;
+        return `Daghang salamat sa inyong mensahe! Mahitungod sa inyong inquiry: *" ${currentText} "* — andam mi motabang ninyo sa admissions, tuition details, o observation tour sa atong mga campuses (sama sa Davao, CDO Alwana, Bukidnon La Granja, Cebu, ug Manila).\n\nUnsa nga specific nga detalye o campus ang inyong gustong masayran?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "General Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent asked: ${currentText}"} -->`;
       }
 
       if (isTagalog) {
-        return `Maraming salamat po sa inyong mensahe! Tungkol po sa inyong inquiry: *" ${currentText} "* — narito po kami upang tumulong sa inyo sa admissions, breakdown ng tuition, o pag-book ng campus tour sa alinman sa aming 15+ campuses nationwide.\n\nMay partikular po ba kayong campus o edad ng bata na nais malaman?`;
+        return `Maraming salamat po sa inyong mensahe! Tungkol po sa inyong inquiry: *" ${currentText} "* — narito po kami upang tumulong sa inyo sa admissions, breakdown ng tuition, o pag-book ng campus tour sa alinman sa aming 15+ campuses nationwide.\n\nMay partikular po ba kayong campus o edad ng bata na nais malaman?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "General Inquiry (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent asked: ${currentText}"} -->`;
       }
 
-      return `Thank you for contacting **The Abba's Orchard School**, the premier Association Montessori Internationale (AMI) school network in the Philippines. 🌿\n\nWe operate 15+ campuses nationwide across Luzon, Visayas, and Mindanao. How may I assist your family today with admissions, campus tours, or program information?`;
+      return `Thank you for contacting **The Abba's Orchard School**, the premier Association Montessori Internationale (AMI) school network in the Philippines. 🌿\n\nWe operate 15+ campuses nationwide across Luzon, Visayas, and Mindanao. How may I assist your family today with admissions, campus tours, or program information?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "General Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Parent asked: ${currentText}"} -->`;
     }
 
     // Initialize on page load
