@@ -38,6 +38,29 @@ Deep Pedagogical & Institutional Knowledge:
 - Sibling Discounts & Tuition: Sibling discounts are offered for 2nd and 3rd children. Flexible payment terms available: Annual (full), Semi-Annual (2 installments), and Quarterly (4 installments).
 - Uniforms & Nutrition: Comfortable casual clothes supporting independence and movement; campus polo shirts for formal events. Wholesome nutrition policy (no junk food / sodas); snack time is a practical life table-setting and self-feeding lesson.
 
+The 10 High-Frequency Social Media Inquiries (Messenger & IG FAQ Protocols):
+1. Where are you located? Over 15 campuses nationwide:
+   - Metro Manila & South Luzon: Taguig (BGC McKinley Hill & Bayani Rd), Muntinlupa (Alabang Filinvest), Mandaluyong (Greenhills), Antipolo (Taktak Rd), Quezon City (Calle Industria / Bridgetowne), Canlubang Laguna (Carmelray).
+   - Visayas: Cebu City (Magsaysay & Tandang Sora), Iloilo (Sta. Barbara Heights).
+   - Mindanao: Cagayan de Oro (Alwana), Davao City (Obrero & Mandug), Bukidnon (La Granja Farm Estates).
+2. Can you tell me more about your program? / What type of services do you specialize in?:
+   - Premier AMI Montessori across 4 developmental planes: Infant Community (14m-3y), Casa dei Bambini (3-6y), Elementary (6-12y), and Erdkinder Adolescent Farm Boarding (12-18y in Bukidnon).
+3. List of requirements:
+   - PSA Birth Certificate, 2x2 photos (4 pcs), Form 137/138 (SF9/SF10 report card for transferees), completed application form, and child readiness observation session with our Directress.
+4. Campus tour:
+   - Montessori Observation Walkthrough: 30-45 minute quiet observation during morning work cycle (8:30 AM - 11:00 AM, Mon-Fri), followed by 1-on-1 consultation with the Directress or CADO.
+5. Do you accept children with special needs?:
+   - Yes, our prepared environments are self-paced and multi-sensory, so many children with ADHD, speech delays, or sensory considerations blossom. An initial Readiness Observation session with the Directress is conducted to ensure the prepared environment meets the child's specific developmental goals.
+6. Can we attend a trial class?:
+   - We do not conduct traditional "trial classes" with a visiting child dropping into an active 3-hour concentration cycle. Instead, we offer: (1) Parent Observation Walkthrough (witnessing the live work cycle) and (2) Child Readiness Observation (dedicated 1-on-1 session with the Directress).
+7. When would be the earliest we could enroll?:
+   - Infant Community & Casa: Rolling admissions year-round as soon as the child reaches developmental readiness (starting 14 months) and slots are available.
+   - Elementary & High School: Academic year starts August; early reservations and walkthroughs for SY 2026-2027 are currently open, plus mid-year transferee evaluations.
+8. How to enroll / admission process:
+   - Step 1: Book Morning Observation Walkthrough -> Step 2: Child Readiness Observation & Directress Consultation -> Step 3: Document submission -> Step 4: Reservation & Tuition payment plan selection.
+9. Tuition fee rates:
+   - Flexible schedules: Annual (Full Payment with discount), Semi-Annual (2 installments), and Quarterly (4 installments), with Sibling Discounts for 2nd/3rd child. Based on official SY 2026-2027 Annual Tuition Fees Summary across campuses. Forward to Ms. Roxane (accounting@theabbasorchard.edu.ph).
+
 Conversational Admissions Guidelines (Consultative Dialogue):
 1. Parent Name & Child Profiling:
    - If the parent shares their name (e.g. "I'm Mommy Grace"), address them respectfully and warmly by name throughout the chat.
@@ -389,9 +412,31 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // --------------------------------------------------------------------------
   const isSpecialNeeds = lower.includes('adhd') || lower.includes('autism') || lower.includes('special needs') || 
                          lower.includes('speech delay') || lower.includes('neurodiverse') || lower.includes('sped') || 
-                         lower.includes('shadow teacher') || lower.includes('hyperactive') || lower.includes('developmental delay');
+                         lower.includes('shadow teacher') || lower.includes('hyperactive') || lower.includes('developmental delay') ||
+                         lower.includes('special need') || lower.includes('do you accept children with special needs');
   if (isSpecialNeeds) {
-    return `🌱 **Individualized Growth & Developmental Support at The Abba's Orchard:**\n\nBecause authentic AMI Montessori classrooms are naturally self-paced, hands-on, and multi-sensory, many active or neurodiverse children flourish in our prepared environments:\n\n• **Individualized Pacing:** Children are never rushed through a uniform lesson or forced to sit still for hours of lectures.\n• **Observation Session:** For children with identified developmental or speech considerations, our initial step is a friendly **readiness observation session** with our Directress to evaluate whether our mainstream Montessori environment can meet your child's specific developmental goals.\n\nWould you like us to connect you directly with the Campus Directress at **${campusInfo.name}** to discuss your child's unique developmental background?`;
+    if (isBisaya) {
+      return `🌱 **Individualized Developmental Support sa The Abba's Orchard:**\n\nTungod kay ang authentic AMI Montessori classroom kay *self-paced*, *hands-on*, ug *multi-sensory*, daghang mga bata nga adunay ADHD, speech delay, o sensory considerations ang molambo sa atong prepared environments:\n\n• **Kaugalingong Pacing:** Ang bata wala gina-pugos sa paspas nga group lectures; nagalihok sila subay sa ilang natural development.\n• **Readiness Observation Session:** Para sa mga bata nga adunay special developmental needs, mag-schedule una kita og friendly **Readiness Observation Session** kauban ang atong Montessori Directress aron masuta kung unsaon pag-suporta sa atong prepared environment ang panginahanglan sa inyong anak.\n\nGusto ba ninyo nga ikonektar kamo sa Campus Directress sa **${campusInfo.name}** aron ma-istoryahan ang background sa inyong anak?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Special Needs Developmental Inquiry (Bisaya)", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked regarding special needs and developmental support."} -->`;
+    }
+    if (isTagalog) {
+      return `🌱 **Tumatanggap po ba ng Children with Special Needs ang The Abba's Orchard?**\n\nOpo! Dahil ang authentic AMI Montessori classroom ay naturally *self-paced*, *hands-on*, at *multi-sensory*, marami pong mga aktibo o neurodiverse na mag-aaral (tulad ng ADHD, speech delay, o sensory sensitivities) ang lumalago sa ating prepared environments:\n\n• **Indibidwal na Pacing:** Hindi po pinipilit ang bata sa pare-parehong bilis ng aralin o mahabang lecture.\n• **Child Readiness Observation:** Para po sa mga batang may developmental considerations, ang unang hakbang ay isang maaliwalas na **Readiness Observation Session** kasama ang ating Montessori Directress upang matiyak na kayang tugunan ng ating prepared environment ang developmental goals ng inyong anak.\n\nNais po ba ninyong makausap ang Campus Directress sa **${campusInfo.name}** para sa background ng inyong anak?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Special Needs Developmental Inquiry (Tagalog)", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked regarding special needs support."} -->`;
+    }
+    return `🌱 **Do You Accept Children with Special Needs?**\n\nYes! Because authentic AMI Montessori environments are naturally **self-paced, hands-on, and multi-sensory**, many children with unique learning considerations (including ADHD, speech delay, and sensory sensitivities) flourish at The Abba's Orchard:\n\n• **Individualized Pacing:** Children are guided individually rather than being forced into rigid, uniform lectures.\n• **Child Readiness Observation Session:** To ensure we can provide the best possible support, our admissions step begins with a dedicated **Readiness Observation Session** between your child and our Montessori Directress to evaluate how our prepared environment will meet your child's specific developmental goals.\n\nWould you like us to connect you directly with the Campus Directress at **${campusInfo.name}** to discuss your child's developmental background?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Special Needs Admissions Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Inquiry regarding special needs and developmental accommodation."} -->`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 5B: Trial Class & Sit-in Inquiry
+  // --------------------------------------------------------------------------
+  const isTrialClass = lower.includes('trial class') || lower.includes('attend a trial') || lower.includes('can we attend a trial') || 
+                       lower.includes('trial') || lower.includes('sit in') || lower.includes('sample class') || lower.includes('free trial');
+  if (isTrialClass) {
+    if (isBisaya) {
+      return `🌿 **Mahitungod sa Trial Class sa The Abba's Orchard:**\n\nSa Authentic AMI Montessori, **wala kitay naandan nga "trial classes"** kung asa ang bisita nga bata kalit lang ipasulod sa nagpadayon nga klasehanan. Tungod kay ang mga bata anaa sa **3 ka oras nga uninterrupted work cycle** ug lawom nga konsentrasyon, ang temporaryong pagsulod makabalda sa ilang dagan.\n\nInay niini, nag-tanyag kita og mas epektibo nga **2-Step Discovery Experience**:\n1. 👁️ **Parent Observation Walkthrough:** Molingkod kamo sulod sa observation area sa buntag (8:30 AM – 11:00 AM) aron makita sa kaugalingong mga mata ang True Montessori sa lihok.\n2. 🤝 **Child Readiness Observation:** Usa ka espesyal nga 1-on-1 session tali sa Montessori Directress ug sa inyong anak aron i-introduce ang mga materials ug tan-awon ang iyang developmental readiness.\n\nGusto ba ninyo mag-book og observation walkthrough sa **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Trial Class & Observation Inquiry (Bisaya)", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked about trial class."} -->`;
+    }
+    if (isTagalog) {
+      return `🌿 **Maaari po ba kaming mag-attend ng Trial Class sa The Abba's Orchard?**\n\nSa Authentic AMI Montessori, **wala po tayong tradisyunal na "trial class"** kung saan ang bata ay basta pinapapasok sa ongoing classroom. Dahil po ang mga mag-aaral ay nasa gitna ng **3-hour uninterrupted work cycle** ng matinding focus, ang pagsali ng bagong bata ay maaaring makagambala sa concentration ng klase.\n\nSa halip, mayroon po tayong **2-Step Discovery Process** na mas mabisa para sa pamilya:\n1. 👁️ **Classroom Observation Walkthrough:** Kayo po bilang magulang ay tahimik na magmamasid sa aktwal na morning work cycle (8:30 AM – 11:00 AM) upang masaksihan ang True Montessori in action.\n2. 🤝 **1-on-1 Child Readiness Observation:** Magkakaroon ng nakalaang oras ang aming Montessori Directress kasama ang inyong anak upang magpakilala ng materials at suriin ang kanyang developmental plane.\n\nNais po ba ninyong mag-schedule ng observation walkthrough sa **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Trial Class & Observation Inquiry (Tagalog)", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked about trial class."} -->`;
+    }
+    return `🌿 **Can We Attend a Trial Class at The Abba's Orchard?**\n\nIn authentic AMI Montessori, we do not conduct traditional "trial classes" where a visiting child sits in an ongoing class. Because our students are engaged in an **uninterrupted 3-hour work cycle** of deep focus and independence, introducing temporary visitors into the room can disrupt their concentration.\n\nInstead, we offer an even more effective 2-step discovery experience:\n\n1. 👁️ **Parent Classroom Observation Walkthrough:** You sit quietly in our observation area during the active morning work cycle (8:30 AM – 11:00 AM) to witness True Montessori® in action.\n2. 🤝 **Child Readiness Observation:** Our Montessori Directress spends dedicated 1-on-1 time with your child in a prepared environment to introduce materials and observe their developmental plane.\n\nWould you like to schedule an observation walkthrough at **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Trial Class & Observation Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked about trial class."} -->`;
   }
 
   // --------------------------------------------------------------------------
@@ -405,13 +450,32 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   // --------------------------------------------------------------------------
-  // INTENT 7: School Calendar, Academic Year & Mid-Year Transfers
+  // INTENT 7: School Calendar, Earliest Enrollment & Mid-Year Transfers
   // --------------------------------------------------------------------------
+  const isEarliestEnroll = lower.includes('earliest') || lower.includes('when can we enroll') || 
+                           lower.includes('when would be the earliest') || lower.includes('kailan pwede mag-enroll') || 
+                           lower.includes('anus-a pwede mag-enroll') || lower.includes('when can i enroll') || 
+                           lower.includes('earliest we could enroll');
+  if (isEarliestEnroll) {
+    return `📅 **When is the Earliest You Can Enroll at The Abba's Orchard?**\n\n• 🍼 **Infant Community (14 mos – 3 yrs) & Casa (3 – 6 yrs):**\n  We practice **rolling admissions** year-round! As soon as your child reaches developmental readiness (as early as 14 months) and a slot is open in the prepared environment, you may enroll immediately.\n\n• 🎒 **Elementary & High School (Ages 6 to 18):**\n  - **Upcoming School Year (SY 2026–2027):** Priority reservation and admissions observation are open now.\n  - **Mid-Year Transferees:** Accepted during the ongoing school year subject to slot availability and evaluation of previous school records (Form 137 / SF9).\n\nHow old is your child, and which campus are you interested in?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Earliest Enrollment Timing Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for earliest enrollment dates."} -->`;
+  }
+
   const isCalendarTransfer = lower.includes('school year') || lower.includes('academic year') || lower.includes('calendar') || 
                              lower.includes('when do classes start') || lower.includes('start of classes') || lower.includes('mid-year') || 
                              lower.includes('midyear') || lower.includes('transferee') || lower.includes('open for enrollment');
   if (isCalendarTransfer) {
     return `📅 **Academic Calendar & Mid-Year Admissions at The Abba's Orchard:**\n\n• **Academic Year:** Our regular school year runs from **August through May/June**.\n• **Rolling Admissions for Toddler & Casa:** Because Montessori learning is individualized rather than lock-step group teaching, young children (Infant Community & Casa) may be enrolled throughout the year upon reaching developmental readiness.\n• **Mid-Year Transferees (Elementary & High School):** We accommodate transferees subject to slot availability in the prepared environment and submission of previous school records (Form 137).\n\nWhat grade level or child age are you looking to enroll for?`;
+  }
+
+  // --------------------------------------------------------------------------
+  // INTENT 7B: Services Specialization & Program Overview
+  // --------------------------------------------------------------------------
+  const isSpecializationOrPrograms = lower.includes('services do you specialize') || lower.includes('specialize in') || 
+                                    lower.includes('tell me more about your program') || lower.includes('tell me about your program') || 
+                                    lower.includes('what programs') || lower.includes('what type of services') || 
+                                    lower.includes('what services');
+  if (isSpecializationOrPrograms) {
+    return `🌱 **Our Educational Specialization & Programs at The Abba's Orchard:**\n\nThe Abba's Orchard specializes in **Authentic Association Montessori Internationale (AMI) Pedagogy**, the gold standard in scientific child development across four continuous developmental planes:\n\n1. 🍼 **Infant Community (Ages 14 months – 3 years):**\n   Nurturing functional independence, self-care routines, motor coordination, and spoken language in a calm, prepared environment.\n\n2. 🌸 **Casa dei Bambini (Ages 3 – 6 years / Pre-School & Kindergarten):**\n   Self-directed exploration with hands-on materials in Practical Life, Sensorial refinement, concrete Math bead apparatus, Language & Phonics, and Cultural subjects.\n\n3. 🌍 **Elementary (Ages 6 – 12 years / Lower & Upper Elementary):**\n   Cosmic Education uniting Science, History, Geography, Advanced Mathematics, and Literature through collaborative research and moral consciousness.\n\n4. 🌾 **Erdkinder Adolescent Farm Boarding (Ages 12 – 18 years / Bukidnon):**\n   Our flagship land-based community where high academic rigor is combined with organic agriculture, animal stewardship, and micro-economy governance.\n\nHow old is your child, and which developmental plane would you like to explore?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Specialization & Programs Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked about program specialization."} -->`;
   }
 
   // --------------------------------------------------------------------------
@@ -453,6 +517,13 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // --------------------------------------------------------------------------
   // INTENT 12: Admissions Process & Requirements
   // --------------------------------------------------------------------------
+  const isRequirementsOnly = lower.includes('list of requirements') || lower.includes('requirements checklist') || 
+                             lower.includes('what are the requirements') || lower.includes('requirements for admission') || 
+                             lower.includes('requirements to enroll') || lower.includes('mga requirements');
+  if (isRequirementsOnly) {
+    return `📋 **Admissions Requirements Checklist for The Abba's Orchard:**\n\nTo apply for enrollment across our campuses, please prepare the following:\n\n1. 📜 **PSA Birth Certificate:** Clear copy of Philippine Statistics Authority (PSA) Birth Certificate.\n2. 📸 **2x2 ID Photos:** 4 recent passport/2x2 photos of the student.\n3. 📑 **Academic Records (for Transferees, Elementary & High School):**\n   • Certified True Copy of latest Progress Report Card (Form 138 / SF9)\n   • Official Transcript / Permanent Record (Form 137 / SF10)\n   • Certificate of Good Moral Character\n4. 📝 **Completed Student Application Form**\n5. 🌱 **Observation Walkthrough & Directress Child Readiness Session**\n\nWould you like to start by scheduling an observation walkthrough at **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Requirements Checklist Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for list of requirements."} -->`;
+  }
+
   const isAskingAdmissionsProcess = lower.includes('how to enroll') || lower.includes('enrollment process') || 
                                    lower.includes('admission process') || lower.includes('requirements') || 
                                    lower.includes('how to apply') || lower.includes('step by step') || lower.includes('steps to apply');
@@ -534,7 +605,8 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // --------------------------------------------------------------------------
   const isBookingAction = (lower.includes('book') || lower.includes('schedule') || lower.includes('reserve') || 
                           lower.includes('gusto ko mag-visit') || lower.includes('mag-tour') || lower.includes('i want to visit') ||
-                          lower.includes('sign me up') || lower.includes('set an appointment')) && 
+                          lower.includes('sign me up') || lower.includes('set an appointment') ||
+                          lower.includes('campus tour') || lower.includes('school tour') || lower.includes('tour') || lower.includes('walkthrough')) && 
                           !lower.includes('what is') && !lower.includes('ano') && !lower.includes('unsa');
   if (isBookingAction) {
     if (isBisaya) {
@@ -544,17 +616,17 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   // --------------------------------------------------------------------------
-  // INTENT 9: Tuition & Payment Inquiries
+  // INTENT 9: Tuition & Payment Inquiries (SY 2026-2027 Summary)
   // --------------------------------------------------------------------------
-  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment');
+  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates');
   if (isTuition) {
     if (isBisaya) {
-      return `Maayong adlaw! Mahitungod sa **Tuition & Flexible Payment Terms** sa The Abba's Orchard: 🌱\n\nAng admissions office nag-offer ug flexible payment terms:\n• **Annual (Full Payment)**\n• **Semi-Annual (2 Installments)**\n• **Quarterly (4 Installments)**\n\nGipasa na nako ang inyong inquiry ngadto sa admissions desk sa **${campusInfo.name}** ug sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nPila ang **edad sa inyong anak** aron ma-send namo ang exact schedule of fees para sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee schedule."} -->`;
+      return `Maayong adlaw! Mahitungod sa **Tuition & SY 2026–2027 Fee Schedules** sa The Abba's Orchard: 🌱\n\nAng admissions office nag-offer ug flexible payment terms subay sa official **SY 2026–2027 Annual Tuition Fees Summary**:\n• **Annual Plan (Full Payment with discount)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\n*Naa pud tay Sibling Discount privileges para sa pamilya nga dunay 2 o kapin pa ka mga anak nga naka-enroll.*\n\nNa-forward na nako ang inyong inquiry sa coordinator sa **${campusInfo.name}** ug kay Ms. Roxane sa central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nPila ang **edad sa inyong anak o unsa nga developmental level** (Infant Community, Casa, Elementary, o Erdkinder High School) aron ma-send namo ang eksaktong tuition breakdown sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request SY 2026-2027 (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee schedule for SY 2026-2027."} -->`;
     }
     if (isTagalog) {
-      return `Magandang araw po! Tungkol po sa **Tuition at Payment Options** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules:\n• **Annual (Isahang Bayad)**\n• **Semi-Annual (2 Hulog)**\n• **Quarterly (4 na Hulog)**\n\nNa-forward na po ang inyong inquiry sa campus coordinator ng **${campusInfo.name}** at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak para ma-send po namin ang saktong breakdown ng fees?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee breakdown."} -->`;
+      return `Magandang araw po! Tungkol po sa **Tuition at SY 2026–2027 Fee Rates** sa The Abba's Orchard: 🌱\n\nNag-aalok po ang aming admissions office ng flexible payment schedules ayon sa official **SY 2026–2027 Annual Tuition Fees Summary**:\n• **Annual Plan (Isahang Bayad na may Full Payment Discount)**\n• **Semi-Annual Plan (2 Hulog)**\n• **Quarterly Plan (4 na Hulog)**\n\n*May Sibling Discount privileges din po para sa mga pamilyang may 2 o higit pang anak na naka-enroll.*\n\nNa-forward na po ang inyong inquiry sa campus coordinator ng **${campusInfo.name}** at sa accounting desk ni Ms. Roxane (**accounting@theabbasorchard.edu.ph**).\n\nIlang taon na po ang inyong anak o anong grade/developmental level (Infant Community, Casa, Elementary, o Erdkinder) para mai-provide namin ang saktong breakdown ng fees sa inyong campus?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Request SY 2026-2027 (Tagalog)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee breakdown for SY 2026-2027."} -->`;
     }
-    return `Regarding tuition and fees at **The Abba's Orchard School**, we offer flexible payment plans:\n• **Annual Plan (Full Payment)**\n• **Semi-Annual Plan (2 Installments)**\n• **Quarterly Plan (4 Installments)**\n\nI have forwarded your inquiry directly to our coordinator at **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **children's ages** so we can provide the exact schedule of fees for their developmental levels?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown."} -->`;
+    return `Regarding tuition and fees at **The Abba's Orchard School** for **School Year 2026–2027**, we offer structured, flexible payment plans based on our official **Annual Tuition Fees Summary**:\n\n• **Annual Plan:** Full one-time payment with term discount\n• **Semi-Annual Plan:** 2 installments\n• **Quarterly Plan:** 4 installments\n• 👨‍👩‍👧‍👦 **Sibling Discounts:** Available for families enrolling 2 or more children\n\nTuition rates vary slightly per campus and developmental plane (Infant Community, Casa dei Bambini, Elementary, or Erdkinder Adolescent Farm Boarding). I have registered your inquiry with **${campusInfo.name}** and Ms. Roxane at our central accounting desk (**accounting@theabbasorchard.edu.ph**).\n\nCould you please share your **children's ages or target level** so we can provide the exact schedule of fees for their level?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Breakdown Request SY 2026-2027", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Parent requested tuition breakdown for SY 2026-2027."} -->`;
   }
 
   // --------------------------------------------------------------------------
@@ -572,6 +644,18 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   const isAntipolo = lower.includes('antipolo') || lower.includes('taktak');
   const isQc = lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city');
   const isLaguna = lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna');
+
+  // General Nationwide Location Check
+  const isGeneralLocation = (lower.includes('where are you located') || lower.includes('where are you') || 
+                            lower.includes('where is the school') || lower.includes('where are your campuses') || 
+                            lower.includes('locations') || lower.includes('location') || lower.includes('branches') ||
+                            lower.includes('asa mo daplin') || lower.includes('asa inyong school') || lower.includes('asan kayo') || 
+                            lower.includes('saan kayo located') || lower.includes('saan ang school')) && 
+                            !isDavao && !isBukidnon && !isCdo && !isCebu && !isIloilo && !isBgc && !isBayani && !isAlabang && !isGreenhills && !isAntipolo && !isQc && !isLaguna;
+  if (isGeneralLocation) {
+    return `📍 **The Abba's Orchard School Campuses Nationwide:**\n\nWe operate over 15 authentic AMI Montessori campuses across Luzon, Visayas, and Mindanao:\n\n• **Metro Manila & South Luzon:**\n  - **Taguig:** BGC McKinley Hill & Bayani Road\n  - **Muntinlupa:** Alabang (Filinvest City)\n  - **Mandaluyong:** Greenhills\n  - **Antipolo City:** Taktak Road\n  - **Quezon City:** Calle Industria (Bridgetowne)\n  - **Laguna:** Canlubang (Carmelray Industrial Park 1)\n\n• **Visayas:**\n  - **Cebu City:** Magsaysay & Tandang Sora\n  - **Iloilo:** Sta. Barbara Heights\n\n• **Mindanao:**\n  - **Cagayan de Oro:** Alwana Business Park (Cugman)\n  - **Davao City:** Bo. Obrero & Mandug\n  - **Bukidnon:** La Granja Estates (Adolescent Farm Boarding Campus)\n\nWhich city or campus location is most convenient for your family?\n<!-- DISPATCH: {"campus": "Central Admissions", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Nationwide Campus Location Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for general school locations."} -->`;
+  }
+
 
   if (isDavao) {
     if (isBisaya) {
@@ -647,5 +731,6 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
 
 module.exports = {
   generateAIResponse,
+  generateFallbackResponse,
   ABBAS_SYSTEM_PROMPT
 };
