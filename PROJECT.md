@@ -1,8 +1,8 @@
 # The Abba's Orchard School — 24/7 AI Admissions Digital Employee & Prototype Project
 
-**Last Updated:** October 22, 2026  
+**Last Updated:** October 28, 2026  
 **Project Owner / Principal Developer:** Jason Velasquez (SETHCON)  
-**Client / Stakeholders:** Sir Angelo, Sir Ram, Mr. Xavier, Dr. Maria Angelica Paez-Barrameda ("Teacher Ann"), Joseph Christopher N. Barrameda ("Mr. Chris")  
+**Client / Stakeholders:** Sir Angelo, Jem, Sir Ram, Mr. Xavier, Dr. Maria Angelica Paez-Barrameda ("Teacher Ann"), Joseph Christopher N. Barrameda ("Mr. Chris")  
 **Target Organization:** The Abba's Orchard School (15+ Campuses nationwide — Luzon, Visayas, Mindanao)  
 **Official School Website:** [https://www.theabbasorchard.edu.ph/](https://www.theabbasorchard.edu.ph/)  
 **Live Production App:** [https://abbas-orchard-ai.vercel.app](https://abbas-orchard-ai.vercel.app)  
@@ -15,8 +15,10 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 1. **Official Website Chat Widget:** Embedded into `theabbasorchard.edu.ph` (Laravel/Inertia stack) via drop-in widget `abbas-widget-embed.js`.
 2. **Facebook Messenger Integration:** Official Meta Graph API integration with The Abba's Orchard Facebook page (`facebook.com/abbasorchardschool/`).
 3. **Multi-Campus Knowledge System:** 15+ branches across Luzon, Visayas, and Mindanao (Alwana CDO, Bukidnon La Granja, Davao Obrero/Mandug, Cebu Magsaysay/Tandang Sora, Taguig BGC McKinley & Bayani Rd, Greenhills, Alabang, Antipolo, QC Bridgetowne, Canlubang Laguna, Iloilo).
-4. **True Montessori® & AMI Pedagogical Persona:** Trained in authentic Association Montessori Internationale (AMI) philosophy across Infant Community (14m–3y), Casa dei Bambini (3–6y), Elementary (6–12y), and Erdkinder adolescent farm boarding (12–18y).
-5. **Staff Escalation Workflow:** Automated structured lead auto-dispatching (`<!-- DISPATCH: {...} -->`) with routing to campus coordinators, central admissions, and Ms. Roxane's accounting desk for custom requests and fee schedules.
+4. **Official SY 2026–2027 Tuition Engine:** Exact fee calculation for all 12 campuses based on `SY26-27 Tuition Fees Summary_Annual.xlsx` with Annual, Semi-Annual, Quarterly, Monthly terms, Down Payment, Memory Book inclusions, and Sibling discounts.
+5. **True Montessori® & AMI Pedagogical Persona:** Trained in authentic Association Montessori Internationale (AMI) philosophy across Infant Community (14m–3y), Casa dei Bambini (3–6y), Elementary (6–12y), and Erdkinder adolescent farm boarding (12–18y).
+6. **Multi-Turn Conversational Context:** Context-aware memory resolving short follow-up prompts (*"how?"*, *"paano?"*, *"unsaon?"*, *"yes"*, *"where?"*, *"when?"*) without resetting.
+7. **Staff Escalation Workflow:** Automated structured lead auto-dispatching (`<!-- DISPATCH: {...} -->`) with routing to campus coordinators, central admissions, and Ms. Roxane's accounting desk (`accounting@theabbasorchard.edu.ph`).
 
 ---
 
@@ -41,13 +43,18 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 * **Platform:** Vercel Serverless
 * **URL:** `https://abbas-orchard-ai.vercel.app`
 * **Git Remote:** `origin/main` (`https://github.com/jasonvelasquez1410/abbas-orchard-ai.git`)
+* **Latest Commits:**
+  * `ad8040e` — `feat(nlp): implement multi-turn conversational context resolver for follow-up questions`
+  * `73b2f6c` — `feat(ui): prioritize tuition and top admissions inquiry chips in chat widget`
+  * `f0865c6` — `feat(tuition): integrate official SY 2026-2027 fee schedule and exact calculation engine`
 
-### B. Backend Serverless Functions (`/api`)
-* `api/chat.js`: Real-time streaming & JSON admissions AI endpoint powered by **Google Gemini 2.0 Flash** / OpenAI with priority-based lead capture, language detection, and fallback resolution.
-* `api/webhook.js`: Production Meta Graph API (v20.0) webhook endpoint supporting:
-  * `GET /api/webhook`: Meta Webhook Challenge verification (`hub.verify_token`, `hub.challenge`).
-  * `POST /api/webhook`: Instant Facebook Messenger event processing, postback & quick reply parsing, typing indicator triggers, Gemini AI generation, message chunking, and automated lead forwarding.
+### B. Core Code Modules
+* `api/_tuition_data.js`: Official SY 2026–2027 tuition database covering all 12 campuses/tables, rate matching, installment plans, and response generator.
+* `api/chat.js`: Real-time streaming & JSON admissions AI endpoint powered by Google Gemini 2.0 Flash / OpenAI with multi-turn context resolver, language mirroring, and automated lead capture.
+* `api/webhook.js`: Production Meta Graph API (v20.0) webhook endpoint supporting `messages` and `messaging_postbacks`.
 * `api/_dispatcher.js`: Production multi-channel lead notification dispatcher supporting Google Sheets/Zapier webhooks and Resend transactional email.
+* `ai-agent.js`: Core Node.js conversational AI module synchronized for local testing.
+* `index.html` & `Abbas_Orchard_AI_Prototype.html`: Production dual-channel prototype (Website view + Facebook Messenger mockup) with full self-contained offline tuition dataset and table rendering.
 * `vercel.json`: Edge routing configuration, CORS headers, and API rewrites.
 
 ### C. Environment Variables on Vercel
@@ -55,53 +62,82 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 * `AI_PROVIDER`: `gemini` (or `openai`)
 * `AI_MODEL`: `gemini-2.0-flash`
 * `META_VERIFY_TOKEN`: Verification token matching Meta Developer App webhook settings (`abbas_orchard_meta_verify_token_2026`).
-* `META_PAGE_ACCESS_TOKEN`: Page access token for message dispatching.
-* `LEAD_WEBHOOK_URL`: (Optional) Webhook URL (Google Sheets AppScript, Zapier, Make, Discord) for instant lead capture.
+* `META_PAGE_ACCESS_TOKEN`: Page access token for Facebook message dispatching.
+* `LEAD_WEBHOOK_URL`: (Optional) Webhook URL (Google Sheets AppScript, Zapier, Make) for instant lead capture.
 * `RESEND_API_KEY`: (Optional) Resend API key for automated HTML admissions email alerts.
 * `NOTIFICATION_EMAIL_TO`: Central admissions inbox for email lead delivery (`admission_application@theabbasorchard.edu.ph`).
 
 ---
 
-## 🧠 4. Conversational Intelligence & Priority-Based Decision Engine
+## 📊 4. Official SY 2026–2027 Tuition Fee System
 
-The admissions AI is specifically tuned to behave like a **warm, kind, and knowledgeable Montessori Admissions Administrator**—not a robotic keyword chatbot.
+Extracted directly from `SY26-27 Tuition Fees Summary_Annual.xlsx` provided by Sir Angelo:
 
-### Decision Hierarchy (Engine Priority)
-```mermaid
-graph TD
-    A[Incoming Parent Message] --> B{Priority 1: Phone / Contact / Booking Shared?}
-    B -- Yes --> C[Warm Walkthrough Acknowledgment & Campus Lead Registration + Ask Child Age/Name]
-    B -- No --> D{Priority 2: Child Age / Developmental Plane?}
-    D -- Yes --> E[Map to Infant / Casa / Elementary / Erdkinder + Recommend Tour]
-    D -- No --> F{Priority 3: Tour / Observation Booking Request?}
-    F -- Yes --> G[Request Preferred Campus, Weekday Morning, & Contact Number]
-    F -- No --> H{Priority 4: Tuition & Fees Inquiry?}
-    H -- Yes --> I[Explain Annual/Semi/Quarterly Plans + Forward to Roxane Accounting]
-    H -- No --> J{Priority 5: Direct Campus Mention / Click?}
-    J -- Yes --> K[Provide Specific Campus Profile, Address, Direct Line & Email]
-    J -- No --> L[Priority 6: Program Overview or Polyglot Friendly Inquiry]
-```
+### Campuses & Rate Tables (12 Total):
+1. **LGE / ALW:** Cagayan de Oro (Alwana) & Bukidnon (La Granja)
+2. **DVO:** Davao City (Obrero & Mandug)
+3. **CBU:** Cebu City (Magsaysay & Tandang Sora)
+4. **BQC:** Quezon City (Bridgetowne / Calle Industria)
+5. **MCK / BYN:** Taguig City (BGC McKinley Hill & Bayani Road)
+6. **ALB:** Muntinlupa (Alabang Filinvest City)
+7. **ANT:** Antipolo City (Taktak Road)
+8. **STR:** Canlubang Laguna (Carmelray Industrial Park 1)
+9. **GRH:** Mandaluyong (Greenhills)
+10. **MLV:** Malaybalay
+11. **SRG:** Surigao
+12. **ILO:** Iloilo (Sta. Barbara Heights) — **Features 20% Pioneer Discount**
 
-### Lead Capture & Booking Example
-* **Parent Input:** `"cdo alwana. weekday morning, 09989576496"`
-* **AI Output:**
-  > *Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **Cagayan de Oro — Alwana Campus**.*
-  >
-  > *I have registered your visit request with our admissions team:*
-  > • 📍 **Target Campus:** Cagayan de Oro — Alwana Campus  
-  > • 📞 **Captured Contact Number:** **09989576496**  
-  > • ⏰ **Preferred Schedule:** weekday morning observation window (8:30 AM – 11:00 AM)  
-  > • 📧 **Designated Admissions Coordinator:** **alwana@theabbasorchard.edu.ph** | (0917) 707 2668  
-  >
-  > *Our campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.*  
-  >
-  > *May I also ask your **child's current age or name** so our Montessori Directress can prepare the appropriate prepared environment (Infant Community, Casa, or Elementary) for your visit?*
-  >
-  > `<!-- DISPATCH: {"campus": "Cagayan de Oro - Alwana", "to": "alwana@theabbasorchard.edu.ph", "subject": "Confirmed Walkthrough Booking Request", "parentName": "Prospective Parent", "parentContact": "09989576496", "details": "Parent booked walkthrough: cdo alwana. weekday morning, 09989576496"} -->`
+### Payment Structure & Business Rules:
+* **Slot Reservation (15% Down Payment):** Due between **24 March and 13 April** to lock slot.
+* **Annual Plan:** Remaining 85% balance due on or before **07 August 2026** (Zero carrying fee).
+* **Semi-Annual Plan (2 Installments):** 8% carrying fee on balance; due **07 August** and **07 December**.
+* **Quarterly Plan (4 Installments):** 10% carrying fee on balance; due **07 August**, **07 October**, **07 December**, and **07 March**.
+* **Monthly Plan (10 Installments):** 12% carrying fee on balance; monthly on the 7th starting August 2026.
+* **Commemorative Memory Book:** Included in Whole Year Fee for Casa 3, Grade 6, and Grade 12 (₱3,184.45).
+* **Farm Consumables & Lab Fees:** Included for Bukidnon Erdkinder (Levels 3 & 4).
+* **Sibling Discount:** ~5% reduction across all whole-year fees and installment modes for 2+ enrolled children.
 
 ---
 
-## 🗺️ 5. Official Campus Directory & Lead Routing Map
+## 🎯 5. The 10 High-Frequency Social Media Inquiries Trained
+
+| # | Inquiry | AI Pedagogical & Operational Response | Trilingual Support |
+|---|---|---|---|
+| 1 | **Where are you located?** | Complete 15+ branch nationwide directory categorized by Luzon, Visayas, Mindanao with direct hotlines and emails. | English, Tagalog, Bisaya |
+| 2 | **Tell me about your program** | 4 continuous AMI developmental planes: Infant Community (14m-3y), Casa (3-6y), Elementary (6-12y), Erdkinder (12-18y). | English, Tagalog, Bisaya |
+| 3 | **List of requirements** | 5-item checklist: PSA Birth Cert, 2x2 photos (4 pcs), Form 137/138 (SF9/SF10 for transferees), application form, readiness observation. | English, Tagalog, Bisaya |
+| 4 | **Campus tour** | Montessori Observation Walkthrough during active morning work cycle (8:30 AM – 11:00 AM) + directress consult. | English, Tagalog, Bisaya |
+| 5 | **Special needs / Neurodiversity** | Self-paced multi-sensory AMI environment + 1-on-1 readiness observation. | English, Tagalog, Bisaya |
+| 6 | **Services / Specialization** | Authentic AMI international accreditation, uninterrupted 3-hour work cycles, concrete math bead apparatus, Cosmic Education. | English, Tagalog, Bisaya |
+| 7 | **Can we attend a trial class?** | Explains why traditional drop-ins disrupt focus; introduces the **2-Step Discovery Experience** (Parent Walkthrough + Child Readiness Session). | English, Tagalog, Bisaya |
+| 8 | **Earliest we could enroll** | Rolling admissions year-round for Toddler & Casa; SY 2026–2027 priority reservation + mid-year transferee evaluation. | English, Tagalog, Bisaya |
+| 9 | **How to enroll / Admission process** | 4-step consultative roadmap: Walkthrough → Child Consultation → Document Submission → Slot Reservation. | English, Tagalog, Bisaya |
+| 10 | **Tuition fee rates** | Exact SY 2026–2027 fee schedule per campus with down payment, balances, and installment plans. | English, Tagalog, Bisaya |
+
+---
+
+## 🧠 6. Multi-Turn Conversational Memory & Context Engine
+
+### Problem Solved:
+Previously, if the AI asked: *"Would you like to experience an observation walkthrough at our Cagayan de Oro — Alwana Campus?"* and a parent replied with *"how?"*, the AI treated it as a new generic query and reset to the 15-campus opening spiel.
+
+### Current Implementation:
+1. **Short Follow-Up Interrogatives (`isHowQuestion`):**
+   - *"how?"*, *"paano?"*, *"unsaon?"*, *"how to book?"*, *"how does it work?"*
+   - Checks `lastModelLower`: If previous response offered a walkthrough, answers with step-by-step walkthrough booking instructions with the specific campus coordinator's hotline and email.
+   - If previous response discussed tuition, explains payment methods (Bank transfer, PDC, cash) and accounting desk contact.
+2. **Affirmations (`isAffirmative`):**
+   - *"yes"*, *"sure"*, *"sige"*, *"ok"*, *"yes please"*, *"oo"*, *"opo"*, *"gusto ko"*
+   - Smoothly confirms the offered action and asks for contact details and preferred weekday morning.
+3. **Temporal & Spatial Follow-ups:**
+   - *"when?"* / *"what time?"* / *"kailan?"* → Returns 8:30 AM – 11:00 AM weekday morning observation schedule.
+   - *"where?"* / *"saan?"* / *"asa?"* / *"address?"* → Returns exact physical campus address and landmarks.
+4. **Context-Retaining Fallback (Zero Reset Policy):**
+   - If an ongoing conversation contains an active campus (e.g., Alwana, Davao, Cebu), even unrecognized words (e.g. *"hmmm"*, *"okay"*) will NOT reset to the greeting. The AI retains the active campus and offers 4 clear next actions (Walkthrough, Tuition, Requirements, or Coordinator Call).
+
+---
+
+## 🗺️ 7. Official Campus Directory & Lead Routing Map
 
 | Campus Location | Level / Programs | Email Routing | Direct Line |
 |---|---|---|---|
@@ -121,123 +157,59 @@ graph TD
 
 ---
 
-## 🛠️ 6. Key Bugfixes & UI Engineering Implemented
-
-1. **Fixed Booking Acknowledgment & Contact Capture**:
-   - Upgraded `generateFallbackResponse` and `generateClientFallback` across `ai-agent.js`, `api/chat.js`, `index.html`, and `Abbas_Orchard_AI_Prototype.html`.
-   - Prevented campus keyword matching from preempting lead capture or repeating static opening spiels.
-2. **Interactive In-Bubble Campus Button Grid**:
-   - Added interactive in-bubble buttons (`.bubble-campus-grid`, `.bubble-campus-btn`, `.fb-bubble-campus-btn`) inside initial greeting messages for 1-click campus inquiry on both Web and FB Messenger views.
-3. **Channel Isolation & Duplicate Message Prevention**:
-   - Web view and Facebook Messenger view are completely decoupled; sending messages in one channel no longer mirrors or duplicates welcome spiels into the other.
-4. **Chat Chips & Horizontal Layout Truncation Fix**:
-   - Set `.chat-chips-area` to `flex-wrap: wrap;` with compact buttons so chip text (e.g. CDO Alwana, Bukidnon) is never cut off on narrow viewports.
-5. **Pinned Input Bar & Viewport Locking**:
-   - Constrained `.sim-chat-body` to flex height with sticky bottom input bar and auto-scroll anchored on every incoming/outgoing message.
+## 🎨 8. UI & Ergonomics Polish (Chat Widget)
+1. **Prioritized Action Chips:**
+   - Placed high-converting inquiries right in front:
+     1. `💰 Tuition & Rates (SY 26-27)` (Styled with an eye-catching gold badge)
+     2. `📅 Book Walkthrough Tour`
+     3. `📝 How to Enroll`
+     4. `📋 List of Requirements`
+     5. `⏰ Earliest to Enroll`
+     6. `📍 Campus Locations`
+2. **Laptop & Tablet Viewport Ergonomics:**
+   - Updated `.floating-chat-window`'s `max-height: calc(100vh - 90px)` with clean headroom to avoid clipping the top navigation bar.
+3. **Responsive Markdown Table Parser:**
+   - Upgraded `formatChatMessage` in `index.html` to render dark-mode responsive HTML `<table>` elements for full campus tuition schedules.
 
 ---
 
-## 📂 7. Workspace File Manifest
+## 📂 9. Workspace File Manifest
 
 * [`index.html`](./index.html) — Production live dual-channel sandbox (Website View & Facebook Messenger View).
 * [`Abbas_Orchard_AI_Prototype.html`](./Abbas_Orchard_AI_Prototype.html) — Twin prototype file for standalone distribution.
-* [`ai-agent.js`](./ai-agent.js) — Core Node.js conversational AI module with Gemini/OpenAI integration and local testing.
-* [`api/chat.js`](./api/chat.js) — Vercel Serverless API handler for `/api/chat`.
+* [`SY26-27 Tuition Fees Summary_Annual.xlsx`](./SY26-27%20Tuition%20Fees%20Summary_Annual.xlsx) — Official Excel tuition source file from Sir Angelo.
+* [`api/_tuition_data.js`](./api/_tuition_data.js) — Parsed 12-campus official fee schedule and computation helper.
+* [`api/chat.js`](./api/chat.js) — Vercel Serverless API handler for `/api/chat` with multi-turn memory.
 * [`api/webhook.js`](./api/webhook.js) — Vercel Serverless Meta Graph Webhook for Facebook Messenger events.
-* [`abbas-widget-embed.js`](./abbas-widget-embed.js) — Single-script drop-in widget for embedding onto `theabbasorchard.edu.ph`.
-* [`Abbas_Orchard_AI_Pitch_Presentation.html`](./Abbas_Orchard_AI_Pitch_Presentation.html) — 8-slide presentation deck with speaker notes.
-* [`Abbas_Orchard_AI_Executive_Proposal.html`](./Abbas_Orchard_AI_Executive_Proposal.html) — Executive proposal document.
-* [`IT_INTEGRATION_GUIDE.md`](./IT_INTEGRATION_GUIDE.md) — Technical webmaster deployment guide.
-* [`IT_Integration_Guide.html`](./IT_Integration_Guide.html) — Styled, printable single-page PDF/HTML deployment handout.
+* [`ai-agent.js`](./ai-agent.js) — Core Node.js conversational AI module with Gemini/OpenAI integration and local testing.
 * [`api/_dispatcher.js`](./api/_dispatcher.js) — Real-time webhook & transactional email lead notification dispatcher.
+* [`abbas-widget-embed.js`](./abbas-widget-embed.js) — Single-script drop-in widget for embedding onto `theabbasorchard.edu.ph`.
+* [`IT_INTEGRATION_GUIDE.md`](./IT_INTEGRATION_GUIDE.md) & [`IT_Integration_Guide.html`](./IT_Integration_Guide.html) — Technical webmaster deployment guides.
 * [`package.json`](./package.json) & [`vercel.json`](./vercel.json) — Dependencies and edge deployment configuration.
 
 ---
 
-## 📬 8. Client Follow-Up Status (Dispatched October 22, 2026)
-* **Initial Delivery Email:** October 7, 2026 (Live prototype link & testing guide sent to Sir Angelo, Seth, Kristine, and Ms. Roxane).
-* **Follow-Up Inquiries Sent:** October 22, 2026
-  * **Email Thread Reply:** Sent to Sir Angelo following up on prototype review and requesting:
-    1. Facebook Page admin/task invite for Jason Velasquez on `facebook.com/abbasorchardschool/`.
-    2. Website repository/cPanel access or webmaster contact to embed the widget on `theabbasorchard.edu.ph`.
-  * **Viber Direct Message:** Short, friendly follow-up sent directly to Sir Angelo.
+## 📬 10. Communication Log & Current Collaboration Status
+* **October 7, 2026:** Initial delivery email with live prototype sent to Sir Angelo, Seth, Kristine, and Ms. Roxane.
+* **October 22, 2026:** Follow-up email and Viber messages sent.
+* **October 28, 2026:**
+  * User accepted the **MS Teams group invite** with **Sir Angelo** and **Jem**.
+  * Sir Angelo sent the official `SY26-27 Tuition Fees Summary_Annual.xlsx` and defined 10 key inquiries.
+  * Ingested full tuition schedule and trained AI across all 10 inquiries.
+  * Solved multi-turn follow-up issue (*"how?"*, *"yes"*, *"where?"*).
+  * Refined quick-filter chips with `💰 Tuition & Rates` placed at #1.
+  * Pushed all updates to GitHub `main` and verified live on Vercel (`https://abbas-orchard-ai.vercel.app`).
+  * Drafted update message for the MS Teams group chat awaiting user sending.
 
 ---
 
-## 🎯 9. Operational Runbook: What to Do The Moment Credentials Arrive
+## 🎯 11. Operational Next Steps (Resume Here After Restart)
 
-The moment Sir Angelo or their team responds with access, follow this exact step-by-step checklist:
-
-### A. When Facebook Page / Meta Access is Granted:
-1. **Accept Invite:** Log in to Facebook / Meta Business Suite and accept the Page Manager or Task access for `The Abba's Orchard School`.
-2. **Access Meta Developer Dashboard:**
-   * Go to [https://developers.facebook.com/apps](https://developers.facebook.com/apps)
-   * Select or create the app connected to The Abba's Orchard.
-3. **Configure Messenger Product:**
-   * Under **Messenger → Settings**, locate **Access Tokens**.
-   * Link the official page: `The Abba's Orchard School`.
-   * Click **Generate Token** and copy the permanent Page Access Token.
-4. **Update Vercel Environment Variables:**
-   * Go to [Vercel Project Settings](https://vercel.com/) → **Environment Variables**.
-   * Add / Update `META_PAGE_ACCESS_TOKEN` = `<generated_token>`.
-   * Verify `META_VERIFY_TOKEN` = `abbas_orchard_meta_verify_token_2026`.
-   * Click **Redeploy** on the latest commit.
-5. **Set Meta Webhook Callback:**
-   * In Meta App Dashboard → **Webhooks → Edit Callback URL**:
-     * **Callback URL:** `https://abbas-orchard-ai.vercel.app/api/webhook`
-     * **Verify Token:** `abbas_orchard_meta_verify_token_2026`
-   * Click **Verify and Save**.
-   * In **Subscription Fields**, subscribe to:
-     * `messages`
-     * `messaging_postbacks`
-6. **Live Verification Test:**
-   * Open Facebook Messenger on mobile/desktop and send a test message to `The Abba's Orchard School` page (e.g. *"Hi, how much is tuition for Casa in CDO Alwana?"*).
-   * Verify typing indicator, quick response, and campus routing.
-
----
-
-### B. When Website / Webmaster Access is Granted:
-1. **Provide Integration Handout:**
-   * Share [`IT_Integration_Guide.html`](./IT_Integration_Guide.html) (or send via PDF) and [`IT_INTEGRATION_GUIDE.md`](./IT_INTEGRATION_GUIDE.md) to their Laravel/web developer.
-2. **If Direct Code Access (GitHub / cPanel / FTP) is Provided:**
-   * Open the master layout blade file (typically `resources/views/layouts/app.blade.php` or `resources/views/master.blade.php`).
-   * Insert this single line right before the closing `</body>` tag:
-     ```html
-     <!-- The Abba's Orchard 24/7 AI Admissions Assistant Widget -->
-     <script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer></script>
-     ```
-   * Save and deploy/clear cache (`php artisan view:clear`).
-3. **Live Verification Test:**
-   * Visit `https://www.theabbasorchard.edu.ph`.
-   * Confirm the green 🌱 bubble appears at bottom-right.
-   * Click the bubble, test the chips, and verify that mobile viewports display smoothly without overlapping navigation elements.
-
----
-
-### C. When Lead Delivery Preferences are Confirmed:
-1. Ask Sir Angelo / Ms. Roxane: *"Where would you prefer automated lead notifications delivered?"*
-2. **Option 1: Google Sheet (Preferred for Admissions Teams):**
-   * Provide them with a simple Google Apps Script webhook URL that appends rows (Date, Campus, Parent Name, Contact, Summary).
-   * Set `LEAD_WEBHOOK_URL` in Vercel Environment Variables.
-3. **Option 2: Direct Email Notifications:**
-   * Add `RESEND_API_KEY` and set `NOTIFICATION_EMAIL_TO` = `admission_application@theabbasorchard.edu.ph` (or Sir Angelo's / Ms. Roxane's preferred email).
-4. **Option 3: Discord / Slack / Viber Group Webhook:**
-   * Simply set `LEAD_WEBHOOK_URL` to their internal notification channel webhook.
-
----
-
-### D. Commercial Kickoff:
-1. Confirm invoice details for the **₱28,000** one-time setup & custom ingestion.
-2. Confirm the **₱2,500 / month** maintenance retainer schedule.
-
----
-
-## 📋 10. Action Item Status
-- [x] **Conversational Lead Capture Tested:** Fully verified locally and live on Vercel.
-- [x] **Real-Time Lead Dispatcher Pipeline:** Structured multi-channel forwarding (`api/_dispatcher.js` supporting Google Sheets/Zapier webhooks + Resend email + serverless audit logs).
-- [x] **Meta Graph API Webhook Hardened:** Graph API v20.0, postback/quick_reply support, message chunking, and unified Montessori AI engine.
-- [x] **1-Page IT Integration Handout Ready:** Markdown & printable HTML guide for the Abba's Orchard webmaster.
-- [x] **Follow-Up Communications Dispatched:** Email and Viber follow-up sent to Sir Angelo on October 22, 2026.
-- [ ] **Facebook Page Access Token:** Once admin access on `facebook.com/abbasorchardschool/` is granted, insert `META_PAGE_ACCESS_TOKEN` into Vercel Environment Variables.
-- [ ] **Embed on Main Website:** Add `<script src="https://abbas-orchard-ai.vercel.app/abbas-widget-embed.js" defer></script>` before `</body>` on `theabbasorchard.edu.ph`.
-- [ ] **Lead Notification Webhook / Email Live:** Populate `LEAD_WEBHOOK_URL` or `RESEND_API_KEY` on Vercel once destination confirmed.
+1. **Send MS Teams Update:**
+   - Copy the drafted update message to **Sir Angelo** and **Jem** on MS Teams with the live link: `https://abbas-orchard-ai.vercel.app`.
+2. **Review Feedback on Chat Quick-Chips:**
+   - Check if Sir Angelo or Jem request any changes to the visible chips or want specific campus rates highlighted.
+3. **When Meta / Facebook Page Credentials Arrive:**
+   - Follow Runbook in Section 9A to generate permanent Page Access Token and hook up `api/webhook.js`.
+4. **When Webmaster / Main Website Access Arrives:**
+   - Provide `abbas-widget-embed.js` to insert before `</body>` on `theabbasorchard.edu.ph`.
