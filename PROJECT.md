@@ -1,8 +1,8 @@
 # The Abba's Orchard School — 24/7 AI Admissions Digital Employee & Prototype Project
 
-**Last Updated:** October 28, 2026  
+**Last Updated:** November 4, 2026  
 **Project Owner / Principal Developer:** Jason Velasquez (SETHCON)  
-**Client / Stakeholders:** Sir Angelo, Jem, Sir Ram, Mr. Xavier, Dr. Maria Angelica Paez-Barrameda ("Teacher Ann"), Joseph Christopher N. Barrameda ("Mr. Chris")  
+**Client / Stakeholders:** Sir Angelo Barrameda, Jem, Sir Ram, Mr. Xavier, Dr. Maria Angelica Paez-Barrameda ("Teacher Ann"), Joseph Christopher N. Barrameda ("Mr. Chris")  
 **Target Organization:** The Abba's Orchard School (15+ Campuses nationwide — Luzon, Visayas, Mindanao)  
 **Official School Website:** [https://www.theabbasorchard.edu.ph/](https://www.theabbasorchard.edu.ph/)  
 **Live Production App:** [https://abbas-orchard-ai.vercel.app](https://abbas-orchard-ai.vercel.app)  
@@ -44,6 +44,8 @@ Activation of an intelligent, multi-campus, polyglot (Bisaya / Tagalog / English
 * **URL:** `https://abbas-orchard-ai.vercel.app`
 * **Git Remote:** `origin/main` (`https://github.com/jasonvelasquez1410/abbas-orchard-ai.git`)
 * **Latest Commits:**
+  * `f69b158` — `fix(chat): resolve walkthrough scheduling loop, date-vs-age parsing, campus switching, and render visual tuition chart`
+  * `1c45fd3` — `docs: update PROJECT.md with SY 2026-2027 tuition engine, multi-turn AI memory, and MS Teams collaboration`
   * `ad8040e` — `feat(nlp): implement multi-turn conversational context resolver for follow-up questions`
   * `73b2f6c` — `feat(ui): prioritize tuition and top admissions inquiry chips in chat widget`
   * `f0865c6` — `feat(tuition): integrate official SY 2026-2027 fee schedule and exact calculation engine`
@@ -134,6 +136,18 @@ Previously, if the AI asked: *"Would you like to experience an observation walkt
    - *"where?"* / *"saan?"* / *"asa?"* / *"address?"* → Returns exact physical campus address and landmarks.
 4. **Context-Retaining Fallback (Zero Reset Policy):**
    - If an ongoing conversation contains an active campus (e.g., Alwana, Davao, Cebu), even unrecognized words (e.g. *"hmmm"*, *"okay"*) will NOT reset to the greeting. The AI retains the active campus and offers 4 clear next actions (Walkthrough, Tuition, Requirements, or Coordinator Call).
+5. **Dynamic Campus Context Switching (`resolveActiveCampusInfo` & `resolveCampusCode`):**
+   - Replaces static `if/else` campus chains with reverse-chronological history scanning: prioritizes the **current user message** first, then walks user messages in conversation history from newest to oldest.
+   - Users can switch campuses mid-conversation simply by typing (e.g., *"can i ask tuition fee for greenhills"*) or clicking a new campus without getting stuck on an earlier campus like Alwana or La Granja.
+6. **Calendar Date vs. Child Age Disambiguation (`analyzeAgesAndPlanes` & `capturedDate`):**
+   - Strips calendar date expressions (`November 3`, `Nov 3`, `3rd of November`, etc.), grade labels (`Grade 3`), and timestamps before running child-age extraction.
+   - Replies like *"yes on November 3"* are accurately captured as a preferred **Observation Walkthrough date** rather than being misread as a 3-year-old child.
+7. **Non-Repeating Walkthrough Booking Progression:**
+   - Tracks whether `"How to Schedule an Observation Walkthrough"` was already displayed (`alreadyExplainedHowToSchedule`) so subsequent `"yes"` replies advance directly to collecting the parent's preferred date, name, and mobile number instead of repeating the instructions.
+8. **Visual In-Chat Tuition Fee Chart (`getTuitionResponse` & `formatChatMessage`):**
+   - Replaced long multi-bullet text breakdowns with a clean, styled HTML **Tuition Fee Chart** inside the chat bubble (`index.html`, `Abbas_Orchard_AI_Prototype.html`, and `abbas-widget-embed.js`):
+     - **View 1 (Single Level Chart):** Compact payment-plan table (Whole Year, 15% Slot Reservation DP, Annual, Semi-Annual, Quarterly, Monthly) when a specific age/level is requested.
+     - **View 2 (Full Campus All-Levels Chart):** Full program-by-program table with green gradient headers, right-aligned tabular PHP amounts, and automatic yellow row highlighting (`👉`) if the child's age was mentioned earlier in the session.
 
 ---
 
@@ -200,16 +214,23 @@ Previously, if the AI asked: *"Would you like to experience an observation walkt
   * Refined quick-filter chips with `💰 Tuition & Rates` placed at #1.
   * Pushed all updates to GitHub `main` and verified live on Vercel (`https://abbas-orchard-ai.vercel.app`).
   * Drafted update message for the MS Teams group chat awaiting user sending.
+* **November 4, 2026:**
+  * **Sir Angelo Barrameda** tested the chatbot and sent 3 screenshots identifying 4 items:
+    1. Walkthrough scheduling repeating itself when replying *"yes"*.
+    2. Replying *"yes on November 3"* being misread as a **3-year-old** child instead of capturing the walkthrough date.
+    3. Campus context staying stuck on **Alwana / La Granja** when asking *"can i ask tuition fee for greenhills"* or selecting **Greenhills** and typing *"8"*.
+    4. Request to simplify pricing into a **visual chart/table** instead of a long text breakdown (*"can we simplify the pricing to just provide a chart instead of text. how will it look?"*).
+  * Resolved all 4 items across `api/_tuition_data.js`, `ai-agent.js`, `api/chat.js`, `index.html`, `Abbas_Orchard_AI_Prototype.html`, and `abbas-widget-embed.js`.
+  * Built and verified the **Visual Tuition Fee Chart** (both Single-Level Chart and Full Campus All-Levels Chart) rendered directly inside the live chat bubble.
+  * Committed and pushed all fixes to `origin/main` (`f69b158`) and drafted the MS Teams reply + screenshot preview for Sir Angelo.
 
 ---
 
 ## 🎯 11. Operational Next Steps (Resume Here After Restart)
 
-1. **Send MS Teams Update:**
-   - Copy the drafted update message to **Sir Angelo** and **Jem** on MS Teams with the live link: `https://abbas-orchard-ai.vercel.app`.
-2. **Review Feedback on Chat Quick-Chips:**
-   - Check if Sir Angelo or Jem request any changes to the visible chips or want specific campus rates highlighted.
-3. **When Meta / Facebook Page Credentials Arrive:**
-   - Follow Runbook in Section 9A to generate permanent Page Access Token and hook up `api/webhook.js`.
-4. **When Webmaster / Main Website Access Arrives:**
+1. **Await Sir Angelo's Feedback on the New Visual Tuition Chart:**
+   - Check Sir Angelo's reply in MS Teams regarding the new **Single-Level Chart** vs. **Full Campus Chart** layout and confirm if he wants any column tweaks.
+2. **When Meta / Facebook Page Credentials Arrive:**
+   - Generate the permanent Page Access Token and connect `api/webhook.js` to The Abba's Orchard Facebook Page.
+3. **When Webmaster / Main Website Access Arrives:**
    - Provide `abbas-widget-embed.js` to insert before `</body>` on `theabbasorchard.edu.ph`.
