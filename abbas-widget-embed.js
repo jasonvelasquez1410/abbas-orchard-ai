@@ -251,7 +251,33 @@
 
   function formatText(txt) {
     if (!txt) return '';
-    return txt
+    let formatted = txt.replace(/(?:^|\n)(\|.+\|)\n(\|[-:\s|]+\|)\n((?:\|.+\|\n?)+)/g, (match, headerLine, sepLine, bodyLines) => {
+      const parseCells = (row) => row.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+      const headers = parseCells(headerLine);
+      const rows = bodyLines.trim().split('\n').map(parseCells);
+      let tableHtml = '<div style="overflow-x:auto;margin:10px 0;border-radius:10px;border:1px solid #cbd5e1;background:#ffffff;box-shadow:0 2px 6px rgba(15,23,42,0.06);">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:11.5px;text-align:left;line-height:1.4;color:#1e293b;">' +
+        '<thead><tr style="background:linear-gradient(135deg,#1e3a29,#2d5a3c);color:#ffffff;">';
+      headers.forEach((h, i) => {
+        const align = i >= 2 ? 'right' : 'left';
+        tableHtml += `<th style="padding:7px 9px;font-weight:700;border-bottom:1px solid #1e3a29;white-space:nowrap;text-align:${align};">${h}</th>`;
+      });
+      tableHtml += '</tr></thead><tbody>';
+      rows.forEach((r, idx) => {
+        const isHighlighted = r[0] && r[0].includes('👉');
+        const bg = isHighlighted ? '#fef9c3' : (idx % 2 === 0 ? '#ffffff' : '#f8fafc');
+        tableHtml += `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;">`;
+        r.forEach((c, i) => {
+          const align = i >= 2 ? 'right' : 'left';
+          const cellFormatted = c.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#15803d;">$1</strong>');
+          tableHtml += `<td style="padding:6px 9px;color:#1e293b;text-align:${align};white-space:nowrap;">${cellFormatted}</td>`;
+        });
+        tableHtml += '</tr>';
+      });
+      tableHtml += '</tbody></table></div>';
+      return '\n' + tableHtml + '\n';
+    });
+    return formatted
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br>');

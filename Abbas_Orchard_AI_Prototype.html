@@ -1971,11 +1971,13 @@
       // Strip internal dispatch comments from UI
       let clean = text.replace(/<!-- DISPATCH:[\s\S]*?-->/g, '').trim();
 
-      // Simple Markdown table parser
+      // Styled Tuition & Schedule Chart Table Parser
       if (clean.includes('|') && clean.includes('---')) {
         const lines = clean.split('\n');
         let inTable = false;
-        let tableHtml = '<div style="overflow-x:auto; margin: 10px 0;"><table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left; border:1px solid #cbd5e1;">';
+        let rowIndex = 0;
+        const tableStartTag = '<div style="overflow-x:auto; margin: 10px 0; border-radius:10px; border:1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background:#ffffff;"><table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left; color:#1e293b;">';
+        let tableHtml = tableStartTag;
         let newLines = [];
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
@@ -1986,16 +1988,20 @@
             const cells = line.slice(1, -1).split('|').map(c => c.trim());
             if (!inTable) {
               inTable = true;
-              tableHtml += '<thead><tr style="background:#2d6a38; color:white; font-weight:600;">' + cells.map(c => `<th style="padding:6px 8px; border:1px solid #cbd5e1;">${c}</th>`).join('') + '</tr></thead><tbody>';
+              rowIndex = 0;
+              tableHtml += '<thead><tr style="background:linear-gradient(135deg, #1b3d22, #2d6a38); color:#ffffff; font-weight:700;">' + cells.map((c, idx) => `<th style="padding:7px 9px; border-bottom:2px solid #14331b; white-space:nowrap; ${idx >= 2 ? 'text-align:right;' : ''}">${c}</th>`).join('') + '</tr></thead><tbody>';
             } else {
-              tableHtml += '<tr style="border-bottom:1px solid #e2e8f0; background:rgba(255,255,255,0.05);">' + cells.map(c => `<td style="padding:5px 8px; border:1px solid #cbd5e1;">${c}</td>`).join('') + '</tr>';
+              const isHighlighted = cells[0].includes('👉');
+              const rowBg = isHighlighted ? '#fef9c3' : (rowIndex % 2 === 0 ? '#ffffff' : '#f8fafc');
+              rowIndex++;
+              tableHtml += `<tr style="border-bottom:1px solid #e2e8f0; background:${rowBg};">` + cells.map((c, idx) => `<td style="padding:6px 9px; border-right:1px solid #f1f5f9; white-space:nowrap; ${idx >= 2 ? 'text-align:right; font-variant-numeric:tabular-nums;' : ''}">${c}</td>`).join('') + '</tr>';
             }
           } else {
             if (inTable) {
               inTable = false;
               tableHtml += '</tbody></table></div>';
               newLines.push(tableHtml);
-              tableHtml = '<div style="overflow-x:auto; margin: 10px 0;"><table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left; border:1px solid #cbd5e1;">';
+              tableHtml = tableStartTag;
             }
             newLines.push(lines[i]);
           }
@@ -2109,7 +2115,12 @@
     }
 
     function analyzeAgesAndPlanes(text) {
-      const lower = (text || '').toLowerCase();
+      const rawLower = (text || '').toLowerCase();
+      const lower = rawLower
+        .replace(/\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\b/gi, ' ')
+        .replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi, ' ')
+        .replace(/\b(?:grade|gr|level|casa|step)\s*\d{1,2}\b/gi, ' ')
+        .replace(/\b\d{1,2}\s*(?:am|pm|a\.m\.|p\.m\.)\b/gi, ' ');
       
       const wordMap = {
         'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
@@ -2146,8 +2157,8 @@
       }
 
       // Month patterns (e.g. 14 months, 18 mos)
-      const monthMatch = lower.match(/\b(1[4-9]|[2-3]\d)\s*(?:months?|mos|mo)\b/);
-      const isToddlerExplicit = Boolean(monthMatch) || lower.includes('toddler') || lower.includes('infant');
+      const monthMatch = rawLower.match(/\b(1[4-9]|[2-3]\d)\s*(?:months?|mos|mo)\b/);
+      const isToddlerExplicit = Boolean(monthMatch) || rawLower.includes('toddler') || rawLower.includes('infant');
 
       const planes = [];
       
@@ -2163,7 +2174,7 @@
         });
       }
 
-      if (detectedAges.some(a => a >= 3 && a <= 6) || lower.includes('preschool') || lower.includes('kinder') || lower.includes('casa')) {
+      if (detectedAges.some(a => a >= 3 && a <= 6) || rawLower.includes('preschool') || rawLower.includes('kinder') || rawLower.includes('casa')) {
         const ageList = detectedAges.filter(a => a >= 3 && a <= 6);
         const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '3 – 6 Years';
         planes.push({
@@ -2175,7 +2186,7 @@
         });
       }
 
-      if (detectedAges.some(a => a >= 7 && a <= 12) || lower.includes('elementary') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6')) {
+      if (detectedAges.some(a => a >= 7 && a <= 12) || rawLower.includes('elementary') || rawLower.includes('grade 1') || rawLower.includes('grade 2') || rawLower.includes('grade 3') || rawLower.includes('grade 4') || rawLower.includes('grade 5') || rawLower.includes('grade 6')) {
         const ageList = detectedAges.filter(a => a >= 7 && a <= 12);
         const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '6 – 12 Years';
         planes.push({
@@ -2187,7 +2198,7 @@
         });
       }
 
-      if (detectedAges.some(a => a >= 13 && a <= 18) || lower.includes('high school') || lower.includes('adolescent') || lower.includes('erdkinder') || lower.includes('boarding')) {
+      if (detectedAges.some(a => a >= 13 && a <= 18) || rawLower.includes('high school') || rawLower.includes('adolescent') || rawLower.includes('erdkinder') || rawLower.includes('boarding')) {
         const ageList = detectedAges.filter(a => a >= 13 && a <= 18);
         const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '12 – 18 Years';
         planes.push({
@@ -3336,53 +3347,47 @@ function formatPHP(amount) {
 
 function resolveCampusCode(text, defaultCode = 'DVO') {
   const lower = (text || '').toLowerCase();
-  if (lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan') || lower.includes('bukidnon') || lower.includes('granja') || lower.includes('baungon')) {
-    return 'LGE/ALW';
+  const campusRules = [
+    { code: 'LGE/ALW', keywords: ['alwana', 'cdo', 'cagayan', 'bukidnon', 'granja', 'baungon'] },
+    { code: 'DVO', keywords: ['davao', 'obrero', 'mandug'] },
+    { code: 'CBU', keywords: ['cebu', 'magsaysay', 'tandang sora'] },
+    { code: 'MCK / BYN', keywords: ['mckinley', 'bgc', 'taguig', 'bayani'] },
+    { code: 'ALB', keywords: ['alabang', 'filinvest', 'muntinlupa'] },
+    { code: 'ANT', keywords: ['antipolo', 'taktak'] },
+    { code: 'BQC', keywords: ['calle industria', 'bridgetowne', 'quezon city', 'qc'] },
+    { code: 'GRH', keywords: ['greenhills', 'mandaluyong'] },
+    { code: 'STR', keywords: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'] },
+    { code: 'MLV', keywords: ['malaybalay'] },
+    { code: 'SRG', keywords: ['surigao'] },
+    { code: 'ILO', keywords: ['iloilo', 'barbara'] }
+  ];
+
+  let latestIdx = -1;
+  let resolvedCode = defaultCode;
+
+  for (const rule of campusRules) {
+    for (const kw of rule.keywords) {
+      const idx = lower.lastIndexOf(kw);
+      if (idx > latestIdx) {
+        latestIdx = idx;
+        resolvedCode = rule.code;
+      }
+    }
   }
-  if (lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug')) {
-    return 'DVO';
-  }
-  if (lower.includes('cebu') || lower.includes('magsaysay') || lower.includes('tandang sora')) {
-    return 'CBU';
-  }
-  if (lower.includes('mckinley') || (lower.includes('bgc') && !lower.includes('bayani')) || lower.includes('taguig') || lower.includes('bayani')) {
-    return 'MCK / BYN';
-  }
-  if (lower.includes('alabang') || lower.includes('filinvest') || lower.includes('muntinlupa')) {
-    return 'ALB';
-  }
-  if (lower.includes('antipolo') || lower.includes('taktak')) {
-    return 'ANT';
-  }
-  if (lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city') || lower.includes('qc')) {
-    return 'BQC';
-  }
-  if (lower.includes('greenhills') || lower.includes('mandaluyong')) {
-    return 'GRH';
-  }
-  if (lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna') || lower.includes('sta. rosa') || lower.includes('santa rosa')) {
-    return 'STR';
-  }
-  if (lower.includes('malaybalay')) {
-    return 'MLV';
-  }
-  if (lower.includes('surigao')) {
-    return 'SRG';
-  }
-  if (lower.includes('iloilo') || lower.includes('barbara')) {
-    return 'ILO';
-  }
-  return defaultCode;
+
+  return resolvedCode;
 }
 
 function matchTuitionRate(rates, text) {
   if (!rates || rates.length === 0) return null;
-  const lower = (text || '').toLowerCase();
+  const rawLower = (text || '').toLowerCase();
+  const lower = rawLower
+    .replace(/\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\b/gi, ' ')
+    .replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi, ' ');
 
-  // 1. Grade levels first (e.g. Grade 1, Gr 7, Level 2)
-  const grMatch = lower.match(/\b(?:grade|gr|level)\s*([1-9]|1[0-2])\b/i);
-  if (grMatch) {
-    const gr = parseInt(grMatch[1], 10);
+  const grMatches = [...lower.matchAll(/\b(?:grade|gr|level)\s*([1-9]|1[0-2])\b/gi)];
+  if (grMatches.length > 0) {
+    const gr = parseInt(grMatches[grMatches.length - 1][1], 10);
     if (gr >= 1 && gr <= 3) return rates.find(r => r.level.includes('Level 1') || r.level.includes('Gr 1-3')) || rates[3];
     if (gr === 4 || gr === 5) return rates.find(r => r.level.includes('Gr 4-5')) || rates[4];
     if (gr === 6) return rates.find(r => r.level.includes('Gr 6')) || rates[5];
@@ -3391,7 +3396,6 @@ function matchTuitionRate(rates, text) {
     if (gr === 12) return rates.find(r => r.level.includes('Gr 12')) || rates[rates.length - 1];
   }
 
-  // 2. Named plane keywords
   if (lower.includes('kinder') || lower.includes('casa 3') || lower.includes('senior casa')) {
     return rates.find(r => r.level.includes('Casa 3')) || rates[2] || rates[1];
   }
@@ -3414,10 +3418,9 @@ function matchTuitionRate(rates, text) {
     return rates.find(r => r.level.includes('Gr 10-11') || r.level.includes('Gr 12')) || rates[rates.length - 1];
   }
 
-  // 3. Child Age Matching
-  const ageMatch = lower.match(/\b([1-9]|1[0-8])\s*(?:yo|y\.o\.|years?\s*old|years?|yrs?|yr|anyos|ka tuig|taon)?\b/i);
-  if (ageMatch) {
-    const age = parseInt(ageMatch[1], 10);
+  const ageMatches = [...lower.matchAll(/\b([1-9]|1[0-8])\s*(?:yo|y\.o\.|years?\s*old|years?|yrs?|yr|anyos|ka tuig|taon)?\b/gi)];
+  if (ageMatches.length > 0) {
+    const age = parseInt(ageMatches[ageMatches.length - 1][1], 10);
     if (age <= 2) return rates[0];
     if (age === 3 || age === 4) return rates[1] || rates[0];
     if (age === 5) return rates[2] || rates[1];
@@ -3432,82 +3435,127 @@ function matchTuitionRate(rates, text) {
   return null;
 }
 
-function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName = 'Prospective Parent') {
+function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName = 'Prospective Parent', currentText = '') {
   const code = resolveCampusCode(fullContext + ' ' + (campusInfo?.name || ''), 'DVO');
   const campusData = TUITION_SCHEDULE_SY26_27[code] || TUITION_SCHEDULE_SY26_27['DVO'];
 
-  const matchedRate = matchTuitionRate(campusData.rates, fullContext);
+  const currentLower = (currentText || '').toLowerCase();
+  const asksFullChart = currentLower.includes('chart') || currentLower.includes('table') || currentLower.includes('all level') || currentLower.includes('full schedule');
+  const currentMatchedRate = matchTuitionRate(campusData.rates, currentText);
+  const historyMatchedRate = matchTuitionRate(campusData.rates, fullContext);
+  const matchedRate = asksFullChart ? null : (currentMatchedRate || null);
 
   if (matchedRate) {
-    const memoryNote = matchedRate.hasMemoryBook ? ' (includes the commemorative Memory Book, ₱3,184.45)' : '';
-    const farmNote = matchedRate.hasFarm ? ' (includes farm consumables and laboratory fees)' : '';
+    const memoryNote = matchedRate.hasMemoryBook ? ' (includes Memory Book, ₱3,184.45)' : '';
+    const farmNote = matchedRate.hasFarm ? ' (includes farm consumables & lab fees)' : '';
+
+    const levelChart =
+      `📊 **Official SY 2026–2027 Tuition Fee Chart — ${campusData.name}**\n` +
+      `👶 **Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
+      `| Payment Plan | Schedule & Terms | Amount Due |\n` +
+      `|---|---|---|\n` +
+      `| **Whole Year Tuition** | Total Annual Base Fee | **${formatPHP(matchedRate.whole)}** |\n` +
+      `| **15% Slot Reservation** | Down Payment (24 Mar – 13 Apr) | **${formatPHP(matchedRate.dp15)}** |\n` +
+      `| 🌟 **Annual Plan** | Balance due Aug 7, 2026 (0% fee) | **${formatPHP(matchedRate.annualBal)}** |\n` +
+      `| 🗓️ **Semi-Annual (2x)** | Due Aug 7 & Dec 7 (8% fee) | **${formatPHP(matchedRate.semiBal)}** / payment |\n` +
+      `| 📆 **Quarterly (4x)** | Due Aug, Oct, Dec & Mar (10% fee) | **${formatPHP(matchedRate.qtrBal)}** / payment |\n` +
+      `| 📅 **Monthly (10x)** | Every 7th starting Aug 2026 (12% fee) | **${formatPHP(matchedRate.moBal)}** / month |\n\n`;
 
     if (isBisaya) {
-      return `📋 **Official SY 2026–2027 Tuition Breakdown — ${campusData.name}**\n` +
-             `👶 **Developmental Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-             `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-             `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(mobayad sulod sa 24 Mar hangtod 13 Apr aron ma-reserve ang slot)*\n\n` +
-             `💳 **Mga Payment Schedule Options:**\n` +
-             `1. 🌟 **Annual Plan (Full Payment):** **${formatPHP(matchedRate.annualBal)}** balance tungod sa or before August 7, 2026 (walay dugang interest/carrying fee).\n` +
-             `2. 🗓️ **Semi-Annual Plan (2 Hulog):** **${formatPHP(matchedRate.semiBal)}** kada hulog (due Aug 7 ug Dec 7; 8% carrying fee).\n` +
-             `3. 📆 **Quarterly Plan (4 Hulog):** **${formatPHP(matchedRate.qtrBal)}** kada hulog (due Aug 7, Oct 7, Dec 7, ug Mar 7; 10% carrying fee).\n` +
-             `4. 📅 **Monthly Plan (10 Hulog):** **${formatPHP(matchedRate.moBal)}** matag ika-7 sa bulan sugod Aug 2026 (12% carrying fee).\n\n` +
-             `👨‍👩‍👧‍👦 **Sibling Discount Privileges:** Dunay ~5% discount para sa pamilyang dunay 2 o kapin pa ka anak nga naka-enroll!\n` +
-             `✨ **Inclusions:** Apil na ang tanang communal consumables${memoryNote}${farmNote}.\n\n` +
-             `Gusto ba ninyo mag-book og observation walkthrough sa ${campusData.name} o makig-istorya sa atong accounting desk (**accounting@theabbasorchard.edu.ph**)?\n` +
-             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
+      return levelChart +
+             `👨‍👩‍👧‍👦 **Sibling Discount:** ~5% discount para sa 2 o kapin pa ka anak • ✨ **Inclusions:** Apil na ang communal consumables${memoryNote}${farmNote}.\n\n` +
+             `Gusto ba ninyo mag-book og observation walkthrough sa **${campusData.name}** o makita ang tibuok chart sa tanang levels?\n` +
+             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition chart for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
     }
 
     if (isTagalog) {
-      return `📋 **Official SY 2026–2027 Tuition Breakdown — ${campusData.name}**\n` +
-             `👶 **Developmental Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-             `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-             `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(ibabayad sa pagitan ng 24 Mar at 13 Apr para ma-secure ang slot)*\n\n` +
-             `💳 **Mga Opsyon sa Pagbabayad:**\n` +
-             `1. 🌟 **Annual Plan (Isahang Bayad):** **${formatPHP(matchedRate.annualBal)}** balanse sa o bago mag-August 7, 2026 (walang carrying fee).\n` +
-             `2. 🗓️ **Semi-Annual Plan (2 Hulog):** **${formatPHP(matchedRate.semiBal)}** bawat hulog (due Aug 7 at Dec 7; 8% carrying fee).\n` +
-             `3. 📆 **Quarterly Plan (4 na Hulog):** **${formatPHP(matchedRate.qtrBal)}** bawat hulog (due Aug 7, Oct 7, Dec 7, at Mar 7; 10% carrying fee).\n` +
-             `4. 📅 **Monthly Plan (10 Hulog):** **${formatPHP(matchedRate.moBal)}** buwan-buwan tuwing ika-7 simula Aug 2026 (12% carrying fee).\n\n` +
-             `👨‍👩‍👧‍👦 **Sibling Discount:** May ~5% bawas para sa pamilyang may 2 o higit pang anak na naka-enroll!\n` +
-             `✨ **Kasama sa Bayarin:** Kasama na ang communal consumables${memoryNote}${farmNote}.\n\n` +
-             `Nais po ba ninyong mag-book ng observation walkthrough sa ${campusData.name} o kumonsulta sa accounting desk (**accounting@theabbasorchard.edu.ph**)?\n` +
-             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
+      return levelChart +
+             `👨‍👩‍👧‍👦 **Sibling Discount:** ~5% bawas para sa 2 o higit pang anak • ✨ **Kasama sa Bayarin:** Communal consumables${memoryNote}${farmNote}.\n\n` +
+             `Nais po ba ninyong mag-book ng observation walkthrough sa **${campusData.name}** o makita ang buong chart ng lahat ng grade levels?\n` +
+             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition chart for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
     }
 
-    return `📋 **Official SY 2026–2027 Tuition Fee Breakdown — ${campusData.name}**\n` +
-           `👶 **Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-           `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-           `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(reserves a slot; payment window 24 Mar – 13 Apr)*\n\n` +
-           `💳 **Payment Schedule Options:**\n` +
-           `1. 🌟 **Annual Plan (Full Payment):** **${formatPHP(matchedRate.annualBal)}** remaining balance due on or before August 7, 2026 (Zero carrying fee).\n` +
-           `2. 🗓️ **Semi-Annual Plan (2 Installments):** **${formatPHP(matchedRate.semiBal)}** per payment (due Aug 7 and Dec 7; 8% carrying fee).\n` +
-           `3. 📆 **Quarterly Plan (4 Installments):** **${formatPHP(matchedRate.qtrBal)}** per payment (due Aug 7, Oct 7, Dec 7, and Mar 7; 10% carrying fee).\n` +
-           `4. 📅 **Monthly Plan (10 Installments):** **${formatPHP(matchedRate.moBal)}** monthly every 7th of the month starting Aug 2026 (12% carrying fee).\n\n` +
-           `👨‍👩‍👧‍👦 **Sibling Discount Privileges:** Enrolling 2 or more children? Receive a ~5% discount across all whole-year fees and installment modes!\n` +
-           `✨ **Inclusions:** Includes all communal consumables${memoryNote}${farmNote}.\n\n` +
-           `Would you like to schedule an Observation Walkthrough at ${campusData.name} or speak directly with Central Accounting (**accounting@theabbasorchard.edu.ph**)?\n` +
-           `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
+    return levelChart +
+           `👨‍👩‍👧‍👦 **Sibling Discount:** ~5% savings for 2+ enrolled children • ✨ **Inclusions:** All communal consumables${memoryNote}${farmNote}.\n\n` +
+           `Would you like to schedule an Observation Walkthrough at **${campusData.name}** or speak directly with Central Accounting (**accounting@theabbasorchard.edu.ph**)?\n` +
+           `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition chart for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
   }
 
-  // Overview Table when specific level is not yet indicated
-  let summaryTable = `📋 **Official SY 2026–2027 Annual Tuition Summary — ${campusData.name}**\n\n` +
-                     `| Level | Developmental Plane | Whole Year Fee | 15% Down Payment |\n` +
-                     `|---|---|---|---|\n`;
+  let summaryTable = `📊 **Official SY 2026–2027 Tuition Fee Chart — ${campusData.name}**\n\n` +
+                     `| Level / Program | Age / Grade | Whole Year Fee | 15% Reservation | Annual Bal (Aug 7) | Monthly (10x) |\n` +
+                     `|---|---|---|---|---|---|\n`;
   campusData.rates.forEach(r => {
-    summaryTable += `| ${r.level} | ${r.age} | **${formatPHP(r.whole)}** | ${formatPHP(r.dp15)} |\n`;
+    const isHighlighted = historyMatchedRate && historyMatchedRate.level === r.level;
+    const rowPrefix = isHighlighted ? '👉 **' : '';
+    const rowSuffix = isHighlighted ? '**' : '';
+    summaryTable += `| ${rowPrefix}${r.level}${rowSuffix} | ${r.age} | **${formatPHP(r.whole)}** | ${formatPHP(r.dp15)} | ${formatPHP(r.annualBal)} | ${formatPHP(r.moBal)}/mo |\n`;
   });
 
-  summaryTable += `\n💳 **Flexible Payment Schedules:**\n` +
-                  `• **Annual Plan:** 15% DP + remaining 85% balance due August 7, 2026 (Full payment privilege)\n` +
-                  `• **Semi-Annual Plan:** 15% DP + 2 installments due Aug 7 & Dec 7 (8% carrying fee)\n` +
-                  `• **Quarterly Plan:** 15% DP + 4 installments due Aug 7, Oct 7, Dec 7 & Mar 7 (10% carrying fee)\n` +
-                  `• **Monthly Plan:** 15% DP + 10 monthly payments every 7th starting Aug 2026 (12% carrying fee)\n\n` +
-                  `👨‍👩‍👧‍👦 **Sibling Discount:** ~5% savings for families enrolling 2 or more children.\n` +
-                  `✨ **Inclusions:** All communal consumables included (Memory Book included for Casa 3, Gr 6, Gr 12).\n\n` +
-                  `What is your **child's age or grade level** so I can calculate the exact installment schedule for your family?\n` +
-                  `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Summary Table Request SY 2026-2027", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested full tuition fee schedule for ${campusData.name}."} -->`;
+  summaryTable += `\n💳 **Payment Plan Notes:**\n` +
+                  `• **15% Reservation Down Payment:** Reserves your child's slot (payable 24 Mar – 13 Apr)\n` +
+                  `• **Installment Options:** Semi-Annual (2x), Quarterly (4x), or Monthly (10x every 7th starting Aug 2026)\n` +
+                  `• 👨‍👩‍👧‍👦 **Sibling Discount:** ~5% savings for 2+ children • ✨ **Inclusions:** Communal consumables included\n\n` +
+                  `Would you like to schedule a morning Observation Walkthrough at **${campusData.name}**, or share your **child's age/grade** for a tailored breakdown?\n` +
+                  `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Fee Chart Request SY 2026-2027", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee chart for ${campusData.name}."} -->`;
 
   return summaryTable;
+}
+
+function resolveActiveCampusInfo(currentText, historyArray = []) {
+  const CAMPUS_LIST = [
+    { keywords: ['alwana', 'cdo', 'cagayan'], info: { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" } },
+    { keywords: ['davao', 'obrero', 'mandug'], info: { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" } },
+    { keywords: ['granja', 'bukidnon', 'baungon', 'erdkinder'], info: { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" } },
+    { keywords: ['cebu', 'magsaysay', 'tandang sora'], info: { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" } },
+    { keywords: ['iloilo', 'barbara'], info: { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" } },
+    { keywords: ['mckinley', 'bgc'], info: { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" } },
+    { keywords: ['bayani'], info: { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" } },
+    { keywords: ['alabang', 'filinvest', 'muntinlupa'], info: { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" } },
+    { keywords: ['greenhills', 'mandaluyong'], info: { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" } },
+    { keywords: ['antipolo', 'taktak'], info: { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" } },
+    { keywords: ['calle industria', 'bridgetowne', 'quezon city', 'qc'], info: { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" } },
+    { keywords: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'], info: { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" } }
+  ];
+
+  const findCampusInText = (txt) => {
+    const l = (txt || '').toLowerCase().replace(/&\s*bukidnon\s*\(la\s*granja\)/g, '');
+    let latestIdx = -1;
+    let matched = null;
+    for (const entry of CAMPUS_LIST) {
+      for (const kw of entry.keywords) {
+        if (kw === 'bgc' && l.includes('bayani')) continue;
+        const idx = l.lastIndexOf(kw);
+        if (idx > latestIdx) {
+          latestIdx = idx;
+          matched = entry.info;
+        }
+      }
+    }
+    return matched;
+  };
+
+  const fromCurrent = findCampusInText(currentText);
+  if (fromCurrent) return fromCurrent;
+
+  for (let i = historyArray.length - 1; i >= 0; i--) {
+    const msg = historyArray[i];
+    if (msg && msg.role === 'user') {
+      const fromHist = findCampusInText(msg.content || '');
+      if (fromHist) return fromHist;
+    }
+  }
+
+  for (let i = historyArray.length - 1; i >= 0; i--) {
+    const msg = historyArray[i];
+    const fromHist = findCampusInText(msg && msg.content ? msg.content : '');
+    if (fromHist) return fromHist;
+  }
+
+  return {
+    name: "The Abba's Orchard Central Admissions",
+    email: "admission_application@theabbasorchard.edu.ph",
+    phone: "(0917) 508 2668"
+  };
 }
 
     function generateClientFallback(userText) {
@@ -3537,44 +3585,17 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
       const emailMatch = currentText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
       const capturedContact = phoneMatch ? phoneMatch[0] : (emailMatch ? emailMatch[0] : null);
 
-      // Time / Schedule Preferences
-      const hasTimePref = lower.includes('morning') || lower.includes('afternoon') || lower.includes('weekday') || 
+      // Date & Time / Schedule Preferences (including calendar dates like "November 3" or "Nov 3")
+      const calendarDateMatch = currentText.match(/\b(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)|next\s+week|this\s+week)\b/i);
+      const capturedDate = calendarDateMatch ? calendarDateMatch[0] : null;
+
+      const hasTimePref = Boolean(capturedDate) || lower.includes('morning') || lower.includes('afternoon') || lower.includes('weekday') || 
                           lower.includes('monday') || lower.includes('tuesday') || lower.includes('wednesday') || 
                           lower.includes('thursday') || lower.includes('friday') || lower.includes('buntag') || 
                           lower.includes('hapon') || lower.includes('bukas') || lower.includes('tomorrow');
 
-      // Campus Resolution
-      let campusInfo = {
-        name: "The Abba's Orchard Central Admissions",
-        email: "admission_application@theabbasorchard.edu.ph",
-        phone: "(0917) 508 2668"
-      };
-
-      if (fullContext.includes('alwana') || fullContext.includes('cdo') || fullContext.includes('cagayan')) {
-        campusInfo = { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" };
-      } else if (fullContext.includes('davao') || fullContext.includes('obrero') || fullContext.includes('mandug')) {
-        campusInfo = { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" };
-      } else if (fullContext.includes('granja') || fullContext.includes('bukidnon') || fullContext.includes('baungon') || fullContext.includes('erdkinder')) {
-        campusInfo = { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" };
-      } else if (fullContext.includes('cebu') || fullContext.includes('magsaysay') || fullContext.includes('tandang sora')) {
-        campusInfo = { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" };
-      } else if (fullContext.includes('iloilo') || fullContext.includes('barbara')) {
-        campusInfo = { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" };
-      } else if (fullContext.includes('mckinley') || (fullContext.includes('bgc') && !fullContext.includes('bayani'))) {
-        campusInfo = { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" };
-      } else if (fullContext.includes('bayani')) {
-        campusInfo = { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" };
-      } else if (fullContext.includes('alabang') || fullContext.includes('filinvest') || fullContext.includes('muntinlupa')) {
-        campusInfo = { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" };
-      } else if (fullContext.includes('greenhills') || fullContext.includes('mandaluyong')) {
-        campusInfo = { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" };
-      } else if (fullContext.includes('antipolo') || fullContext.includes('taktak')) {
-        campusInfo = { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" };
-      } else if (fullContext.includes('calle industria') || fullContext.includes('bridgetowne') || fullContext.includes('quezon city')) {
-        campusInfo = { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" };
-      } else if (fullContext.includes('carmelray') || fullContext.includes('canlubang') || fullContext.includes('laguna')) {
-        campusInfo = { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" };
-      }
+      // Campus Resolution (Most recently mentioned campus always takes priority)
+      const campusInfo = resolveActiveCampusInfo(currentText, historyArray);
 
       // Parent Name Extraction
       let parentName = "Prospective Parent";
@@ -3606,7 +3627,8 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
                             cleanLower === 'oo' || cleanLower === 'opo' || cleanLower === 'yes po' || cleanLower === 'pwede' ||
                             cleanLower === 'puwede' || cleanLower === 'pede' || cleanLower === 'go' || cleanLower === 'proceed' ||
                             cleanLower === 'gusto ko' || cleanLower === 'sounds good' || cleanLower === 'i want to' ||
-                            cleanLower === 'i would like that' || cleanLower === 'gusto ko mag visit' || cleanLower === 'yes we want';
+                            cleanLower === 'i would like that' || cleanLower === 'gusto ko mag visit' || cleanLower === 'yes we want' ||
+                            cleanLower === 'schedule walkthrough' || cleanLower === 'book walkthrough';
 
       const isWhenQuestion = cleanLower === 'when' || cleanLower === 'when is it' || cleanLower === 'what time' || 
                              cleanLower === 'what day' || cleanLower === 'kailan' || cleanLower === 'kelan' || 
@@ -3628,14 +3650,22 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
                             cleanLower === 'who is in charge';
 
       // 1. Walkthrough / Visit Follow-up ("how?", "yes", "sure", "sige", "ok")
+      const alreadyExplainedHowToSchedule = lastModelLower.includes('how to schedule an observation walkthrough') ||
+                                            lastModelLower.includes('paano po mag-schedule ng observation walkthrough') ||
+                                            lastModelLower.includes('unsaon pag-schedule og observation walkthrough') ||
+                                            lastModelLower.includes('which weekday morning would work best');
+
       if ((isHowQuestion || isAffirmative) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation') || lastModelLower.includes('tour') || lastModelLower.includes('visit') || lastModelLower.includes('classroom'))) {
+        if (alreadyExplainedHowToSchedule) {
+          return `Wonderful! 🌿 To finalize your **Observation Walkthrough at ${campusInfo.name}**, please reply with:\n\n1. 📅 **Your Preferred Date / Weekday Morning** (8:30 AM – 11:00 AM)\n2. 👤 **Parent's Full Name & Mobile Number**\n3. 👶 **Your Child's Age or Grade Level**\n\nAs soon as you share these details, our admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will confirm your visitor pass!`;
+        }
         if (isBisaya) {
-          return `🌿 **Unsaon Pag-schedule og Observation Walkthrough sa ${campusInfo.name}:**\n\nSayon ra kaayo ang pagbisita aron makita ninyo ang Authentic Montessori sa lihok:\n\n1. ⏰ **Gusto nga Adlaw:** Ang walkthrough gihimo sa mga **weekday mornings tali sa 8:30 AM ug 11:00 AM** (panahon sa 3-hour uninterrupted work cycle sa mga bata).\n2. 📞 **I-share ang inyong Contact Details:** Palihug i-reply diri ang inyong **pangalan, contact number, ug edad sa inyong anak**.\n3. 🎟️ **Kumpirmasyon sa Visitor Pass:** Ang atong campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) motawag o mo-message ninyo aron kumpirmahon ang inyong observation pass ug schedule.\n\nUnsa nga weekday morning ang labing komportable para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+          return `🌿 **Unsaon Pag-schedule og Observation Walkthrough sa ${campusInfo.name}:**\n\nSayon ra kaayo ang pagbisita aron makita ninyo ang Authentic Montessori sa lihok:\n\n1. ⏰ **Gusto nga Adlaw:** Ang walkthrough gihimo sa mga **weekday mornings tali sa 8:30 AM ug 11:00 AM** (panahon sa 3-hour uninterrupted work cycle sa mga bata).\n2. 📞 **I-share ang inyong Contact Details:** Palihug i-reply diri ang inyong **pangalan, contact number, ug edad sa inyong anak**.\n3. 🎟️ **Kumpirmasyon sa Visitor Pass:** Ang atong campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) motawag o mo-message ninyo aron kumpirmahon ang inyong observation pass ug schedule.\n\nUnsa nga **petsa o weekday morning** ang labing komportable para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
         }
         if (isTagalog) {
-          return `🌿 **Paano po Mag-schedule ng Observation Walkthrough sa ${campusInfo.name}:**\n\nNapakadali lang po mag-set ng inyong pagbisita upang masaksihan ang True Montessori in action:\n\n1. ⏰ **Pumili ng Araw:** Ang observation walkthrough ay bukas tuwing **weekday mornings mula 8:30 AM hanggang 11:00 AM** (habang aktibong nag-aaral ang mga bata sa kanilang 3-hour uninterrupted work cycle).\n2. 📞 **I-share ang inyong Contact Details:** I-reply lamang po rito ang inyong **pangalan, mobile number, at edad ng inyong anak**.\n3. 🎟️ **Visitor Pass & Confirmation:** Agad pong makikipag-ugnayan ang aming campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) upang i-confirm ang inyong visitor schedule at orientation brief.\n\nAling weekday morning po ang pinaka-convenient para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+          return `🌿 **Paano po Mag-schedule ng Observation Walkthrough sa ${campusInfo.name}:**\n\nNapakadali lang po mag-set ng inyong pagbisita upang masaksihan ang True Montessori in action:\n\n1. ⏰ **Pumili ng Araw:** Ang observation walkthrough ay bukas tuwing **weekday mornings mula 8:30 AM hanggang 11:00 AM** (habang aktibong nag-aaral ang mga bata sa kanilang 3-hour uninterrupted work cycle).\n2. 📞 **I-share ang inyong Contact Details:** I-reply lamang po rito ang inyong **pangalan, mobile number, at edad ng inyong anak**.\n3. 🎟️ **Visitor Pass & Confirmation:** Agad pong makikipag-ugnayan ang aming campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) upang i-confirm ang inyong visitor schedule at orientation brief.\n\nAnong **petsa o weekday morning** po ang pinaka-convenient para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
         }
-        return `🌿 **How to Schedule an Observation Walkthrough at ${campusInfo.name}:**\n\nArranging your classroom observation walkthrough is very simple:\n\n1. ⏰ **Choose a Preferred Weekday Morning:** Walkthroughs are conducted Monday through Friday between **8:30 AM and 11:00 AM** during our active 3-hour uninterrupted morning work cycle.\n2. 📞 **Share Your Details:** Simply reply here with your **name, mobile number, and your child's age or grade level**.\n3. 🎟️ **Pass Confirmation:** Our designated campus admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will immediately prepare your personalized visitor pass and welcome packet.\n\nWhich weekday morning would work best for your family visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+        return `🌿 **How to Schedule an Observation Walkthrough at ${campusInfo.name}:**\n\nGreat! I would be delighted to help you reserve your classroom observation walkthrough:\n\n1. 📅 **Preferred Date:** Walkthroughs are conducted Monday through Friday between **8:30 AM and 11:00 AM** during our active 3-hour uninterrupted morning work cycle.\n2. 📞 **Contact Details:** Reply here with your **preferred date, full name, and mobile number**.\n3. 🎟️ **Pass Confirmation:** Our campus admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will immediately prepare your visitor pass.\n\nWhich **date or weekday morning** works best for your visit to **${campusInfo.name}**?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
       }
 
       // 2. Tuition / Payment Follow-up ("how?", "how to pay?", "paano magbayad?", "unsaon pagbayad?")
@@ -3669,7 +3699,7 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
 
       // 6. Pricing Follow-up ("how much?", "magkano?", "pila?")
       if (isCostFollowup) {
-        return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
+        return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName, currentText);
       }
 
       // 7. Coordinator / Contact Follow-up ("who?", "who to contact?", "sino?")
@@ -3855,28 +3885,28 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
         return `Certainly! Here is the direct contact information for the Campus Admissions & Development Officer (CADO) for **${campusInfo.name}**: 🌿\n\n• 📞 **Direct Line / Mobile:** **${campusInfo.phone}**\n• 📧 **Direct Coordinator Email:** **${campusInfo.email}**\n• ⏰ **Office Hours:** Monday to Friday, 8:00 AM – 4:00 PM\n\nIf you would like the coordinator to call or email you directly, please share your **name, phone number, and your children's ages**, and I will immediately dispatch a priority callback notification to the CADO desk!`;
       }
 
-      // INTENT 15: Walkthrough Booking & Contact Acknowledgment
-      if (capturedContact || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('contact') || historyText.includes('number')))) {
-        const contactStr = capturedContact ? `**${capturedContact}**` : "your provided contact details";
-        const timeStr = hasTimePref ? "weekday morning observation window (8:30 AM – 11:00 AM)" : "morning work cycle observation";
+      // INTENT 15: Walkthrough Booking & Contact / Date Acknowledgment
+      if (capturedContact || capturedDate || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('observation') || historyText.includes('contact') || historyText.includes('number')))) {
+        const contactStr = capturedContact ? `**${capturedContact}**` : "Pending (please reply with your mobile number)";
+        const timeStr = capturedDate ? `**${capturedDate}** (Morning Work Cycle: 8:30 AM – 11:00 AM)` : (hasTimePref ? "Weekday Morning Observation (8:30 AM – 11:00 AM)" : "Morning Work Cycle Observation");
 
         if (isBisaya) {
-          return `Daghang salamat! 🌿 Nalipay kaayo mi nga makadawat sa inyong detalye para sa observation walkthrough sa atong **${campusInfo.name}**.\n\nNalista na nako ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nTawagan o i-message kamo sa atong campus coordinator aron ma-confirm ang inyong visitor pass ug observation schedule.\n\nPila man ang **edad o ngalan sa inyong anak** aron maandam daan sa atong Montessori Guides ang classroom environment para sa inyong pagbisita?`;
+          return `Daghang salamat! 🌿 Nalipay kaayo mi nga makadawat sa inyong hangyo para sa observation walkthrough sa atong **${campusInfo.name}**.\n\nNalista na nako ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• ⏰ **Preferred Date / Schedule:** ${timeStr}\n• 📞 **Contact Number:** ${contactStr}\n• 📧 **Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\n${capturedContact ? 'Tawagan o i-message kamo sa atong campus coordinator aron ma-confirm ang inyong visitor pass.' : 'Palihug i-reply ang inyong **pangalan ug mobile number** aron ma-confirm sa atong campus coordinator ang inyong visitor pass!'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Date Request (${capturedDate || 'Morning'})", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending'}", "details": "Parent requested walkthrough on ${capturedDate || 'weekday morning'}: ${currentText}"} -->`;
         }
 
         if (isTagalog) {
-          return `Maraming salamat po! 🌿 Ikinagagalak po naming matanggap ang inyong detalye para sa classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nMakikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass at oras ng walkthrough.\n\nMay maitatanong po ba kami ukol sa **edad o pangalan ng inyong anak** para maihanda po ng aming Montessori directress ang classroom sa inyong pagdating?`;
+          return `Maraming salamat po! 🌿 Ikinagagalak po naming matanggap ang inyong schedule para sa classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• ⏰ **Preferred Date / Schedule:** ${timeStr}\n• 📞 **Contact Number:** ${contactStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\n${capturedContact ? 'Makikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass.' : 'Maaari po bang makuha ang inyong **pangalan at mobile number** upang ma-confirm ng aming coordinator ang inyong visitor pass para sa ' + (capturedDate || 'inyong pagbisita') + '?'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Date Request (${capturedDate || 'Morning'})", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending'}", "details": "Parent requested walkthrough on ${capturedDate || 'weekday morning'}: ${currentText}"} -->`;
         }
 
-        return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **children's ages or names** so our Montessori Directress can prepare the appropriate prepared environments (Casa, Elementary, etc.) for your visit?`;
+        return `Wonderful! 🌿 I have noted your preferred schedule for a Classroom Observation Walkthrough at **${campusInfo.name}**:\n\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📅 **Preferred Date & Time:** ${timeStr}\n• 📞 **Contact Number:** ${contactStr}\n• 📧 **Designated Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\n${capturedContact ? 'Our campus coordinator has been notified and will reach out to you shortly to confirm your observation pass!' : 'To lock in your slot for **' + (capturedDate || 'your preferred morning') + '**, may I please have your **full name and mobile number** so our coordinator can send your visitor pass?'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Date Request (${capturedDate || 'Morning'})", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending'}", "details": "Parent requested walkthrough on ${capturedDate || 'weekday morning'}: ${currentText}"} -->`;
       }
 
       // --------------------------------------------------------------------------
-      // INTENT 6B: Tuition & Payment Inquiries (Official SY 2026-2027 Summary)
+      // INTENT 6B: Tuition & Payment Inquiries (Official SY 2026-2027 Chart)
       // --------------------------------------------------------------------------
-      const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates');
+      const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates') || lower.includes('chart') || lower.includes('pricing');
       if (isTuition) {
-        return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
+        return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName, currentText);
       }
 
       // INTENT 7: Smart Child Age & Plane Analysis (Supports Multi-Child & Exact Ages)
@@ -3896,13 +3926,13 @@ function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parent
       if (ageAnalysis.planes.length === 1) {
         const p = ageAnalysis.planes[0];
         if (p.id === 'casa') {
-          return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** or request the Casa admissions schedule?`;
+          return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or request the Casa admissions schedule?`;
         }
         if (p.id === 'elem') {
-          return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** for a classroom observation walkthrough?`;
+          return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) for a classroom observation walkthrough?`;
         }
         if (p.id === 'infant') {
-          return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** or receive the Infant Community schedule?`;
+          return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or receive the Infant Community schedule?`;
         }
         if (p.id === 'erdkinder') {
           return `For your **${p.ageLabel}** adolescent student (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic agriculture, land stewardship, animal husbandry, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?`;

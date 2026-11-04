@@ -108,9 +108,19 @@ module.exports = async function handler(req, res) {
     const openaiKey = process.env.OPENAI_API_KEY;
     const model = process.env.AI_MODEL || (provider === 'gemini' ? 'gemini-2.0-flash' : 'gpt-4o-mini');
 
+    const lowerMsg = String(message).toLowerCase();
+    const isDeterministicTuitionOrBooking =
+      lowerMsg.includes('tuition') || lowerMsg.includes('fee') || lowerMsg.includes('pila') ||
+      lowerMsg.includes('tagpila') || lowerMsg.includes('magkano') || lowerMsg.includes('how much') ||
+      lowerMsg.includes('cost') || lowerMsg.includes('payment') || lowerMsg.includes('installment') ||
+      lowerMsg.includes('pricing') || lowerMsg.includes('chart') || lowerMsg.includes('rates') ||
+      /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b/i.test(lowerMsg);
+
     let rawResponse = "";
 
-    if (provider === 'gemini' && geminiKey) {
+    if (isDeterministicTuitionOrBooking) {
+      rawResponse = generateFallbackMontessoriResponse(message, history, campus);
+    } else if (provider === 'gemini' && geminiKey) {
       const contents = history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.content }]
@@ -210,7 +220,13 @@ module.exports = async function handler(req, res) {
 };
 
 function analyzeAgesAndPlanes(text) {
-  const lower = (text || '').toLowerCase();
+  const rawLower = (text || '').toLowerCase();
+  // Strip calendar dates ("November 3", "3rd of November", "Nov 3", "11/03", etc.) and Grade numbers ("Grade 3", "Casa 3", "Level 2") so date/grade numbers are never mistaken for child ages
+  const lower = rawLower
+    .replace(/\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\b/gi, ' ')
+    .replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi, ' ')
+    .replace(/\b(?:grade|gr|level|casa|step)\s*\d{1,2}\b/gi, ' ')
+    .replace(/\b\d{1,2}\s*(?:am|pm|a\.m\.|p\.m\.)\b/gi, ' ');
   
   const wordMap = {
     'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
@@ -247,8 +263,8 @@ function analyzeAgesAndPlanes(text) {
   }
 
   // Month patterns (e.g. 14 months, 18 mos)
-  const monthMatch = lower.match(/\b(1[4-9]|[2-3]\d)\s*(?:months?|mos|mo)\b/);
-  const isToddlerExplicit = Boolean(monthMatch) || lower.includes('toddler') || lower.includes('infant');
+  const monthMatch = rawLower.match(/\b(1[4-9]|[2-3]\d)\s*(?:months?|mos|mo)\b/);
+  const isToddlerExplicit = Boolean(monthMatch) || rawLower.includes('toddler') || rawLower.includes('infant');
 
   const planes = [];
   
@@ -264,7 +280,7 @@ function analyzeAgesAndPlanes(text) {
     });
   }
 
-  if (detectedAges.some(a => a >= 3 && a <= 6) || lower.includes('preschool') || lower.includes('kinder') || lower.includes('casa')) {
+  if (detectedAges.some(a => a >= 3 && a <= 6) || rawLower.includes('preschool') || rawLower.includes('kinder') || rawLower.includes('casa')) {
     const ageList = detectedAges.filter(a => a >= 3 && a <= 6);
     const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '3 – 6 Years';
     planes.push({
@@ -276,7 +292,7 @@ function analyzeAgesAndPlanes(text) {
     });
   }
 
-  if (detectedAges.some(a => a >= 7 && a <= 12) || lower.includes('elementary') || lower.includes('grade 1') || lower.includes('grade 2') || lower.includes('grade 3') || lower.includes('grade 4') || lower.includes('grade 5') || lower.includes('grade 6')) {
+  if (detectedAges.some(a => a >= 7 && a <= 12) || rawLower.includes('elementary') || rawLower.includes('grade 1') || rawLower.includes('grade 2') || rawLower.includes('grade 3') || rawLower.includes('grade 4') || rawLower.includes('grade 5') || rawLower.includes('grade 6')) {
     const ageList = detectedAges.filter(a => a >= 7 && a <= 12);
     const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '6 – 12 Years';
     planes.push({
@@ -288,7 +304,7 @@ function analyzeAgesAndPlanes(text) {
     });
   }
 
-  if (detectedAges.some(a => a >= 13 && a <= 18) || lower.includes('high school') || lower.includes('adolescent') || lower.includes('erdkinder') || lower.includes('boarding')) {
+  if (detectedAges.some(a => a >= 13 && a <= 18) || rawLower.includes('high school') || rawLower.includes('adolescent') || rawLower.includes('erdkinder') || rawLower.includes('boarding')) {
     const ageList = detectedAges.filter(a => a >= 13 && a <= 18);
     const ageLabel = ageList.length > 0 ? `${ageList.join(' & ')} year old` : '12 – 18 Years';
     planes.push({
@@ -303,9 +319,68 @@ function analyzeAgesAndPlanes(text) {
   return { detectedAges, planes };
 }
 
-/**
- * Context-Aware Multi-Turn Conversational Engine with Language Mirroring & Lead Capture
- */
+function resolveActiveCampusInfo(currentText, historyArray = [], preferredCampus = null) {
+  const campusPatterns = [
+    { keys: ['alwana', 'cdo', 'cagayan'], info: { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" } },
+    { keys: ['davao', 'obrero', 'mandug'], info: { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" } },
+    { keys: ['granja', 'bukidnon', 'baungon', 'erdkinder'], info: { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" } },
+    { keys: ['cebu', 'magsaysay', 'tandang sora'], info: { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" } },
+    { keys: ['iloilo', 'barbara'], info: { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" } },
+    { keys: ['mckinley', 'bgc'], info: { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" } },
+    { keys: ['bayani'], info: { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" } },
+    { keys: ['alabang', 'filinvest', 'muntinlupa'], info: { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" } },
+    { keys: ['greenhills', 'mandaluyong', 'wack-wack', 'wack wack'], info: { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" } },
+    { keys: ['antipolo', 'taktak'], info: { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" } },
+    { keys: ['calle industria', 'bridgetowne', 'quezon city', 'qc'], info: { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" } },
+    { keys: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'], info: { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" } }
+  ];
+
+  const findLatestInString = (str) => {
+    if (!str) return null;
+    const s = str.toLowerCase().replace(/&\s*bukidnon\s*\(la\s*granja\)/g, '');
+    let bestIdx = -1;
+    let bestInfo = null;
+    for (const cp of campusPatterns) {
+      for (const k of cp.keys) {
+        const idx = s.lastIndexOf(k);
+        if (idx > bestIdx) {
+          bestIdx = idx;
+          bestInfo = cp.info;
+        }
+      }
+    }
+    return bestInfo;
+  };
+
+  const fromCurrent = findLatestInString(currentText);
+  if (fromCurrent) return fromCurrent;
+
+  const fromPreferred = findLatestInString(preferredCampus);
+  if (fromPreferred) return fromPreferred;
+
+  for (let i = historyArray.length - 1; i >= 0; i--) {
+    const msg = historyArray[i];
+    if (msg && msg.role === 'user' && msg.content) {
+      const found = findLatestInString(msg.content);
+      if (found) return found;
+    }
+  }
+
+  for (let i = historyArray.length - 1; i >= 0; i--) {
+    const msg = historyArray[i];
+    if (msg && msg.content) {
+      const found = findLatestInString(msg.content);
+      if (found) return found;
+    }
+  }
+
+  return {
+    name: "The Abba's Orchard Central Admissions",
+    email: "admission_application@theabbasorchard.edu.ph",
+    phone: "(0917) 508 2668"
+  };
+}
+
 /**
  * Context-Aware Multi-Turn Conversational Engine with Deep Intent Analysis & Language Mirroring
  */
@@ -337,44 +412,19 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   const emailMatch = currentText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
   const capturedContact = phoneMatch ? phoneMatch[0] : (emailMatch ? emailMatch[0] : null);
 
-  // Time / Schedule Preferences
-  const hasTimePref = lower.includes('morning') || lower.includes('afternoon') || lower.includes('weekday') || 
-                      lower.includes('monday') || lower.includes('tuesday') || lower.includes('wednesday') || 
-                      lower.includes('thursday') || lower.includes('friday') || lower.includes('buntag') || 
-                      lower.includes('hapon') || lower.includes('bukas') || lower.includes('tomorrow');
+  // Explicit Calendar Date & Weekday Preferences (e.g. "November 3", "Nov 3", "Monday", "tomorrow")
+  const dateMatch = currentText.match(/\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*,?\s*\d{4})?|\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?))\b/i);
+  const capturedDate = dateMatch ? dateMatch[0] : null;
 
-  // Active Campus Resolution
-  let campusInfo = {
-    name: "The Abba's Orchard Central Admissions",
-    email: "admission_application@theabbasorchard.edu.ph",
-    phone: "(0917) 508 2668"
-  };
+  const weekdayMatch = currentText.match(/\b(monday|tuesday|wednesday|thursday|friday|tomorrow|next\s+week|bukas|lunes|martes|miyerkules|huwebes|biyernes)\b/i);
+  const capturedWeekday = weekdayMatch ? weekdayMatch[0] : null;
 
-  if (fullContext.includes('alwana') || fullContext.includes('cdo') || fullContext.includes('cagayan')) {
-    campusInfo = { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" };
-  } else if (fullContext.includes('davao') || fullContext.includes('obrero') || fullContext.includes('mandug')) {
-    campusInfo = { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" };
-  } else if (fullContext.includes('granja') || fullContext.includes('bukidnon') || fullContext.includes('baungon') || fullContext.includes('erdkinder')) {
-    campusInfo = { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" };
-  } else if (fullContext.includes('cebu') || fullContext.includes('magsaysay') || fullContext.includes('tandang sora')) {
-    campusInfo = { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" };
-  } else if (fullContext.includes('iloilo') || fullContext.includes('barbara')) {
-    campusInfo = { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" };
-  } else if (fullContext.includes('mckinley') || (fullContext.includes('bgc') && !fullContext.includes('bayani'))) {
-    campusInfo = { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" };
-  } else if (fullContext.includes('bayani')) {
-    campusInfo = { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" };
-  } else if (fullContext.includes('alabang') || fullContext.includes('filinvest') || fullContext.includes('muntinlupa')) {
-    campusInfo = { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" };
-  } else if (fullContext.includes('greenhills') || fullContext.includes('mandaluyong')) {
-    campusInfo = { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" };
-  } else if (fullContext.includes('antipolo') || fullContext.includes('taktak')) {
-    campusInfo = { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" };
-  } else if (fullContext.includes('calle industria') || fullContext.includes('bridgetowne') || fullContext.includes('quezon city')) {
-    campusInfo = { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" };
-  } else if (fullContext.includes('carmelray') || fullContext.includes('canlubang') || fullContext.includes('laguna')) {
-    campusInfo = { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" };
-  }
+  const hasTimePref = Boolean(capturedDate) || Boolean(capturedWeekday) ||
+                      lower.includes('morning') || lower.includes('afternoon') || lower.includes('weekday') || 
+                      lower.includes('buntag') || lower.includes('hapon');
+
+  // Active Campus Resolution (Always prioritizes latest mentioned campus!)
+  const campusInfo = resolveActiveCampusInfo(currentText, historyArray, campusName);
 
   // Parent Name Extraction
   let parentName = "Prospective Parent";
@@ -429,14 +479,19 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
                         cleanLower === 'who is in charge';
 
   // 1. Walkthrough / Visit Follow-up ("how?", "yes", "sure", "sige", "ok")
-  if ((isHowQuestion || isAffirmative) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation') || lastModelLower.includes('tour') || lastModelLower.includes('visit') || lastModelLower.includes('classroom'))) {
+  // Only trigger if the user did NOT already provide a specific date/weekday/phone in this message
+  if ((isHowQuestion || (isAffirmative && !hasTimePref && !capturedContact)) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation') || lastModelLower.includes('tour') || lastModelLower.includes('visit') || lastModelLower.includes('classroom'))) {
+    // If the previous message already gave the "How to Schedule" instructions, advance the booking state instead of repeating!
+    if (lastModelLower.includes('how to schedule') || lastModelLower.includes('paano po mag-schedule') || lastModelLower.includes('unsaon pag-schedule') || lastModelLower.includes('choose a preferred weekday')) {
+      return `Wonderful! 🌿 To lock in your **Observation Walkthrough pass** at **${campusInfo.name}** (Monday – Friday, 8:30 AM – 11:00 AM), please reply with:\n\n1. 📅 **Your preferred date or weekday morning** (e.g., *November 3* or *Tuesday morning*)\n2. 📞 **Your mobile number & name**\n\nAs soon as you send those, I will forward your pass request directly to **${campusInfo.email}** (${campusInfo.phone})!\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Pass Confirmation Follow-up", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent confirmed walkthrough interest: ${currentText}"} -->`;
+    }
     if (isBisaya) {
-      return `🌿 **Unsaon Pag-schedule og Observation Walkthrough sa ${campusInfo.name}:**\n\nSayon ra kaayo ang pagbisita aron makita ninyo ang Authentic Montessori sa lihok:\n\n1. ⏰ **Gusto nga Adlaw:** Ang walkthrough gihimo sa mga **weekday mornings tali sa 8:30 AM ug 11:00 AM** (panahon sa 3-hour uninterrupted work cycle sa mga bata).\n2. 📞 **I-share ang inyong Contact Details:** Palihug i-reply diri ang inyong **pangalan, contact number, ug edad sa inyong anak**.\n3. 🎟️ **Kumpirmasyon sa Visitor Pass:** Ang atong campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) motawag o mo-message ninyo aron kumpirmahon ang inyong observation pass ug schedule.\n\nUnsa nga weekday morning ang labing komportable para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+      return `🌿 **Unsaon Pag-schedule og Observation Walkthrough sa ${campusInfo.name}:**\n\nSayon ra kaayo ang pagbisita aron makita ninyo ang Authentic Montessori sa lihok:\n\n1. ⏰ **Gusto nga Adlaw:** Ang walkthrough gihimo sa mga **weekday mornings tali sa 8:30 AM ug 11:00 AM** (panahon sa 3-hour uninterrupted work cycle sa mga bata).\n2. 📞 **I-share ang inyong Contact Details:** Palihug i-reply diri ang inyong **pangalan, contact number, ug gusto nga petsa (pananglitan: November 3)**.\n3. 🎟️ **Kumpirmasyon sa Visitor Pass:** Ang atong campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) motawag o mo-message ninyo aron kumpirmahon ang inyong observation pass ug schedule.\n\nUnsa nga petsa o weekday morning ang labing komportable para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
     }
     if (isTagalog) {
-      return `🌿 **Paano po Mag-schedule ng Observation Walkthrough sa ${campusInfo.name}:**\n\nNapakadali lang po mag-set ng inyong pagbisita upang masaksihan ang True Montessori in action:\n\n1. ⏰ **Pumili ng Araw:** Ang observation walkthrough ay bukas tuwing **weekday mornings mula 8:30 AM hanggang 11:00 AM** (habang aktibong nag-aaral ang mga bata sa kanilang 3-hour uninterrupted work cycle).\n2. 📞 **I-share ang inyong Contact Details:** I-reply lamang po rito ang inyong **pangalan, mobile number, at edad ng inyong anak**.\n3. 🎟️ **Visitor Pass & Confirmation:** Agad pong makikipag-ugnayan ang aming campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) upang i-confirm ang inyong visitor schedule at orientation brief.\n\nAling weekday morning po ang pinaka-convenient para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+      return `🌿 **Paano po Mag-schedule ng Observation Walkthrough sa ${campusInfo.name}:**\n\nNapakadali lang po mag-set ng inyong pagbisita upang masaksihan ang True Montessori in action:\n\n1. ⏰ **Pumili ng Araw:** Ang observation walkthrough ay bukas tuwing **weekday mornings mula 8:30 AM hanggang 11:00 AM** (habang aktibong nag-aaral ang mga bata sa kanilang 3-hour uninterrupted work cycle).\n2. 📞 **I-share ang inyong Contact Details:** I-reply lamang po rito ang inyong **pangalan, mobile number, at gustong petsa (hal. November 3)**.\n3. 🎟️ **Visitor Pass & Confirmation:** Agad pong makikipag-ugnayan ang aming campus coordinator (**${campusInfo.email}** | ${campusInfo.phone}) upang i-confirm ang inyong visitor schedule at orientation brief.\n\nAling petsa o weekday morning po ang pinaka-convenient para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
     }
-    return `🌿 **How to Schedule an Observation Walkthrough at ${campusInfo.name}:**\n\nArranging your classroom observation walkthrough is very simple:\n\n1. ⏰ **Choose a Preferred Weekday Morning:** Walkthroughs are conducted Monday through Friday between **8:30 AM and 11:00 AM** during our active 3-hour uninterrupted morning work cycle.\n2. 📞 **Share Your Details:** Simply reply here with your **name, mobile number, and your child's age or grade level**.\n3. 🎟️ **Pass Confirmation:** Our designated campus admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will immediately prepare your personalized visitor pass and welcome packet.\n\nWhich weekday morning would work best for your family visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
+    return `🌿 **How to Schedule an Observation Walkthrough at ${campusInfo.name}:**\n\nArranging your classroom observation walkthrough is very simple:\n\n1. ⏰ **Choose a Preferred Weekday Morning:** Walkthroughs are conducted Monday through Friday between **8:30 AM and 11:00 AM** during our active 3-hour uninterrupted morning work cycle.\n2. 📞 **Share Your Preferred Date & Contact Details:** Simply reply here with your **preferred date (e.g., November 3), your name, and mobile number**.\n3. 🎟️ **Pass Confirmation:** Our designated campus admissions coordinator (**${campusInfo.email}** | ${campusInfo.phone}) will immediately prepare your personalized visitor pass and welcome packet.\n\nWhat date or weekday morning would work best for your family visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent followed up on booking walkthrough: ${currentText}"} -->`;
   }
 
   // 2. Tuition / Payment Follow-up ("how?", "how to pay?", "paano magbayad?", "unsaon pagbayad?")
@@ -470,7 +525,7 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
 
   // 6. Pricing Follow-up ("how much?", "magkano?", "pila?")
   if (isCostFollowup) {
-    return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
+    return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName, currentText);
   }
 
   // 7. Coordinator / Contact Follow-up ("who?", "who to contact?", "sino?")
@@ -689,29 +744,29 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   }
 
   // --------------------------------------------------------------------------
-  // INTENT 15: Walkthrough Booking & Contact Information Acknowledgment
+  // INTENT 15: Walkthrough Booking & Contact / Date Information Acknowledgment
   // --------------------------------------------------------------------------
-  if (capturedContact || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('tour') || historyText.includes('contact') || historyText.includes('number')))) {
-    const contactStr = capturedContact ? `**${capturedContact}**` : "your provided contact details";
-    const timeStr = hasTimePref ? "weekday morning observation window (8:30 AM – 11:00 AM)" : "morning work cycle observation";
+  if (capturedContact || capturedDate || (hasTimePref && (historyText.includes('walkthrough') || historyText.includes('observation') || historyText.includes('tour') || historyText.includes('visit') || historyText.includes('schedule') || historyText.includes('contact') || historyText.includes('number') || lastModelLower.includes('walkthrough') || lastModelLower.includes('observation')))) {
+    const contactStr = capturedContact ? `**${capturedContact}**` : "*(Please reply with your mobile number or email so our coordinator can send your visitor pass)*";
+    const dateDesc = capturedDate ? `**${capturedDate}** (Morning Work Cycle: 8:30 AM – 11:00 AM)` : (capturedWeekday ? `**${capturedWeekday} morning** (8:30 AM – 11:00 AM)` : "Weekday Morning Observation Window (8:30 AM – 11:00 AM)");
 
     if (isBisaya) {
-      return `Daghang salamat! 🌿 Nalipay kaayo mi nga makadawat sa inyong detalye para sa observation walkthrough sa atong **${campusInfo.name}**.\n\nNalista na nako ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nTawagan o i-message kamo sa atong campus coordinator aron ma-confirm ang inyong visitor pass ug observation schedule.\n\nPila man ang **edad o ngalan sa inyong anak** aron maandam daan sa atong Montessori Guides ang classroom environment para sa inyong pagbisita?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Bisaya)", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent requested walkthrough schedule: ${currentText}"} -->`;
+      return `Daghang salamat! 🌿 Nalipay kaayo mi nga i-schedule ang inyong classroom observation walkthrough sa atong **${campusInfo.name}**.\n\nNalista na nako ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 🗓️ **Preferred Date / Schedule:** ${dateDesc}\n• 📞 **Contact Details:** ${contactStr}\n• 📧 **Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\n${capturedContact ? 'Tawagan o i-message kamo sa atong campus coordinator aron ma-confirm ang inyong visitor pass!' : 'Palihug i-reply ang inyong **pangalan ug mobile number** aron ma-confirm dayon sa atong campus coordinator ang inyong visitor pass!'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Bisaya)", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending Contact'}", "details": "Parent requested walkthrough schedule (${dateDesc}): ${currentText}"} -->`;
     }
 
     if (isTagalog) {
-      return `Maraming salamat po! 🌿 Ikinagagalak po naming matanggap ang inyong detalye para sa classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 📞 **Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nMakikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass at oras ng walkthrough.\n\nMay maitatanong po ba kami ukol sa **edad o pangalan ng inyong anak** para maihanda po ng aming Montessori directress ang classroom sa inyong pagdating?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Tagalog)", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent requested walkthrough schedule: ${currentText}"} -->`;
+      return `Maraming salamat po! 🌿 Ikinagagalak po naming i-schedule ang inyong classroom observation walkthrough sa aming **${campusInfo.name}**.\n\nNaitala na po ang inyong appointment request:\n• 📍 **Campus:** ${campusInfo.name}\n• 🗓️ **Preferred Date / Schedule:** ${dateDesc}\n• 📞 **Contact Details:** ${contactStr}\n• 📧 **Campus Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\n${capturedContact ? 'Makikipag-ugnayan po ang aming campus admissions coordinator sa inyo upang kumpirmahin ang inyong visitor pass!' : 'Maaari po bang makuha ang inyong **pangalan at mobile number** upang maipadala agad ng aming coordinator ang inyong confirmed visitor pass?'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request (Tagalog)", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending Contact'}", "details": "Parent requested walkthrough schedule (${dateDesc}): ${currentText}"} -->`;
     }
 
-    return `Thank you so much! 🌿 We are delighted to receive your details for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nI have registered your visit request with our admissions team:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 📞 **Captured Contact Number:** ${contactStr}\n• ⏰ **Preferred Schedule:** ${timeStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | ${campusInfo.phone}\n\nOur campus coordinator has been notified and will reach out to you shortly to confirm your observation pass and provide walkthrough instructions.\n\nMay I also ask your **children's ages or names** so our Montessori Directress can prepare the appropriate prepared environments (Casa, Elementary, etc.) for your visit?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Captured via Session'}", "details": "Parent booked walkthrough: ${currentText}"} -->`;
+    return `Thank you so much! 🌿 We have noted your preferred schedule for a classroom observation walkthrough at our **${campusInfo.name}**.\n\nHere are your walkthrough reservation details:\n• 📍 **Target Campus:** ${campusInfo.name}\n• 🗓️ **Preferred Date / Window:** ${dateDesc}\n• 📞 **Contact Number:** ${contactStr}\n• 📧 **Designated Admissions Coordinator:** **${campusInfo.email}** | **${campusInfo.phone}**\n\n${capturedContact ? 'Our campus coordinator has been notified and will reach out to you shortly to confirm your visitor pass and provide walkthrough instructions!' : 'Could you please share your **name and mobile number** so our coordinator at **' + campusInfo.name + '** can send your confirmed visitor pass?'}\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Confirmed Walkthrough Booking Request", "parentName": "${parentName}", "parentContact": "${capturedContact || 'Pending Contact'}", "details": "Parent booked walkthrough (${dateDesc}): ${currentText}"} -->`;
   }
 
   // --------------------------------------------------------------------------
   // INTENT 6B: Tuition & Payment Inquiries (Official SY 2026-2027 Summary)
   // --------------------------------------------------------------------------
-  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates');
+  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates') || lower.includes('pricing') || lower.includes('chart');
   if (isTuition) {
-    return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName);
+    return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName, currentText);
   }
 
   // --------------------------------------------------------------------------
@@ -733,13 +788,13 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
   if (ageAnalysis.planes.length === 1) {
     const p = ageAnalysis.planes[0];
     if (p.id === 'casa') {
-      return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** or request the Casa admissions schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (${p.ageLabel})"} -->`;
+      return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or request the Casa admissions schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (${p.ageLabel})"} -->`;
     }
     if (p.id === 'elem') {
-      return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** for a classroom observation walkthrough?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (${p.ageLabel})"} -->`;
+      return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) for a classroom observation walkthrough?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (${p.ageLabel})"} -->`;
     }
     if (p.id === 'infant') {
-      return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
+      return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
     }
     if (p.id === 'erdkinder') {
       return `For your **${p.ageLabel}** adolescent student (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic agriculture, land stewardship, animal husbandry, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding (${p.ageLabel})."} -->`;

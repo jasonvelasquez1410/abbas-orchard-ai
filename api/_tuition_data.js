@@ -1128,177 +1128,162 @@ function formatPHP(amount) {
 }
 
 function resolveCampusCode(text, defaultCode = 'DVO') {
-  const lower = (text || '').toLowerCase();
-  if (lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan') || lower.includes('bukidnon') || lower.includes('granja') || lower.includes('baungon')) {
-    return 'LGE/ALW';
+  if (!text) return defaultCode;
+  const lower = String(text).toLowerCase();
+  const patterns = [
+    { code: 'LGE/ALW', keys: ['alwana', 'cdo', 'cagayan', 'bukidnon', 'granja', 'baungon'] },
+    { code: 'DVO', keys: ['davao', 'obrero', 'mandug'] },
+    { code: 'CBU', keys: ['cebu', 'magsaysay', 'tandang sora'] },
+    { code: 'MCK / BYN', keys: ['mckinley', 'bgc', 'taguig', 'bayani'] },
+    { code: 'ALB', keys: ['alabang', 'filinvest', 'muntinlupa'] },
+    { code: 'ANT', keys: ['antipolo', 'taktak'] },
+    { code: 'BQC', keys: ['calle industria', 'bridgetowne', 'quezon city', 'qc'] },
+    { code: 'GRH', keys: ['greenhills', 'mandaluyong', 'wack-wack', 'wack wack'] },
+    { code: 'STR', keys: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'] },
+    { code: 'MLV', keys: ['malaybalay'] },
+    { code: 'SRG', keys: ['surigao'] },
+    { code: 'ILO', keys: ['iloilo', 'barbara'] }
+  ];
+
+  let latestIdx = -1;
+  let latestCode = null;
+
+  for (const p of patterns) {
+    for (const k of p.keys) {
+      const idx = lower.lastIndexOf(k);
+      if (idx > latestIdx) {
+        latestIdx = idx;
+        latestCode = p.code;
+      }
+    }
   }
-  if (lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug')) {
-    return 'DVO';
-  }
-  if (lower.includes('cebu') || lower.includes('magsaysay') || lower.includes('tandang sora')) {
-    return 'CBU';
-  }
-  if (lower.includes('mckinley') || (lower.includes('bgc') && !lower.includes('bayani')) || lower.includes('taguig') || lower.includes('bayani')) {
-    return 'MCK / BYN';
-  }
-  if (lower.includes('alabang') || lower.includes('filinvest') || lower.includes('muntinlupa')) {
-    return 'ALB';
-  }
-  if (lower.includes('antipolo') || lower.includes('taktak')) {
-    return 'ANT';
-  }
-  if (lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city') || lower.includes('qc')) {
-    return 'BQC';
-  }
-  if (lower.includes('greenhills') || lower.includes('mandaluyong')) {
-    return 'GRH';
-  }
-  if (lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna') || lower.includes('sta. rosa') || lower.includes('santa rosa')) {
-    return 'STR';
-  }
-  if (lower.includes('malaybalay')) {
-    return 'MLV';
-  }
-  if (lower.includes('surigao')) {
-    return 'SRG';
-  }
-  if (lower.includes('iloilo') || lower.includes('barbara')) {
-    return 'ILO';
-  }
-  return defaultCode;
+
+  return latestCode || defaultCode;
 }
 
 function matchTuitionRate(rates, text) {
   if (!rates || rates.length === 0) return null;
-  const lower = (text || '').toLowerCase();
+  const lower = (text || '')
+    .toLowerCase()
+    .replace(/\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\b/gi, ' ')
+    .replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi, ' ');
 
-  // 1. Grade levels first (e.g. Grade 1, Gr 7, Level 2)
-  const grMatch = lower.match(/\b(?:grade|gr|level)\s*([1-9]|1[0-2])\b/i);
-  if (grMatch) {
-    const gr = parseInt(grMatch[1], 10);
-    if (gr >= 1 && gr <= 3) return rates.find(r => r.level.includes('Level 1') || r.level.includes('Gr 1-3')) || rates[3];
-    if (gr === 4 || gr === 5) return rates.find(r => r.level.includes('Gr 4-5')) || rates[4];
-    if (gr === 6) return rates.find(r => r.level.includes('Gr 6')) || rates[5];
-    if (gr >= 7 && gr <= 9) return rates.find(r => r.level.includes('Gr 7-9')) || rates[6] || rates[rates.length - 1];
-    if (gr === 10 || gr === 11) return rates.find(r => r.level.includes('Gr 10-11')) || rates[7] || rates[rates.length - 1];
-    if (gr === 12) return rates.find(r => r.level.includes('Gr 12')) || rates[rates.length - 1];
+  // Find the MOST RECENT level/age mentioned in the text
+  const levelCandidates = [];
+
+  // 1. Grade levels (e.g. Grade 1, Gr 7, Level 2)
+  const grRegex = /\b(?:grade|gr|level)\s*([1-9]|1[0-2])\b/gi;
+  let m;
+  while ((m = grRegex.exec(lower)) !== null) {
+    const gr = parseInt(m[1], 10);
+    let rate = null;
+    if (gr >= 1 && gr <= 3) rate = rates.find(r => r.level.includes('Level 1') || r.level.includes('Gr 1-3')) || rates[3];
+    else if (gr === 4 || gr === 5) rate = rates.find(r => r.level.includes('Gr 4-5')) || rates[4];
+    else if (gr === 6) rate = rates.find(r => r.level.includes('Gr 6')) || rates[5];
+    else if (gr >= 7 && gr <= 9) rate = rates.find(r => r.level.includes('Gr 7-9')) || rates[6] || rates[rates.length - 1];
+    else if (gr === 10 || gr === 11) rate = rates.find(r => r.level.includes('Gr 10-11')) || rates[7] || rates[rates.length - 1];
+    else if (gr === 12) rate = rates.find(r => r.level.includes('Gr 12')) || rates[rates.length - 1];
+    if (rate) levelCandidates.push({ index: m.index, rate });
   }
 
   // 2. Named plane keywords
-  if (lower.includes('kinder') || lower.includes('casa 3') || lower.includes('senior casa')) {
-    return rates.find(r => r.level.includes('Casa 3')) || rates[2] || rates[1];
-  }
-  if (lower.includes('toddler') || lower.includes('infant') || lower.includes('pre-casa') || lower.includes('precasa')) {
-    return rates[0];
-  }
-  if (lower.includes('casa') || lower.includes('preschool') || lower.includes('pre-school')) {
-    return rates.find(r => r.level.includes('Casa 1')) || rates[1] || rates[0];
-  }
-  if (lower.includes('lower elementary') || lower.includes('primary')) {
-    return rates.find(r => r.level.includes('Level 1')) || rates[3] || rates[2];
-  }
-  if (lower.includes('upper elementary')) {
-    return rates.find(r => r.level.includes('Level 2')) || rates[4] || rates[3];
-  }
-  if (lower.includes('junior high') || lower.includes('jhs') || lower.includes('erdkinder')) {
-    return rates.find(r => r.level.includes('Gr 7-9')) || rates[6] || rates[rates.length - 1];
-  }
-  if (lower.includes('senior high') || lower.includes('shs')) {
-    return rates.find(r => r.level.includes('Gr 10-11') || r.level.includes('Gr 12')) || rates[rates.length - 1];
+  const keywordPlanes = [
+    { keys: ['kinder', 'casa 3', 'senior casa'], find: () => rates.find(r => r.level.includes('Casa 3')) || rates[2] || rates[1] },
+    { keys: ['toddler', 'infant', 'pre-casa', 'precasa'], find: () => rates[0] },
+    { keys: ['casa 1', 'casa 2', 'preschool', 'pre-school'], find: () => rates.find(r => r.level.includes('Casa 1')) || rates[1] || rates[0] },
+    { keys: ['lower elementary', 'primary'], find: () => rates.find(r => r.level.includes('Level 1')) || rates[3] || rates[2] },
+    { keys: ['upper elementary'], find: () => rates.find(r => r.level.includes('Level 2')) || rates[4] || rates[3] },
+    { keys: ['junior high', 'jhs', 'erdkinder'], find: () => rates.find(r => r.level.includes('Gr 7-9')) || rates[6] || rates[rates.length - 1] },
+    { keys: ['senior high', 'shs'], find: () => rates.find(r => r.level.includes('Gr 10-11') || r.level.includes('Gr 12')) || rates[rates.length - 1] }
+  ];
+  for (const kp of keywordPlanes) {
+    for (const k of kp.keys) {
+      const idx = lower.lastIndexOf(k);
+      if (idx !== -1) {
+        levelCandidates.push({ index: idx, rate: kp.find() });
+      }
+    }
   }
 
-  // 3. Child Age Matching
-  const ageMatch = lower.match(/\b([1-9]|1[0-8])\s*(?:yo|y\.o\.|years?\s*old|years?|yrs?|yr|anyos|ka tuig|taon)?\b/i);
-  if (ageMatch) {
-    const age = parseInt(ageMatch[1], 10);
-    if (age <= 2) return rates[0];
-    if (age === 3 || age === 4) return rates[1] || rates[0];
-    if (age === 5) return rates[2] || rates[1];
-    if (age >= 6 && age <= 8) return rates[3] || rates[2];
-    if (age === 9 || age === 10) return rates[4] || rates[3];
-    if (age === 11) return rates[5] || rates[4];
-    if (age >= 12 && age <= 14) return rates[6] || rates[rates.length - 1];
-    if (age === 15 || age === 16) return rates[7] || rates[rates.length - 1];
-    if (age >= 17) return rates[rates.length - 1];
+  // 3. Explicit child age matching (e.g. "5 yo", "8 years old", "age 4")
+  const ageRegex = /\b(?:age\s*)?([1-9]|1[0-8])\s*(?:yo|y\.o\.|years?\s*old|years?|yrs?|yr|anyos|ka tuig|taon)\b/gi;
+  while ((m = ageRegex.exec(lower)) !== null) {
+    const age = parseInt(m[1], 10);
+    let rate = null;
+    if (age <= 2) rate = rates[0];
+    else if (age === 3 || age === 4) rate = rates[1] || rates[0];
+    else if (age === 5) rate = rates[2] || rates[1];
+    else if (age >= 6 && age <= 8) rate = rates[3] || rates[2];
+    else if (age === 9 || age === 10) rate = rates[4] || rates[3];
+    else if (age === 11) rate = rates[5] || rates[4];
+    else if (age >= 12 && age <= 14) rate = rates[6] || rates[rates.length - 1];
+    else if (age === 15 || age === 16) rate = rates[7] || rates[rates.length - 1];
+    else if (age >= 17) rate = rates[rates.length - 1];
+    if (rate) levelCandidates.push({ index: m.index, rate });
+  }
+
+  if (levelCandidates.length > 0) {
+    levelCandidates.sort((a, b) => b.index - a.index);
+    return levelCandidates[0].rate;
   }
 
   return null;
 }
 
-function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName = 'Prospective Parent') {
-  const code = resolveCampusCode(fullContext + ' ' + (campusInfo?.name || ''), 'DVO');
+function getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName = 'Prospective Parent', currentText = '') {
+  // Prioritize campus mentioned in currentText, then campusInfo, then fullContext
+  let code = resolveCampusCode(currentText, null);
+  if (!code && campusInfo && campusInfo.name && !campusInfo.name.includes('Central Admissions')) {
+    code = resolveCampusCode(campusInfo.name, null);
+  }
+  if (!code) {
+    code = resolveCampusCode(fullContext, 'DVO');
+  }
   const campusData = TUITION_SCHEDULE_SY26_27[code] || TUITION_SCHEDULE_SY26_27['DVO'];
 
-  const matchedRate = matchTuitionRate(campusData.rates, fullContext);
+  // Only match a specific single level if the user explicitly asked for a level/age in their current message;
+  // otherwise show the complete visual Campus Tuition Chart with the matched level highlighted if any!
+  const matchedRate = matchTuitionRate(campusData.rates, currentText || fullContext);
+  const askedSpecificInCurrent = Boolean(matchTuitionRate(campusData.rates, currentText));
 
-  if (matchedRate) {
-    const memoryNote = matchedRate.hasMemoryBook ? ' (includes the commemorative Memory Book, ₱3,184.45)' : '';
-    const farmNote = matchedRate.hasFarm ? ' (includes farm consumables and laboratory fees)' : '';
+  if (matchedRate && askedSpecificInCurrent) {
+    const memoryNote = matchedRate.hasMemoryBook ? ' (includes Memory Book ₱3,184.45)' : '';
+    const farmNote = matchedRate.hasFarm ? ' (includes Farm & Lab consumables)' : '';
 
-    if (isBisaya) {
-      return `📋 **Official SY 2026–2027 Tuition Breakdown — ${campusData.name}**\n` +
-             `👶 **Developmental Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-             `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-             `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(mobayad sulod sa 24 Mar hangtod 13 Apr aron ma-reserve ang slot)*\n\n` +
-             `💳 **Mga Payment Schedule Options:**\n` +
-             `1. 🌟 **Annual Plan (Full Payment):** **${formatPHP(matchedRate.annualBal)}** balance tungod sa or before August 7, 2026 (walay dugang interest/carrying fee).\n` +
-             `2. 🗓️ **Semi-Annual Plan (2 Hulog):** **${formatPHP(matchedRate.semiBal)}** kada hulog (due Aug 7 ug Dec 7; 8% carrying fee).\n` +
-             `3. 📆 **Quarterly Plan (4 Hulog):** **${formatPHP(matchedRate.qtrBal)}** kada hulog (due Aug 7, Oct 7, Dec 7, ug Mar 7; 10% carrying fee).\n` +
-             `4. 📅 **Monthly Plan (10 Hulog):** **${formatPHP(matchedRate.moBal)}** matag ika-7 sa bulan sugod Aug 2026 (12% carrying fee).\n\n` +
-             `👨‍👩‍👧‍👦 **Sibling Discount Privileges:** Dunay ~5% discount para sa pamilyang dunay 2 o kapin pa ka anak nga naka-enroll!\n` +
-             `✨ **Inclusions:** Apil na ang tanang communal consumables${memoryNote}${farmNote}.\n\n` +
-             `Gusto ba ninyo mag-book og observation walkthrough sa ${campusData.name} o makig-istorya sa atong accounting desk (**accounting@theabbasorchard.edu.ph**)?\n` +
-             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
-    }
+    const singleChart =
+      `📊 **Official SY 2026–2027 Tuition Fee Chart — ${campusData.name}**\n` +
+      `👶 **Selected Level:** **${matchedRate.level}** *(${matchedRate.age})*\n\n` +
+      `| Payment Plan | Schedule & Terms | Amount |\n` +
+      `|---|---|---|\n` +
+      `| **Whole Year Tuition** | Full Academic Year${memoryNote}${farmNote} | **${formatPHP(matchedRate.whole)}** |\n` +
+      `| **15% Slot Reservation (DP)** | Locks slot (Mar 24 – Apr 13) | **${formatPHP(matchedRate.dp15)}** |\n` +
+      `| **1. Annual Plan** | Remaining 85% due Aug 7 (0% interest) | **${formatPHP(matchedRate.annualBal)}** |\n` +
+      `| **2. Semi-Annual Plan** | 2 payments: Aug 7 & Dec 7 | **${formatPHP(matchedRate.semiBal)} / sem** |\n` +
+      `| **3. Quarterly Plan** | 4 payments: Aug, Oct, Dec, Mar | **${formatPHP(matchedRate.qtrBal)} / qtr** |\n` +
+      `| **4. Monthly Plan** | 10 payments: every 7th (Aug–May) | **${formatPHP(matchedRate.moBal)} / mo** |\n\n` +
+      `👨‍👩‍👧‍👦 *Sibling Discount: ~5% off for 2+ enrolled children. All communal consumables included.*\n\n` +
+      `Would you like to book a morning **Observation Walkthrough** at **${campusData.name}** (reply with your preferred weekday & mobile number), or see the **full chart for all grade levels**?\n` +
+      `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Chart Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition chart for ${matchedRate.level} at ${campusData.name} (${formatPHP(matchedRate.whole)})."} -->`;
 
-    if (isTagalog) {
-      return `📋 **Official SY 2026–2027 Tuition Breakdown — ${campusData.name}**\n` +
-             `👶 **Developmental Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-             `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-             `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(ibabayad sa pagitan ng 24 Mar at 13 Apr para ma-secure ang slot)*\n\n` +
-             `💳 **Mga Opsyon sa Pagbabayad:**\n` +
-             `1. 🌟 **Annual Plan (Isahang Bayad):** **${formatPHP(matchedRate.annualBal)}** balanse sa o bago mag-August 7, 2026 (walang carrying fee).\n` +
-             `2. 🗓️ **Semi-Annual Plan (2 Hulog):** **${formatPHP(matchedRate.semiBal)}** bawat hulog (due Aug 7 at Dec 7; 8% carrying fee).\n` +
-             `3. 📆 **Quarterly Plan (4 na Hulog):** **${formatPHP(matchedRate.qtrBal)}** bawat hulog (due Aug 7, Oct 7, Dec 7, at Mar 7; 10% carrying fee).\n` +
-             `4. 📅 **Monthly Plan (10 Hulog):** **${formatPHP(matchedRate.moBal)}** buwan-buwan tuwing ika-7 simula Aug 2026 (12% carrying fee).\n\n` +
-             `👨‍👩‍👧‍👦 **Sibling Discount:** May ~5% bawas para sa pamilyang may 2 o higit pang anak na naka-enroll!\n` +
-             `✨ **Kasama sa Bayarin:** Kasama na ang communal consumables${memoryNote}${farmNote}.\n\n` +
-             `Nais po ba ninyong mag-book ng observation walkthrough sa ${campusData.name} o kumonsulta sa accounting desk (**accounting@theabbasorchard.edu.ph**)?\n` +
-             `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
-    }
-
-    return `📋 **Official SY 2026–2027 Tuition Fee Breakdown — ${campusData.name}**\n` +
-           `👶 **Level:** ${matchedRate.level} (${matchedRate.age})\n\n` +
-           `• **Whole Year Fee:** **${formatPHP(matchedRate.whole)}**\n` +
-           `• **15% Slot Reservation Down Payment:** **${formatPHP(matchedRate.dp15)}** *(reserves a slot; payment window 24 Mar – 13 Apr)*\n\n` +
-           `💳 **Payment Schedule Options:**\n` +
-           `1. 🌟 **Annual Plan (Full Payment):** **${formatPHP(matchedRate.annualBal)}** remaining balance due on or before August 7, 2026 (Zero carrying fee).\n` +
-           `2. 🗓️ **Semi-Annual Plan (2 Installments):** **${formatPHP(matchedRate.semiBal)}** per payment (due Aug 7 and Dec 7; 8% carrying fee).\n` +
-           `3. 📆 **Quarterly Plan (4 Installments):** **${formatPHP(matchedRate.qtrBal)}** per payment (due Aug 7, Oct 7, Dec 7, and Mar 7; 10% carrying fee).\n` +
-           `4. 📅 **Monthly Plan (10 Installments):** **${formatPHP(matchedRate.moBal)}** monthly every 7th of the month starting Aug 2026 (12% carrying fee).\n\n` +
-           `👨‍👩‍👧‍👦 **Sibling Discount Privileges:** Enrolling 2 or more children? Receive a ~5% discount across all whole-year fees and installment modes!\n` +
-           `✨ **Inclusions:** Includes all communal consumables${memoryNote}${farmNote}.\n\n` +
-           `Would you like to schedule an Observation Walkthrough at ${campusData.name} or speak directly with Central Accounting (**accounting@theabbasorchard.edu.ph**)?\n` +
-           `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Quote SY 2026-2027 (${matchedRate.level})", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition for ${matchedRate.level} (${formatPHP(matchedRate.whole)})."} -->`;
+    return singleChart;
   }
 
-  // Overview Table when specific level is not yet indicated
-  let summaryTable = `📋 **Official SY 2026–2027 Annual Tuition Summary — ${campusData.name}**\n\n` +
-                     `| Level | Developmental Plane | Whole Year Fee | 15% Down Payment |\n` +
-                     `|---|---|---|---|\n`;
+  // Complete Visual Tuition Fee Chart across all levels for the campus
+  let summaryTable = `📊 **Official SY 2026–2027 Tuition Fee Chart — ${campusData.name}**\n\n` +
+                     `| Level / Program | Age Group | Whole Year | 15% Reservation DP | Annual Bal (Aug 7) | Semi-Annual (2x) | Quarterly (4x) | Monthly (10x) |\n` +
+                     `|---|---|---|---|---|---|---|---|\n`;
   campusData.rates.forEach(r => {
-    summaryTable += `| ${r.level} | ${r.age} | **${formatPHP(r.whole)}** | ${formatPHP(r.dp15)} |\n`;
+    const isHighlighted = matchedRate && matchedRate.level === r.level;
+    const lvlLabel = isHighlighted ? `👉 **${r.level}**` : `**${r.level}**`;
+    summaryTable += `| ${lvlLabel} | ${r.age} | **${formatPHP(r.whole)}** | ${formatPHP(r.dp15)} | ${formatPHP(r.annualBal)} | ${formatPHP(r.semiBal)} | ${formatPHP(r.qtrBal)} | **${formatPHP(r.moBal)}/mo** |\n`;
   });
 
-  summaryTable += `\n💳 **Flexible Payment Schedules:**\n` +
-                  `• **Annual Plan:** 15% DP + remaining 85% balance due August 7, 2026 (Full payment privilege)\n` +
-                  `• **Semi-Annual Plan:** 15% DP + 2 installments due Aug 7 & Dec 7 (8% carrying fee)\n` +
-                  `• **Quarterly Plan:** 15% DP + 4 installments due Aug 7, Oct 7, Dec 7 & Mar 7 (10% carrying fee)\n` +
-                  `• **Monthly Plan:** 15% DP + 10 monthly payments every 7th starting Aug 2026 (12% carrying fee)\n\n` +
-                  `👨‍👩‍👧‍👦 **Sibling Discount:** ~5% savings for families enrolling 2 or more children.\n` +
-                  `✨ **Inclusions:** All communal consumables included (Memory Book included for Casa 3, Gr 6, Gr 12).\n\n` +
-                  `What is your **child's age or grade level** so I can calculate the exact installment schedule for your family?\n` +
-                  `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Summary Table Request SY 2026-2027", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested full tuition fee schedule for ${campusData.name}."} -->`;
+  summaryTable += `\n📌 **Key Notes:**\n` +
+                  `• **15% Down Payment:** Locks your child's slot (payable Mar 24 – Apr 13); deducted from Whole Year Fee.\n` +
+                  `• **Inclusions:** All communal consumables included (plus Memory Book for Casa 3, Gr 6 & Gr 12).\n` +
+                  `• **Sibling Privilege:** ~5% discount for families enrolling 2 or more children.\n\n` +
+                  `Would you like to schedule a morning **Observation Walkthrough** at **${campusData.name}**, or connect with Central Accounting (**accounting@theabbasorchard.edu.ph**)?\n` +
+                  `<!-- DISPATCH: {"campus": "${campusData.name}", "to": "accounting@theabbasorchard.edu.ph", "subject": "Tuition Summary Chart Request SY 2026-2027", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent requested tuition fee chart for ${campusData.name}."} -->`;
 
   return summaryTable;
 }
