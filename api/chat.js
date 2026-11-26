@@ -109,6 +109,7 @@ module.exports = async function handler(req, res) {
     const openaiKey = process.env.OPENAI_API_KEY;
     const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
     let rawResponse = "";
+    const debugErrors = [];
 
     if (provider === 'gemini' && geminiKey) {
       const contents = history.map(msg => ({
@@ -138,7 +139,9 @@ module.exports = async function handler(req, res) {
             break;
           }
         } catch (callErr) {
-          console.warn(`Gemini model ${m} call failed:`, callErr.response?.data?.error?.message || callErr.message);
+          const errMsg = callErr.response?.data?.error?.message || callErr.message;
+          debugErrors.push({ model: m, error: errMsg, status: callErr.response?.status, keyPrefix: geminiKey.slice(0, 15) });
+          console.warn(`Gemini model ${m} call failed:`, errMsg);
         }
       }
 
@@ -195,7 +198,8 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       reply: cleanText,
-      dispatch: dispatchData
+      dispatch: dispatchData,
+      _debug: debugErrors.length > 0 ? debugErrors : undefined
     });
 
   } catch (err) {
@@ -784,6 +788,9 @@ function generateFallbackMontessoriResponse(message, history = [], campusName = 
       return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
     }
     if (p.id === 'erdkinder') {
+      if (isBisaya) {
+        return `Maayong adlaw! Oo, naa gyud kitay high school boarding didto sa **The Abba's Orchard Bukidnon — La Granja Estates**! 🌱\n\n• **Age Requirement:** Para kini sa mga estudyante gikan sa **12 hangtod 18 anyos** (Grades 7 hangtod 12 / Junior & Senior High).\n• **Erdkinder Program:** Gihiusa niini ang academic rigor, organic agriculture, animal stewardship, ug hands-on micro-economy.\n\n📍 *Address:* La Granja Estates, Pualas, Baungon, Bukidnon\n📞 *Direct Line:* (0917) 508 2668\n📧 *Coordinator:* **lagranja@theabbasorchard.edu.ph**\n\nPila na man ang edad sa inyong anak karon, ug gusto ba mo mag-schedule og weekend farm observation visit sa Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Bukidnon Farm Boarding Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding (${p.ageLabel})."} -->`;
+      }
       return `For your **${p.ageLabel}** adolescent student (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic agriculture, land stewardship, animal husbandry, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding (${p.ageLabel})."} -->`;
     }
   }
