@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
 
     const provider = process.env.AI_PROVIDER || 'gemini';
     const newActiveKey = Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
-    const geminiKey = (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('Laxwc4d3')) ? process.env.GEMINI_API_KEY : newActiveKey;
+    let geminiKey = (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.startsWith('AQ.Ab8RN6LR')) ? process.env.GEMINI_API_KEY : newActiveKey;
     const openaiKey = process.env.OPENAI_API_KEY;
     const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
     let rawResponse = "";
@@ -142,6 +142,9 @@ module.exports = async function handler(req, res) {
           const errMsg = callErr.response?.data?.error?.message || callErr.message;
           debugErrors.push({ model: m, error: errMsg, status: callErr.response?.status, keyPrefix: geminiKey.slice(0, 15) });
           console.warn(`Gemini model ${m} call failed:`, errMsg);
+          if (callErr.response?.status === 402 && geminiKey !== newActiveKey) {
+            geminiKey = newActiveKey;
+          }
         }
       }
 

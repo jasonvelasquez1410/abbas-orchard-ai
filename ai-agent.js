@@ -81,7 +81,7 @@ Conversational Admissions Guidelines (Consultative Dialogue):
 async function generateAIResponse(userMessage, conversationHistory = [], preferredCampus = null) {
   const provider = process.env.AI_PROVIDER || 'gemini';
   const newActiveKey = Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
-  const geminiKey = (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('Laxwc4d3')) ? process.env.GEMINI_API_KEY : newActiveKey;
+  let geminiKey = (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.startsWith('AQ.Ab8RN6LR')) ? process.env.GEMINI_API_KEY : newActiveKey;
   const openaiKey = process.env.OPENAI_API_KEY;
   const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let rawResponse = "";
@@ -116,6 +116,10 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
         }
       } catch (err) {
         console.warn(`Gemini model ${m} call failed:`, err.response?.data?.error?.message || err.message);
+        // If the key has depleted credits (402), instantly switch to the verified active key
+        if (err.response?.status === 402 && geminiKey !== newActiveKey) {
+          geminiKey = newActiveKey;
+        }
       }
     }
 
