@@ -42,75 +42,84 @@ module.exports = async function handler(req, res) {
     const body = req.body;
 
     if (body && body.object === 'page') {
-      // 1. Fast HTTP 200 acknowledgment to Meta to prevent retry loops
-      res.status(200).send('EVENT_RECEIVED');
-
       const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN || 'EAAaF7RUQZBu8BTOKzpgGxgfIZAbeZCkfIaOo4MpBu65ZAiwhqXNYS9PanwZCiDwzu609kfCc30g1eALyd4P8GMYGYyW3DekLFykIw0GoLZBV71DRasuETi60mdKVnf0rB8sYQLHIhK12KKaYWfLd10b8o5HMuK4MS0GXYZC6eEcljpQnC9SqnoKe3gabXpHGiYLMsKvH0v3LDMdBcrICZATP';
       if (!pageAccessToken) {
         console.warn('⚠️ Meta webhook received message, but META_PAGE_ACCESS_TOKEN is not configured.');
-        return;
+        return res.status(200).send('EVENT_RECEIVED');
       }
 
-      for (const entry of body.entry || []) {
-        for (const webhookEvent of entry.messaging || []) {
-          const senderPsid = webhookEvent.sender?.id;
-          if (!senderPsid) continue;
-
-          // Extract text from standard message, quick reply, or postback button
-          let incomingText = null;
-          if (webhookEvent.message && webhookEvent.message.text) {
-            incomingText = webhookEvent.message.text;
-          } else if (webhookEvent.message?.quick_reply?.payload) {
-            incomingText = webhookEvent.message.quick_reply.payload;
-          } else if (webhookEvent.postback?.payload) {
-            incomingText = webhookEvent.postback.payload;
-          } else if (webhookEvent.postback?.title) {
-            incomingText = webhookEvent.postback.title;
-          }
-
-          if (!incomingText) continue;
-
-          console.log(`📩 [MESSENGER INCOMING] From PSID: ${senderPsid} | Message: "${incomingText}"`);
-
-          try {
-            // 2. Send 'mark_seen' and 'typing_on' indicators
-            await sendGraphAction(senderPsid, pageAccessToken, 'mark_seen');
-            await sendGraphAction(senderPsid, pageAccessToken, 'typing_on');
-
-            // 3. Retrieve or initialize multi-turn conversation history
-            if (!messengerSessions.has(senderPsid)) {
-              messengerSessions.set(senderPsid, []);
-            }
-            const history = messengerSessions.get(senderPsid);
-
-            // 4. Generate intelligent AI response via unified Montessori engine
-            const aiResult = await generateAIResponse(incomingText, history, null);
-            const replyText = aiResult.reply || "Welcome to The Abba's Orchard School! How may I assist your family with admissions across our 15+ campuses?";
-
-            // 5. Update session memory (capped at 16 messages / 8 turns)
-            history.push({ role: 'user', content: incomingText });
-            history.push({ role: 'model', content: replyText });
-            if (history.length > 16) history.splice(0, 2);
-
-            // 6. Send message chunks safely (handling Meta 2,000 char limit)
-            await sendSplitMessages(senderPsid, pageAccessToken, replyText);
-
-            // 7. Dispatch lead notification if contact details or walkthrough booked
-            if (aiResult.dispatch) {
-              console.log('⚡ [LEAD CAPTURED VIA FACEBOOK MESSENGER]:', aiResult.dispatch);
-              dispatchLead(aiResult.dispatch, 'facebook_messenger').catch(dispErr => {
-                console.warn('Facebook lead dispatch warning:', dispErr.message);
-              });
+      try {
+        for (const entry of body.entry || []) {
+          for (const webhookEvent of entry.messaging || []) {
+            // Ignore echoes (messages sent by the page itself or Meta Business Suite automated greetings)
+            if (webhookEvent.message?.is_echo) {
+              console.log('ℹ️ Skipping echo message originating from the page itself.');
+              continue;
             }
 
-          } catch (eventErr) {
-            console.error('❌ Error processing Messenger event:', eventErr.response?.data || eventErr.message);
-          } finally {
-            await sendGraphAction(senderPsid, pageAccessToken, 'typing_off');
+            const senderPsid = webhookEvent.sender?.id;
+            if (!senderPsid) continue;
+
+            // Extract text from standard message, quick reply, or postback button
+            let incomingText = null;
+            if (webhookEvent.message && webhookEvent.message.text) {
+              incomingText = webhookEvent.message.text;
+            } else if (webhookEvent.message?.quick_reply?.payload) {
+              incomingText = webhookEvent.message.quick_reply.payload;
+            } else if (webhookEvent.postback?.payload) {
+              incomingText = webhookEvent.postback.payload;
+            } else if (webhookEvent.postback?.title) {
+              incomingText = webhookEvent.postback.title;
+            }
+
+            if (!incomingText) continue;
+
+            console.log(`📩 [MESSENGER INCOMING] From PSID: ${senderPsid} | Message: "${incomingText}"`);
+
+            try {
+              // 1. Send 'mark_seen' and 'typing_on' indicators
+              await sendGraphAction(senderPsid, pageAccessToken, 'mark_seen');
+              await sendGraphAction(senderPsid, pageAccessToken, 'typing_on');
+
+              // 2. Retrieve or initialize multi-turn conversation history
+              if (!messengerSessions.has(senderPsid)) {
+                messengerSessions.set(senderPsid, []);
+              }
+              const history = messengerSessions.get(senderPsid);
+
+              // 3. Generate intelligent AI response via unified Montessori engine
+              const aiResult = await generateAIResponse(incomingText, history, null);
+              const replyText = aiResult.reply || "Welcome to The Abba's Orchard School! How may I assist your family with admissions across our 15+ campuses?";
+
+              // 4. Update session memory (capped at 16 messages / 8 turns)
+              history.push({ role: 'user', content: incomingText });
+              history.push({ role: 'model', content: replyText });
+              if (history.length > 16) history.splice(0, 2);
+
+              // 5. Send message chunks safely (handling Meta 2,000 char limit)
+              await sendSplitMessages(senderPsid, pageAccessToken, replyText);
+
+              // 6. Dispatch lead notification if contact details or walkthrough booked
+              if (aiResult.dispatch) {
+                console.log('⚡ [LEAD CAPTURED VIA FACEBOOK MESSENGER]:', aiResult.dispatch);
+                dispatchLead(aiResult.dispatch, 'facebook_messenger').catch(dispErr => {
+                  console.warn('Facebook lead dispatch warning:', dispErr.message);
+                });
+              }
+
+            } catch (eventErr) {
+              console.error('❌ Error processing Messenger event:', eventErr.response?.data || eventErr.message);
+            } finally {
+              await sendGraphAction(senderPsid, pageAccessToken, 'typing_off');
+            }
           }
         }
+      } catch (err) {
+        console.error('❌ Error in entry loop:', err.message);
       }
-      return;
+
+      // Return 200 OK after async tasks are completed so Vercel Lambda does not freeze prematurely
+      return res.status(200).send('EVENT_RECEIVED');
     }
 
     return res.status(404).send('Not Found');
