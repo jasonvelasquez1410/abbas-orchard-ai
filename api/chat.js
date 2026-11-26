@@ -69,10 +69,11 @@ Conversational Admissions Guidelines (Consultative Dialogue):
 2. Conversational Rhythm & Pacing:
    - Keep answers warm, consultative, concise (2-3 short paragraphs max), and mobile-friendly.
    - Always end each response with exactly ONE friendly, targeted follow-up question.
-3. Natural Polyglot Matching:
-   - English: Articulate, welcoming, inspiring, and clear.
-   - Bisaya / Cebuano: Warm, natural, and respectful (e.g., "Maayong adlaw!", "Pila na ang edad sa inyong anak karon?", "Naa tay prepared environment sa...").
-   - Tagalog / Taglish: Courteous, respectful (po/opo), approachable, and reassuring.
+3. Strict Language Mirroring & Polyglot Matching:
+   - YOU MUST ALWAYS STRICTLY MATCH THE LANGUAGE / DIALECT OF THE USER'S LATEST MESSAGE:
+   - If the user writes in English, reply 100% in English! Greet with "Good morning!" or "Welcome to The Abba's Orchard!". NEVER start with "Maayong adlaw" or mix Bisaya words when the user's latest query is in English, even if earlier messages in the chat history were in Bisaya.
+   - If the user writes in Bisaya / Cebuano (e.g., contains words like "Maayong adlaw", "pila", "naa", "kamo", "tagpila", "asa", "unsa"), reply warmly in natural conversational Bisaya/Cebuano (e.g., "Maayong adlaw!", "Oo, naa tay...").
+   - If the user writes in Tagalog / Taglish (e.g., contains words like "kamusta", "magkano", "meron", "po", "opo"), reply courteously in Tagalog / Taglish (po/opo).
 4. Lead Auto-Dispatch Tag Instruction:
    - If the inquiry is specific to a campus, asks for tuition, or provides parent/child details, append an invisible structured tag at the VERY END of your response in this exact JSON format:
    <!-- DISPATCH: {"campus": "Campus Name", "to": "campus_email@theabbasorchard.edu.ph", "subject": "Subject Summary", "parentName": "Name if provided or Prospective Parent", "parentContact": "Contact if provided or Captured via AI Session", "details": "Brief 1-2 sentence lead summary"} -->
@@ -197,6 +198,14 @@ module.exports = async function handler(req, res) {
           console.warn('Asynchronous dispatch error:', err.message);
         });
       } catch (e) {}
+    }
+
+    // Strict Language Mirroring Guard: If user asked in English, enforce English greeting starting with "Good morning!"
+    const userLower = (message || '').toLowerCase();
+    const hasBisayaKeywords = /\b(maayong|adlaw|buntag|hapon|gabii|pila|tagpila|unsa|unsaon|naa|kamo|ninyo|kanus-a|asa|taga|daghan|salamat kaayo)\b/i.test(userLower);
+    const hasTagalogKeywords = /\b(magkano|paano|saan|kailan|meron|\bpo\b|\bopo\b|kumusta|ano po|salamat po)\b/i.test(userLower);
+    if (!hasBisayaKeywords && !hasTagalogKeywords) {
+      cleanText = cleanText.replace(/^(?:maayong\s+(?:adlaw|buntag|hapon|gabii)|good\s+day)[!,.\s]*/i, 'Good morning! ');
     }
 
     return res.status(200).json({
