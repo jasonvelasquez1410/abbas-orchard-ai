@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
       // 1. Fast HTTP 200 acknowledgment to Meta to prevent retry loops
       res.status(200).send('EVENT_RECEIVED');
 
-      const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN;
+      const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN || 'EAAaF7RUQZBu8BTOKzpgGxgfIZAbeZCkfIaOo4MpBu65ZAiwhqXNYS9PanwZCiDwzu609kfCc30g1eALyd4P8GMYGYyW3DekLFykIw0GoLZBV71DRasuETi60mdKVnf0rB8sYQLHIhK12KKaYWfLd10b8o5HMuK4MS0GXYZC6eEcljpQnC9SqnoKe3gabXpHGiYLMsKvH0v3LDMdBcrICZATP';
       if (!pageAccessToken) {
         console.warn('⚠️ Meta webhook received message, but META_PAGE_ACCESS_TOKEN is not configured.');
         return;
