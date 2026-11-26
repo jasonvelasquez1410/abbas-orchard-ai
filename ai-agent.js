@@ -80,7 +80,8 @@ Conversational Admissions Guidelines (Consultative Dialogue):
 
 async function generateAIResponse(userMessage, conversationHistory = [], preferredCampus = null) {
   const provider = process.env.AI_PROVIDER || 'gemini';
-  const geminiKey = process.env.GEMINI_API_KEY || Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
+  const newActiveKey = Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
+  const geminiKey = (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('Laxwc4d3')) ? process.env.GEMINI_API_KEY : newActiveKey;
   const openaiKey = process.env.OPENAI_API_KEY;
   const candidateModels = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let rawResponse = "";
@@ -713,7 +714,11 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // --------------------------------------------------------------------------
   // INTENT 6B: Tuition & Payment Inquiries (Official SY 2026-2027 Summary)
   // --------------------------------------------------------------------------
-  const isTuition = lower.includes('tuition') || lower.includes('fee') || lower.includes('pila') || lower.includes('tagpila') || lower.includes('magkano') || lower.includes('how much') || lower.includes('cost') || lower.includes('payment') || lower.includes('installment') || lower.includes('tuition fee rates') || lower.includes('pricing') || lower.includes('chart');
+  const isTuition = lower.includes('tuition') || lower.includes('tuition fee') || lower.includes('tagpila') || 
+                    lower.includes('pila ang tuition') || lower.includes('pila tuition') || lower.includes('pila bayad') ||
+                    lower.includes('magkano ang tuition') || lower.includes('magkano tuition') || lower.includes('how much is tuition') || 
+                    lower.includes('how much tuition') || lower.includes('fee breakdown') || lower.includes('payment plan') || 
+                    lower.includes('installment plan') || lower.includes('tuition rates') || lower.includes('tuition chart');
   if (isTuition) {
     return getTuitionResponse(fullContext, campusInfo, isBisaya, isTagalog, parentName, currentText);
   }
