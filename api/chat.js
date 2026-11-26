@@ -201,8 +201,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       reply: cleanText,
-      dispatch: dispatchData,
-      _debug: debugErrors.length > 0 ? debugErrors : undefined
+      dispatch: dispatchData
     });
 
   } catch (err) {
