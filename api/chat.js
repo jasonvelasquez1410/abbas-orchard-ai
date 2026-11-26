@@ -358,26 +358,20 @@ function resolveActiveCampusInfo(currentText, historyArray = [], preferredCampus
   const fromPreferred = findLatestInString(preferredCampus);
   if (fromPreferred) return fromPreferred;
 
+  // Walk ONLY user messages backwards
   for (let i = historyArray.length - 1; i >= 0; i--) {
     const msg = historyArray[i];
     if (msg && msg.role === 'user' && msg.content) {
       const found = findLatestInString(msg.content);
-      if (found) return found;
-    }
-  }
-
-  for (let i = historyArray.length - 1; i >= 0; i--) {
-    const msg = historyArray[i];
-    if (msg && msg.content) {
-      const found = findLatestInString(msg.content);
-      if (found) return found;
+      if (found) return { ...found, isSpecific: true };
     }
   }
 
   return {
     name: "The Abba's Orchard Central Admissions",
     email: "admission_application@theabbasorchard.edu.ph",
-    phone: "(0917) 508 2668"
+    phone: "(0917) 707 2668",
+    isSpecific: false
   };
 }
 

@@ -288,18 +288,18 @@ function analyzeAgesAndPlanes(text) {
 
 function resolveActiveCampusInfo(currentText, historyArray = [], preferredCampus = null) {
   const campusPatterns = [
-    { keys: ['alwana', 'cdo', 'cagayan'], info: { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668" } },
-    { keys: ['davao', 'obrero', 'mandug'], info: { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669" } },
-    { keys: ['granja', 'bukidnon', 'baungon', 'erdkinder'], info: { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668" } },
-    { keys: ['cebu', 'magsaysay', 'tandang sora'], info: { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668" } },
-    { keys: ['iloilo', 'barbara'], info: { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668" } },
-    { keys: ['mckinley', 'bgc'], info: { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668" } },
-    { keys: ['bayani'], info: { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669" } },
-    { keys: ['alabang', 'filinvest', 'muntinlupa'], info: { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668" } },
-    { keys: ['greenhills', 'mandaluyong', 'wack-wack', 'wack wack'], info: { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668" } },
-    { keys: ['antipolo', 'taktak'], info: { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668" } },
-    { keys: ['calle industria', 'bridgetowne', 'quezon city', 'qc'], info: { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668" } },
-    { keys: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'], info: { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668" } }
+    { keys: ['alwana', 'cdo', 'cagayan'], info: { name: "Cagayan de Oro — Alwana Campus", email: "alwana@theabbasorchard.edu.ph", phone: "(0917) 707 2668", isSpecific: true } },
+    { keys: ['davao', 'obrero', 'mandug'], info: { name: "Davao City Campuses (Obrero & Mandug)", email: "davao@theabbasorchard.edu.ph", phone: "(0917) 707 2669", isSpecific: true } },
+    { keys: ['granja', 'bukidnon', 'baungon', 'erdkinder'], info: { name: "Bukidnon — La Granja Farm Boarding", email: "lagranja@theabbasorchard.edu.ph", phone: "(0917) 508 2668", isSpecific: true } },
+    { keys: ['cebu', 'magsaysay', 'tandang sora'], info: { name: "Cebu City Campuses (Magsaysay & Tandang Sora)", email: "cebu@theabbasorchard.edu.ph", phone: "(0917) 321 2668", isSpecific: true } },
+    { keys: ['iloilo', 'barbara'], info: { name: "Iloilo Campus (Sta. Barbara Heights)", email: "iloilo@theabbasorchard.edu.ph", phone: "(0917) 322 2668", isSpecific: true } },
+    { keys: ['mckinley', 'bgc'], info: { name: "Taguig — BGC McKinley Hill Campus", email: "mckinleyhill@theabbasorchard.edu.ph", phone: "(0917) 854 2668", isSpecific: true } },
+    { keys: ['bayani'], info: { name: "Taguig — Bayani Road Campus", email: "bayani@theabbasorchard.edu.ph", phone: "(0917) 854 2669", isSpecific: true } },
+    { keys: ['alabang', 'filinvest', 'muntinlupa'], info: { name: "Muntinlupa — Alabang Filinvest Campus", email: "alabang@theabbasorchard.edu.ph", phone: "(0917) 855 2668", isSpecific: true } },
+    { keys: ['greenhills', 'mandaluyong', 'wack-wack', 'wack wack'], info: { name: "Mandaluyong — Greenhills Campus", email: "greenhills@theabbasorchard.edu.ph", phone: "(0917) 856 2668", isSpecific: true } },
+    { keys: ['antipolo', 'taktak'], info: { name: "Antipolo City — Taktak Road Campus", email: "antipolo@theabbasorchard.edu.ph", phone: "(0917) 857 2668", isSpecific: true } },
+    { keys: ['calle industria', 'bridgetowne', 'quezon city', 'qc'], info: { name: "Quezon City — Bridgetowne / Calle Industria", email: "calleindustria@theabbasorchard.edu.ph", phone: "(0917) 858 2668", isSpecific: true } },
+    { keys: ['carmelray', 'canlubang', 'laguna', 'sta. rosa', 'santa rosa'], info: { name: "Canlubang — Carmelray Laguna Campus", email: "carmelray@theabbasorchard.edu.ph", phone: "(0917) 859 2668", isSpecific: true } }
   ];
 
   const findLatestInString = (str) => {
@@ -327,7 +327,8 @@ function resolveActiveCampusInfo(currentText, historyArray = [], preferredCampus
   const fromPreferred = findLatestInString(preferredCampus);
   if (fromPreferred) return fromPreferred;
 
-  // 3. Walk user messages in conversation history backwards from newest to oldest first
+  // 3. Walk ONLY USER messages in conversation history backwards from newest to oldest
+  // (NEVER walk assistant/model messages, otherwise campuses listed in bot responses get falsely selected!)
   for (let i = historyArray.length - 1; i >= 0; i--) {
     const msg = historyArray[i];
     if (msg && msg.role === 'user' && msg.content) {
@@ -336,19 +337,12 @@ function resolveActiveCampusInfo(currentText, historyArray = [], preferredCampus
     }
   }
 
-  // 4. Fallback: walk all messages in conversation history backwards from newest to oldest
-  for (let i = historyArray.length - 1; i >= 0; i--) {
-    const msg = historyArray[i];
-    if (msg && msg.content) {
-      const found = findLatestInString(msg.content);
-      if (found) return found;
-    }
-  }
-
+  // Fallback: No specific campus requested yet by parent
   return {
     name: "The Abba's Orchard Central Admissions",
     email: "admission_application@theabbasorchard.edu.ph",
-    phone: "(0917) 508 2668"
+    phone: "(0917) 707 2668",
+    isSpecific: false
   };
 }
 
@@ -754,14 +748,18 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // Scenario B: SINGLE CHILD PLANE
   if (ageAnalysis.planes.length === 1) {
     const p = ageAnalysis.planes[0];
+    const campusInvite = campusInfo.isSpecific
+      ? `at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**)`
+      : `at your preferred campus (we have 15+ campuses across Metro Manila, Visayas, and Mindanao)`;
+
     if (p.id === 'casa') {
-      return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or request the Casa admissions schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (${p.ageLabel})"} -->`;
+      return `Wonderful! For your **${p.ageLabel}** child, our authentic **Casa dei Bambini (Pre-School & Kindergarten — Ages 3 to 6)** is a golden stage of self-directed growth:\n• **Practical Life:** Concentration, independence, coordination, and care of environment\n• **Sensorial:** Refining the senses as the foundation for mathematical and scientific exploration\n• **Mathematics:** Hands-on concrete bead materials leading effortlessly to arithmetic\n• **Language & Phonics:** Reading fluency, word exploration, and self-expression\n\nWould you like to schedule a morning observation walkthrough ${campusInvite} or request the Casa admissions schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Casa dei Bambini Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Casa dei Bambini (${p.ageLabel})"} -->`;
     }
     if (p.id === 'elem') {
-      return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) for a classroom observation walkthrough?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (${p.ageLabel})"} -->`;
+      return `Fantastic! For your **${p.ageLabel}** child, our **Elementary Program (Ages 6 to 12 / Lower & Upper Elementary)** provides Dr. Maria Montessori's **Cosmic Education**:\n• Collaborative scientific research, historical timelines, and critical thinking\n• Interconnected curriculum: Science, History, Geography, Advanced Mathematics, and Literature\n• Developing moral responsibility, empathy, peer collaboration, and moral leadership\n\nWould you like us to connect you with the Elementary Coordinator ${campusInvite} for a classroom observation walkthrough?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Elementary Program Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Elementary (${p.ageLabel})"} -->`;
     }
     if (p.id === 'infant') {
-      return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough at **${campusInfo.name}** (**${campusInfo.email}** | **${campusInfo.phone}**) or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
+      return `Wonderful! For your **${p.ageLabel}** child, our **Infant Community (Toddler Environment — 14 mos to 3 yrs)** nurtures:\n• Functional independence and self-care routines\n• Coordinated movement and fine motor refinement\n• Expressive language acquisition in a peaceful, prepared setting\n\nWould you like to schedule a morning walkthrough ${campusInvite} or receive the Infant Community schedule?\n<!-- DISPATCH: {"campus": "${campusInfo.name}", "to": "${campusInfo.email}", "subject": "Infant Community Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Child age: Toddler / Infant Community (${p.ageLabel})"} -->`;
     }
     if (p.id === 'erdkinder') {
       return `For your **${p.ageLabel}** adolescent student (ages 12 to 18 / Junior & Senior High), our flagship **Erdkinder Farm Boarding Campus** at **Bukidnon La Granja Estates** offers a transformative experience:\n• Organic agriculture, land stewardship, animal husbandry, and student-run micro-economy\n• High academic rigor integrated with real-world land management\n• Boarding community fostering deep maturity, self-reliance, and collaborative governance\n\nWould you like to receive the Adolescent Farm Boarding admissions packet or schedule a campus visit in Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Erdkinder Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Session", "details": "Inquiry on adolescent farm boarding (${p.ageLabel})."} -->`;
