@@ -82,28 +82,17 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
   const provider = process.env.AI_PROVIDER || 'gemini';
   const geminiKey = process.env.GEMINI_API_KEY || Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
   const openaiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.AI_MODEL || (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'gpt-4o-mini');
-
-  const lowerMsg = String(userMessage || '').toLowerCase();
-  const isDeterministicTuitionOrBooking =
-    lowerMsg.includes('tuition') || lowerMsg.includes('fee') || lowerMsg.includes('pila') ||
-    lowerMsg.includes('tagpila') || lowerMsg.includes('magkano') || lowerMsg.includes('how much') ||
-    lowerMsg.includes('cost') || lowerMsg.includes('payment') || lowerMsg.includes('installment') ||
-    lowerMsg.includes('pricing') || lowerMsg.includes('chart') || lowerMsg.includes('rates') ||
-    /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b/i.test(lowerMsg);
-
+  const candidateModels = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let rawResponse = "";
 
-  if (isDeterministicTuitionOrBooking) {
-    rawResponse = generateFallbackResponse(userMessage, conversationHistory, preferredCampus);
-  } else if (provider === 'gemini' && geminiKey) {
+  // 1. Primary: Generative Gemini Intelligence with Polyglot Mirroring (English, Bisaya, Tagalog)
+  if (provider === 'gemini' && geminiKey) {
     const contents = conversationHistory.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
     contents.push({ role: 'user', parts: [{ text: userMessage }] });
 
-    const candidateModels = [model, 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.8-flash', 'gemini-flash-latest'];
     let geminiSuccess = false;
 
     for (const m of candidateModels) {
@@ -116,7 +105,7 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
             temperature: 0.4,
             maxOutputTokens: 800
           }
-        }, { timeout: 10000 });
+        }, { timeout: 8000 });
 
         const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
@@ -504,8 +493,7 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
                              lower.includes('what do you do in a walkthrough') || lower.includes('what happens during a walkthrough') ||
                              lower.includes('how does a walkthrough work') || lower.includes('explain walkthrough') ||
                              lower.includes('tell me about the walkthrough') || lower.includes('unsa na ang walkthrough') ||
-                             lower.includes('ano yung walkthrough') || lower.includes('ano po ang observation') ||
-                             ((lower.startsWith('what is') || lower.startsWith('ano') || lower.startsWith('unsa') || lower.includes('explain') || lower.includes('tell me more')) && (lastModelLower.includes('walkthrough') || lastModelLower.includes('observation')));
+                             lower.includes('ano yung walkthrough') || lower.includes('ano po ang observation');
 
   if (isAskingWhatIsThat) {
     if (isBisaya) {
