@@ -180,7 +180,7 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
   const hasBisayaKeywords = /\b(maayong|adlaw|buntag|hapon|gabii|pila|tagpila|unsa|unsaon|naa|kamo|ninyo|kanus-a|asa|taga|daghan|salamat kaayo)\b/i.test(userLower);
   const hasTagalogKeywords = /\b(magkano|paano|saan|kailan|meron|\bpo\b|\bopo\b|kumusta|ano po|salamat po)\b/i.test(userLower);
   if (!hasBisayaKeywords && !hasTagalogKeywords) {
-    cleanText = cleanText.replace(/^(?:maayong\s+(?:adlaw|buntag|hapon|gabii)|good\s+day)[!,.\s]*/i, 'Good morning! ');
+    cleanText = cleanText.trim().replace(/^\s*(?:maayong\s+(?:adlaw|buntag|hapon|gabii)|good\s+day)[!,.\s]*/i, 'Good morning! ').trim();
   }
 
   return {
