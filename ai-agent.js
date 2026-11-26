@@ -83,7 +83,7 @@ async function generateAIResponse(userMessage, conversationHistory = [], preferr
   const newActiveKey = Buffer.from('QVEuQWI4Uk42TFJfbThhRzlqcUdMRnlUUGZkbkZfLW15UVVneXlRdW5NRXJhRE9TeHdvMmc=', 'base64').toString('utf8');
   const geminiKey = (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('Laxwc4d3')) ? process.env.GEMINI_API_KEY : newActiveKey;
   const openaiKey = process.env.OPENAI_API_KEY;
-  const candidateModels = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let rawResponse = "";
 
   // 1. Primary: Generative Gemini Intelligence with Polyglot Mirroring (English, Bisaya, Tagalog)
@@ -834,7 +834,10 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   if (isBukidnon) {
-    return `🌾 **The Abba's Orchard Bukidnon — La Granja Estates:**\nLa Granja is our flagship **Erdkinder Farm Boarding Campus** in Baungon, Bukidnon. Combining Dr. Maria Montessori's adolescent pedagogy with academic rigor, organic agriculture, animal stewardship, and community living.\n\n**Programs Offered:**\n• Infant Community (14 mos – 3 yrs)\n• Casa (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n• Erdkinder Adolescent Boarding (12 – 18 yrs / Junior & Senior High)\n\n📍 *Address:* La Granja Estates, Pualas, Baungon, Bukidnon\n📞 *Direct Line:* (0917) 508 2668\n📧 *Coordinator:* **lagranja@theabbasorchard.edu.ph**\n\nWould you like to schedule a weekend farm tour or receive the adolescent boarding admissions checklist?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Bukidnon Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Bukidnon La Granja farm boarding."} -->`;
+    if (isBisaya) {
+      return `Maayong adlaw! Oo, naa gyud kitay high school boarding sa **The Abba's Orchard Bukidnon — La Granja Estates** (Baungon, Bukidnon). 🌱\n\n• **Age Requirement:** Para kini sa mga estudyante gikan sa **12 hangtod 18 anyos** (Grades 7 hangtod 12 / Junior & Senior High).\n• **Erdkinder Program:** Gihiusa niini ang academic rigor, organic agriculture, animal stewardship, ug pagdumala sa land-based micro-economy.\n\n📍 *Address:* La Granja Estates, Pualas, Baungon, Bukidnon\n📞 *Direct Line:* (0917) 508 2668\n📧 *Coordinator:* **lagranja@theabbasorchard.edu.ph**\n\nPila na man ang edad sa inyong anak karon, ug gusto ba mo mag-schedule og weekend farm observation visit sa Bukidnon?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Bukidnon Farm Boarding Inquiry (Bisaya)", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Bukidnon La Granja farm boarding (Bisaya)."} -->`;
+    }
+    return `🌾 **The Abba's Orchard Bukidnon — La Granja Estates:**\nLa Granja is our flagship **Erdkinder Farm Boarding Campus** in Baungon, Bukidnon. Combining Dr. Maria Montessori's adolescent pedagogy with academic rigor, organic agriculture, animal stewardship, and community living.\n\n**Programs Offered & Age Requirements:**\n• Infant Community (14 mos – 3 yrs)\n• Casa (3 – 6 yrs)\n• Elementary (6 – 12 yrs)\n• Erdkinder Adolescent Boarding (**Ages 12 – 18 yrs** / Junior & Senior High / Grades 7–12)\n\n📍 *Address:* La Granja Estates, Pualas, Baungon, Bukidnon\n📞 *Direct Line:* (0917) 508 2668\n📧 *Coordinator:* **lagranja@theabbasorchard.edu.ph**\n\nWould you like to schedule a weekend farm tour or receive the adolescent boarding admissions checklist?\n<!-- DISPATCH: {"campus": "Bukidnon - La Granja Estates", "to": "lagranja@theabbasorchard.edu.ph", "subject": "Bukidnon Farm Boarding Inquiry", "parentName": "Prospective Parent", "parentContact": "Captured via AI Assistant", "details": "Inquiry on Bukidnon La Granja farm boarding."} -->`;
   }
 
   if (isCebu) {
