@@ -788,6 +788,9 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   // --------------------------------------------------------------------------
   // INTENT 10: Specific Campus Mentions & Quick-Select Clicks
   // --------------------------------------------------------------------------
+  const isManila = lower.includes('manila') || lower.includes('metro manila') || lower.includes('ncr') || lower.includes('luzon');
+  const isVisayas = lower.includes('visayas');
+  const isMindanao = lower.includes('mindanao') && !lower.includes('davao') && !lower.includes('cdo') && !lower.includes('alwana') && !lower.includes('bukidnon');
   const isDavao = lower.includes('davao') || lower.includes('obrero') || lower.includes('mandug');
   const isBukidnon = lower.includes('bukidnon') || lower.includes('granja') || lower.includes('erdkinder') || lower.includes('farm') || lower.includes('baungon');
   const isCdo = lower.includes('alwana') || lower.includes('cdo') || lower.includes('cagayan');
@@ -800,6 +803,18 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   const isAntipolo = lower.includes('antipolo') || lower.includes('taktak');
   const isQc = lower.includes('calle industria') || lower.includes('bridgetowne') || lower.includes('quezon city');
   const isLaguna = lower.includes('carmelray') || lower.includes('canlubang') || lower.includes('laguna');
+
+  if (isManila && !isBgc && !isBayani && !isAlabang && !isGreenhills && !isAntipolo && !isQc && !isLaguna) {
+    return `🏙️ **The Abba's Orchard Campuses in Metro Manila & South Luzon:**\n\nWe have 6 authentic AMI Montessori campuses serving families across Metro Manila and nearby areas:\n\n1. **Taguig — BGC McKinley Hill Campus:** Infant Community (14m–3y), Casa (3–6y), and Elementary (6–12y)\n   📍 McKinley Hill, Fort Bonifacio | 📞 (0917) 854 2668 | 📧 mckinleyhill@theabbasorchard.edu.ph\n\n2. **Taguig — Bayani Road Campus:** Casa dei Bambini & Elementary\n   📍 AFPOVAI Phase 4, Bayani Rd | 📞 (0917) 854 2669 | 📧 bayani@theabbasorchard.edu.ph\n\n3. **Muntinlupa — Alabang Filinvest Campus:** Infant Community, Casa & Elementary\n   📍 Civic Prime Bldg, Filinvest City | 📞 (0917) 855 2668 | 📧 alabang@theabbasorchard.edu.ph\n\n4. **Mandaluyong — Greenhills Campus:** Infant Community, Casa & Elementary\n   📍 Ortigas Ave / Greenhills area | 📞 (0917) 856 2668 | 📧 greenhills@theabbasorchard.edu.ph\n\n5. **Quezon City — Bridgetowne / Calle Industria Campus:** Infant Community, Casa & Elementary\n   📍 Calle Industria, Bagumbayan | 📞 (0917) 858 2668 | 📧 calleindustria@theabbasorchard.edu.ph\n\n6. **Antipolo City — Taktak Road Campus:** Infant Community, Casa & Elementary\n   📍 Daang Bakal / Taktak Road | 📞 (0917) 857 2668 | 📧 antipolo@theabbasorchard.edu.ph\n\n*(Plus our Laguna campus in Canlubang Carmelray!)*\n\nWhich of these Metro Manila locations is closest to your home?\n<!-- DISPATCH: {"campus": "Metro Manila Campuses", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Metro Manila Campuses Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for Metro Manila campuses: ${currentText}"} -->`;
+  }
+
+  if (isVisayas && !isCebu && !isIloilo) {
+    return `🌴 **The Abba's Orchard Campuses in the Visayas:**\n\n1. **Cebu City Campuses (Magsaysay & Tandang Sora):** Infant Community, Casa dei Bambini, and Elementary\n   📍 Magsaysay St. & Tandang Sora, Cebu City | 📞 (0917) 321 2668 | 📧 cebu@theabbasorchard.edu.ph\n\n2. **Iloilo Campus (Sta. Barbara Heights):** Casa dei Bambini and Elementary\n   📍 Sta. Barbara Heights, Iloilo | 📞 (0917) 322 2668 | 📧 iloilo@theabbasorchard.edu.ph\n\nWhich Visayas campus would you like to explore for your child?\n<!-- DISPATCH: {"campus": "Visayas Campuses", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Visayas Campuses Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for Visayas campuses: ${currentText}"} -->`;
+  }
+
+  if (isMindanao) {
+    return `🌱 **The Abba's Orchard Campuses in Mindanao:**\n\n1. **Cagayan de Oro — Alwana Campus:** Infant Community, Casa, and Elementary\n   📍 Alwana Business Park, Cugman, CDO | 📞 (0917) 707 2668 | 📧 alwana@theabbasorchard.edu.ph\n\n2. **Davao City Campuses (Obrero & Mandug):** Infant Community, Casa, Elementary, and Erdkinder\n   📍 Loyola St., Bo. Obrero & Mandug, Davao City | 📞 (0917) 707 2669 | 📧 davao@theabbasorchard.edu.ph\n\n3. **Bukidnon — La Granja Estates:** Adolescent Erdkinder Farm Boarding Campus (Grades 7–12 / Ages 12–18)\n   📍 Pualas, Baungon, Bukidnon | 📞 (0917) 508 2668 | 📧 lagranja@theabbasorchard.edu.ph\n\nWhich Mindanao campus would you like to visit?\n<!-- DISPATCH: {"campus": "Mindanao Campuses", "to": "admission_application@theabbasorchard.edu.ph", "subject": "Mindanao Campuses Inquiry", "parentName": "${parentName}", "parentContact": "Captured via AI Session", "details": "Parent asked for Mindanao campuses: ${currentText}"} -->`;
+  }
 
   // General Nationwide Location Check
   const isGeneralLocation = (lower.includes('where are you located') || lower.includes('where are you') || 
@@ -875,7 +890,8 @@ function generateFallbackResponse(userMessage, conversationHistory = [], preferr
   }
 
   // Intelligent Context-Retaining Catch-All
-  if (historyArray.length > 0 || (campusInfo && campusInfo.name !== "The Abba's Orchard Central Admissions")) {
+  const isDirectlyAboutCurrentCampus = Boolean(findLatestInString(currentText));
+  if (isDirectlyAboutCurrentCampus && campusInfo && campusInfo.name !== "The Abba's Orchard Central Admissions") {
     if (isBisaya) {
       return `Nakasabot ko nga nag-inquire kamo mahitungod sa **${campusInfo.name}**. 🌿\n\nAron matabangan kamo sa labing maayong paagi, unsa man ang inyong gusto nga buhaton karon?\n\n1. 📅 **Pag-book og Morning Observation Walkthrough** (Lunes hangtod Biyernes, 8:30 AM – 11:00 AM)\n2. 💰 **Pagkuha sa SY 2026–2027 Tuition Fee Breakdown** (I-share lang ang edad o grade level sa inyong anak)\n3. 📋 **Listahan sa Admissions Requirements & Enrollment Process**\n4. 📞 **Direktang Pakig-istorya sa Campus Coordinator** (**${campusInfo.phone}** | **${campusInfo.email}**)\n\nIsulti lang kanako kung asa niini ang inyong gusto unahon!`;
     }
