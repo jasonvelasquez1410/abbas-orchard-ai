@@ -46,15 +46,16 @@ async function dispatchLead(dispatchData, channel = 'website') {
   // --------------------------------------------------------------------------
   // 1. Webhook Dispatch (Google Sheets AppScript, Zapier, CRM, Discord/Slack)
   // --------------------------------------------------------------------------
-  const webhookUrl = process.env.LEAD_WEBHOOK_URL;
+  const webhookUrl = process.env.LEAD_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbzzZWM_8OszMKHSD9SqwRPal05vP6JRIau38ytY64Voa2uwMSiO9SOD3s8HbTvtgRhkhw/exec';
   if (webhookUrl && webhookUrl.startsWith('http')) {
     try {
       await axios.post(webhookUrl, payload, {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 6000
+        timeout: 8000,
+        maxRedirects: 5
       });
       results.webhook = true;
-      console.log('✅ Lead successfully forwarded to webhook URL.');
+      console.log('✅ Lead successfully forwarded to Google Sheets webhook.');
     } catch (whErr) {
       console.warn('⚠️ Webhook lead dispatch failed:', whErr.message);
     }

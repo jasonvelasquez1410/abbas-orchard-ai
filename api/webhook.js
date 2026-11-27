@@ -102,9 +102,11 @@ module.exports = async function handler(req, res) {
               // 6. Dispatch lead notification if contact details or walkthrough booked
               if (aiResult.dispatch) {
                 console.log('⚡ [LEAD CAPTURED VIA FACEBOOK MESSENGER]:', aiResult.dispatch);
-                dispatchLead(aiResult.dispatch, 'facebook_messenger').catch(dispErr => {
+                try {
+                  await dispatchLead(aiResult.dispatch, 'facebook_messenger');
+                } catch (dispErr) {
                   console.warn('Facebook lead dispatch warning:', dispErr.message);
-                });
+                }
               }
 
             } catch (eventErr) {

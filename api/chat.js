@@ -194,9 +194,11 @@ module.exports = async function handler(req, res) {
       try {
         dispatchData = JSON.parse(dispatchMatch[1]);
         // Trigger automated multi-channel lead dispatching
-        dispatchLead(dispatchData, 'website').catch(err => {
+        try {
+          await dispatchLead(dispatchData, 'website');
+        } catch (err) {
           console.warn('Asynchronous dispatch error:', err.message);
-        });
+        }
       } catch (e) {}
     }
 
